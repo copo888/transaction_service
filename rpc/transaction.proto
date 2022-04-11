@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package transaction;
+
+option go_package = "./transaction";
+
+message ProxyOrderReq_DFB {
+  ProxyPayOrderRequest req = 1;
+  CorrespondMerChnRate rate =2;
+  string balanceType = 3;
+}
+
+message ProxyOrderResp_DFB {
+  string ProxyOrderNo = 1;
+}
+
+message ProxyPayOrderRequest{
+  string AccessType    = 1;
+  string MerchantId    = 2;
+  string Sign          = 3;
+  string NotifyUrl     = 4;
+  string Language      = 5;
+  string OrderNo       = 6;
+  string BankId        = 7;
+  string BankName      = 8;
+  string BankProvince  = 9;
+  string BankCity      = 10;
+  string BranchName    = 11;
+  string BankNo        = 12;
+  double OrderAmount   = 13;
+  string DefrayName    = 14;
+  string DefrayId      = 15;
+  string DefrayMobile  = 16;
+  string DefrayEmail   = 17;
+  string Currency      = 18;
+  string PayTypeSubNo  = 19;
+}
+
+message CorrespondMerChnRate{
+  string MerchantCode        = 1;
+  string ChannelPayTypesCode = 2;
+  string ChannelCode         = 3;
+  string PayTypeCode         = 4;
+  string PayTypeCodeNum      = 5;
+  string Designation         = 6;
+  string DesignationNo       = 7;
+  double Fee                = 8;
+  double HandlingFee        = 9;
+  double ChFee              = 10;
+  double ChHandlingFee      = 11;
+  double SingleMinCharge    = 12;
+  double SingleMaxCharge    = 13;
+  string CurrencyCode        = 14;
+  string ApiUrl              = 15;
+}
+
+
+service Transaction {
+  rpc ProxyOrderTranaction(ProxyOrderReq_DFB) returns (ProxyOrderResp_DFB);
+}

@@ -1,0 +1,26 @@
+Name: ${APP_NAME}
+ListenOn: ${APP_HOST}
+
+Mysql:
+  Host: ${DB_HOST}
+  Port: ${DB_PORT}
+  DBName: ${DB_DATABASE}
+  UserName: ${DB_USERNAME}
+  Password: ${DB_PASSWORD}
+  DebugLevel: ${DB_DEBUG_LEVEL}
+
+RedisCache:
+  RedisSentinelNode: ${REDIS_SENTINEL_NODE}
+  RedisMasterName: ${REDIS_MASTER_NAME}
+  RedisDB: ${REDIS_DB}
+
+Consul:
+  Host: ${CONSUL_HOST}
+  Key: ${CONSUL_KEY}
+  Check: ${CONSUL_CHECK}
+  Meta:
+    Protocol: grpc
+  Tag:
+    - ${CONSUL_KEY}
+
+
