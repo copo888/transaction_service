@@ -3,13 +3,19 @@ module github.com/copo888/transaction_service
 go 1.17
 
 require (
+	github.com/gioco-play/gozzle v0.0.0-20220214095646-81ab484dee5d
+	github.com/go-playground/universal-translator v0.18.0
+	github.com/go-playground/validator/v10 v10.10.1
 	github.com/go-redis/redis/v8 v8.11.4
+	github.com/golang/protobuf v1.5.2
 	github.com/joho/godotenv v1.4.0
 	github.com/neccoys/go-driver v0.0.0-20220411064014-321cfa09a003
 	github.com/neccoys/go-zero-extension v0.0.0-20220411035408-307c413921de
+	github.com/shopspring/decimal v1.3.1
 	github.com/zeromicro/go-zero v1.3.2
+	go.opentelemetry.io/otel/trace v1.3.0
+	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
 	google.golang.org/grpc v1.45.0
-	google.golang.org/protobuf v1.28.0
 	gorm.io/gorm v1.23.4
 )
 
@@ -24,12 +30,14 @@ require (
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/go-logr/logr v1.2.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/golang-jwt/jwt/v4 v4.2.0 // indirect
 	github.com/golang/mock v1.6.0 // indirect
-	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/gnostic v0.4.1 // indirect
 	github.com/hashicorp/consul/api v1.12.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
@@ -42,6 +50,8 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/justinas/alice v1.2.0 // indirect
+	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
@@ -63,12 +73,10 @@ require (
 	go.opentelemetry.io/otel/exporters/jaeger v1.3.0 // indirect
 	go.opentelemetry.io/otel/exporters/zipkin v1.3.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.3.0 // indirect
-	go.opentelemetry.io/otel/trace v1.3.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/automaxprocs v1.4.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
-	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f // indirect
 	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
@@ -77,6 +85,7 @@ require (
 	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220228195345-15d65a4533f7 // indirect
+	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gorm.io/driver/mysql v1.3.3 // indirect

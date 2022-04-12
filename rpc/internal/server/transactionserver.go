@@ -36,3 +36,8 @@ func (s *TransactionServer) ProxyOrderTranaction(ctx context.Context, in *transa
 	l := logic.NewProxyOrderTranactionLogic(ctx, s.svcCtx)
 	return l.ProxyOrderTranaction(in)
 }
+
+func (s *TransactionServer) PayOrderTranaction(ctx context.Context, in *transaction.PayOrderRequest) (*transaction.PayOrderResponse, error) {
+	l := logic.NewPayOrderTranactionLogic(ctx, s.svcCtx)
+	return l.PayOrderTranaction(in)
+}

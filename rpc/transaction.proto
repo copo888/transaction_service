@@ -54,7 +54,43 @@ message CorrespondMerChnRate{
   string ApiUrl              = 15;
 }
 
+message PayOrderRequest {
+  PayOrder payOrder         = 1;
+  CorrespondMerChnRate Rate = 2;
+  string OrderNo            = 3;
+  string ChannelOrderNo     = 4;
+}
+
+message PayOrderResponse {
+  string PayOrderNo = 1;
+}
+
+message PayOrder {
+    string AccessType     = 1;
+    string MerchantId     = 2;
+    string NotifyUrl      = 3;
+    string PageUrl        = 4;
+    string Language       = 5;
+    string Sign           = 6;
+    string JumpType       = 7;
+    string LoginType      = 8;
+    string OrderNo        = 9;
+    string OrderAmount    = 10;
+    string Currency       = 11;
+    string PayType        = 12;
+    string OrderTime      = 13;
+    string OrderName      = 14;
+    string BankCode       = 15;
+    string Phone          = 16;
+    string PayTypeNo      = 17;
+    string UserId         = 18;
+    string MerchantLevel  = 19;
+    string UserIp         = 20;
+}
+
 
 service Transaction {
   rpc ProxyOrderTranaction(ProxyOrderRequest) returns (ProxyOrderResponse);
+
+  rpc PayOrderTranaction(PayOrderRequest) returns (PayOrderResponse);
 }
