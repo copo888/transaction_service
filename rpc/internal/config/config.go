@@ -2,13 +2,15 @@ package config
 
 import (
 	"github.com/neccoys/go-zero-extension/consul"
+	_ "github.com/zeromicro/go-zero/core/service"
+	_ "github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/zrpc"
 )
 
 type Config struct {
 	zrpc.RpcServerConf
 	Consul consul.Conf
-	Mysql struct {
+	Mysql  struct {
 		Host       string
 		Port       int
 		DBName     string
