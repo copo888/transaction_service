@@ -134,6 +134,7 @@ func UpdateXFBalance_Debit(db *gorm.DB, updateBalance types.UpdateBalance) (merc
 	return
 }
 
+// TODO 最後要刪除此方法
 // UpdateBalance TransferAmount需正負(收款传正值/扣款传負值), BalanceType:餘額類型 (DFB=代付餘額 XFB=下發餘額)
 func UpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 

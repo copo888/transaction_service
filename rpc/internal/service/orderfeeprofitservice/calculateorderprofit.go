@@ -6,15 +6,22 @@ import (
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/types"
+	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
 )
 
 // CalculateOrderProfit 計算利潤 (下發不可用) (回傳 商戶,代理,系統 費率利潤)
-func CalculateOrderProfit(db *gorm.DB, calculateProfit types.CalculateProfit) (orderFeeProfits []types.OrderFeeProfit, err error) {
-
-	err = calculateProfitLoop(db, &calculateProfit, &orderFeeProfits)
-
-	return
+func CalculateOrderProfit(db *gorm.DB, calculateProfit types.CalculateProfit) (err error) {
+	return db.Transaction(func(db *gorm.DB) (err error) {
+		var orderFeeProfits []types.OrderFeeProfit
+		if err = calculateProfitLoop(db, &calculateProfit, &orderFeeProfits); err != nil {
+			logx.Error("計算利潤錯誤: %s ", err.Error())
+			return err
+		}
+		logx.Info("計算利潤: #%v ", orderFeeProfits)
+		//TODO: tx_order 多個欄位判斷是否已計算利潤
+		return
+	})
 }
 
 // calculateProfitLoop 計算利潤迴圈

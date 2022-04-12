@@ -43,8 +43,6 @@ func (l *ProxyOrderTranactionLogic) ProxyOrderTranaction(in *transaction.ProxyOr
 	rate := in.Rate
 	balanceType := in.BalanceType
 
-	var orderFeeProfits []types.OrderFeeProfit
-	var err error
 	// 依商户是否给回调网址，决定是否回调商户flag
 	var isMerchantCallback string
 	if req.NotifyUrl != "" {
@@ -113,23 +111,9 @@ func (l *ProxyOrderTranactionLogic) ProxyOrderTranaction(in *transaction.ProxyOr
 		transAt = types.JsonTime{}.New()
 		logx.Infof("商户 %s，代付订单 %#v ，交易账户为黑名单", txOrder.MerchantCode, txOrder)
 	} else { //不为黑名单
-		// 計算利潤
-		if orderFeeProfits, err = orderfeeprofitservice.CalculateOrderProfit(l.svcCtx.MyDB, types.CalculateProfit{
-			MerchantCode:        txOrder.MerchantCode,
-			OrderNo:             txOrder.OrderNo,
-			Type:                txOrder.Type,
-			CurrencyCode:        txOrder.CurrencyCode,
-			BalanceType:         txOrder.BalanceType,
-			ChannelCode:         txOrder.ChannelCode,
-			ChannelPayTypesCode: txOrder.ChannelPayTypesCode,
-			OrderAmount:         txOrder.OrderAmount,
-		}); err != nil {
-			logx.Error("計算利潤出錯:%s", err.Error())
-			return nil, err
-		}
 
 		//交易金额 = 订单金额 + 商户手续费
-		txOrder.TransferAmount = utils.FloatAdd(txOrder.OrderAmount, orderFeeProfits[0].TransferHandlingFee)
+		txOrder.TransferAmount = utils.FloatAdd(txOrder.OrderAmount, txOrder.TransferHandlingFee)
 		updateBalance.TransferAmount = txOrder.TransferAmount //扣款依然傳正值
 
 		//更新钱包且新增商户钱包异动记录
@@ -156,6 +140,20 @@ func (l *ProxyOrderTranactionLogic) ProxyOrderTranaction(in *transaction.ProxyOr
 		return nil, err3
 	}
 	tx.Commit()
+
+	// 計算利潤 TODO: 異步??
+	if err4 := orderfeeprofitservice.CalculateOrderProfit(l.svcCtx.MyDB, types.CalculateProfit{
+		MerchantCode:        txOrder.MerchantCode,
+		OrderNo:             txOrder.OrderNo,
+		Type:                txOrder.Type,
+		CurrencyCode:        txOrder.CurrencyCode,
+		BalanceType:         txOrder.BalanceType,
+		ChannelCode:         txOrder.ChannelCode,
+		ChannelPayTypesCode: txOrder.ChannelPayTypesCode,
+		OrderAmount:         txOrder.OrderAmount,
+	}); err4 != nil {
+		logx.Error("計算利潤出錯:%s", err4.Error())
+	}
 
 	proxyOrderResp := &transaction.ProxyOrderResponse{
 		ProxyOrderNo: txOrder.OrderNo,
