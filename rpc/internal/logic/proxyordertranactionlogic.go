@@ -35,7 +35,7 @@ func NewProxyOrderTranactionLogic(ctx context.Context, svcCtx *svc.ServiceContex
 
 	@return
 */
-func (l *ProxyOrderTranactionLogic) ProxyOrderTranaction(in *transactionclient.ProxyOrderReq_DFB) (*transactionclient.ProxyOrderResp_DFB, error) {
+func (l *ProxyOrderTranactionLogic) ProxyOrderTranaction(in *transactionclient.ProxyOrderRequest) (*transactionclient.ProxyOrderResponse, error) {
 	userAccount := "TEST0001"
 
 	tx := l.svcCtx.MyDB
@@ -155,7 +155,7 @@ func (l *ProxyOrderTranactionLogic) ProxyOrderTranaction(in *transactionclient.P
 		logx.Error("計算利潤出錯:%s", err4.Error())
 	}
 
-	proxyOrderResp := &transactionclient.ProxyOrderResp_DFB{
+	proxyOrderResp := &transactionclient.ProxyOrderResponse{
 		ProxyOrderNo: txOrder.OrderNo,
 	}
 

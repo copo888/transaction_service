@@ -4,13 +4,17 @@ package transaction;
 
 option go_package = "./transaction";
 
-message ProxyOrderReq_DFB {
+message ProxyOrderRequest {
   ProxyPayOrderRequest req = 1;
   CorrespondMerChnRate rate =2;
   string balanceType = 3;
 }
 
-message ProxyOrderResp_DFB {
+message ProxyOrderResponse {
+  string ProxyOrderNo = 1;
+}
+
+message ProxyOrderResp_XFB {
   string ProxyOrderNo = 1;
 }
 
@@ -90,7 +94,8 @@ message PayOrder {
 
 
 service Transaction {
-  rpc ProxyOrderTranaction(ProxyOrderReq_DFB) returns (ProxyOrderResp_DFB);
+
+  rpc ProxyOrderTranaction(ProxyOrderRequest) returns (ProxyOrderResponse);
 
   rpc PayOrderTranaction(PayOrderRequest) returns (PayOrderResponse);
 }
