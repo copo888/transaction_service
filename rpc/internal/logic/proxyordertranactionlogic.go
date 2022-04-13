@@ -9,7 +9,7 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
-	"github.com/copo888/transaction_service/rpc/transaction"
+	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -35,7 +35,7 @@ func NewProxyOrderTranactionLogic(ctx context.Context, svcCtx *svc.ServiceContex
 
 	@return
 */
-func (l *ProxyOrderTranactionLogic) ProxyOrderTranaction(in *transaction.ProxyOrderRequest) (*transaction.ProxyOrderResponse, error) {
+func (l *ProxyOrderTranactionLogic) ProxyOrderTranaction(in *transactionclient.ProxyOrderReq_DFB) (*transactionclient.ProxyOrderResp_DFB, error) {
 	userAccount := "TEST0001"
 
 	tx := l.svcCtx.MyDB
@@ -155,7 +155,7 @@ func (l *ProxyOrderTranactionLogic) ProxyOrderTranaction(in *transaction.ProxyOr
 		logx.Error("計算利潤出錯:%s", err4.Error())
 	}
 
-	proxyOrderResp := &transaction.ProxyOrderResponse{
+	proxyOrderResp := &transactionclient.ProxyOrderResp_DFB{
 		ProxyOrderNo: txOrder.OrderNo,
 	}
 

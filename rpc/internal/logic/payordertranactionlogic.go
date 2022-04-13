@@ -8,7 +8,7 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
-	"github.com/copo888/transaction_service/rpc/transaction"
+	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
 	"strconv"
@@ -28,7 +28,7 @@ func NewPayOrderTranactionLogic(ctx context.Context, svcCtx *svc.ServiceContext)
 	}
 }
 
-func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transaction.PayOrderRequest) (resp *transaction.PayOrderResponse, err error) {
+func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transactionclient.PayOrderRequest) (resp *transactionclient.PayOrderResponse, err error) {
 
 	var payOrderReq = in.PayOrder
 	var correspondMerChnRate = in.Rate
@@ -122,7 +122,7 @@ func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transaction.PayOrderReq
 		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
 	}
 
-	return &transaction.PayOrderResponse{
+	return &transactionclient.PayOrderResponse{
 		PayOrderNo: order.OrderNo,
 	}, nil
 }

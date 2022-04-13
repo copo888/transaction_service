@@ -14,16 +14,6 @@ message ProxyOrderResp_DFB {
   string ProxyOrderNo = 1;
 }
 
-message ProxyOrderRequest {
-  ProxyPayOrderRequest req = 1;
-  CorrespondMerChnRate rate =2;
-  string balanceType = 3;
-}
-
-message ProxyOrderResponse {
-  string ProxyOrderNo = 1;
-}
-
 message ProxyPayOrderRequest{
   string AccessType    = 1;
   string MerchantId    = 2;
@@ -100,7 +90,7 @@ message PayOrder {
 
 
 service Transaction {
-  rpc ProxyOrderTranaction(ProxyOrderRequest) returns (ProxyOrderResponse);
+  rpc ProxyOrderTranaction(ProxyOrderReq_DFB) returns (ProxyOrderResp_DFB);
 
   rpc PayOrderTranaction(PayOrderRequest) returns (PayOrderResponse);
 }

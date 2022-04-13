@@ -8,6 +8,7 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/logic"
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/transaction"
+	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
@@ -32,12 +33,12 @@ func (s *TransactionServer) Watch(req *grpc_health_v1.HealthCheckRequest, w grpc
 	return nil
 }
 
-func (s *TransactionServer) ProxyOrderTranaction(ctx context.Context, in *transaction.ProxyOrderRequest) (*transaction.ProxyOrderResponse, error) {
+func (s *TransactionServer) ProxyOrderTranaction(ctx context.Context, in *transactionclient.ProxyOrderReq_DFB) (*transactionclient.ProxyOrderResp_DFB, error) {
 	l := logic.NewProxyOrderTranactionLogic(ctx, s.svcCtx)
 	return l.ProxyOrderTranaction(in)
 }
 
-func (s *TransactionServer) PayOrderTranaction(ctx context.Context, in *transaction.PayOrderRequest) (*transaction.PayOrderResponse, error) {
+func (s *TransactionServer) PayOrderTranaction(ctx context.Context, in *transactionclient.PayOrderRequest) (*transactionclient.PayOrderResponse, error) {
 	l := logic.NewPayOrderTranactionLogic(ctx, s.svcCtx)
 	return l.PayOrderTranaction(in)
 }
