@@ -14,12 +14,16 @@ import (
 
 type (
 	CorrespondMerChnRate = transaction.CorrespondMerChnRate
+	PayOrder             = transaction.PayOrder
+	PayOrderRequest      = transaction.PayOrderRequest
+	PayOrderResponse     = transaction.PayOrderResponse
 	ProxyOrderReq_DFB    = transaction.ProxyOrderReq_DFB
 	ProxyOrderResp_DFB   = transaction.ProxyOrderResp_DFB
 	ProxyPayOrderRequest = transaction.ProxyPayOrderRequest
 
 	Transaction interface {
 		ProxyOrderTranaction(ctx context.Context, in *ProxyOrderReq_DFB, opts ...grpc.CallOption) (*ProxyOrderResp_DFB, error)
+		PayOrderTranaction(ctx context.Context, in *PayOrderRequest, opts ...grpc.CallOption) (*PayOrderResponse, error)
 	}
 
 	defaultTransaction struct {
@@ -36,4 +40,9 @@ func NewTransaction(cli zrpc.Client) Transaction {
 func (m *defaultTransaction) ProxyOrderTranaction(ctx context.Context, in *ProxyOrderReq_DFB, opts ...grpc.CallOption) (*ProxyOrderResp_DFB, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.ProxyOrderTranaction(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) PayOrderTranaction(ctx context.Context, in *PayOrderRequest, opts ...grpc.CallOption) (*PayOrderResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.PayOrderTranaction(ctx, in, opts...)
 }
