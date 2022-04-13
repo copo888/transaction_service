@@ -14,6 +14,8 @@ import (
 
 type (
 	CorrespondMerChnRate = transaction.CorrespondMerChnRate
+	PayCallBackRequest   = transaction.PayCallBackRequest
+	PayCallBackResponse  = transaction.PayCallBackResponse
 	PayOrder             = transaction.PayOrder
 	PayOrderRequest      = transaction.PayOrderRequest
 	PayOrderResponse     = transaction.PayOrderResponse
@@ -25,6 +27,7 @@ type (
 	Transaction interface {
 		ProxyOrderTranaction(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error)
 		PayOrderTranaction(ctx context.Context, in *PayOrderRequest, opts ...grpc.CallOption) (*PayOrderResponse, error)
+		PayCallBackTranaction(ctx context.Context, in *PayCallBackRequest, opts ...grpc.CallOption) (*PayCallBackResponse, error)
 	}
 
 	defaultTransaction struct {
@@ -46,4 +49,9 @@ func (m *defaultTransaction) ProxyOrderTranaction(ctx context.Context, in *Proxy
 func (m *defaultTransaction) PayOrderTranaction(ctx context.Context, in *PayOrderRequest, opts ...grpc.CallOption) (*PayOrderResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.PayOrderTranaction(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) PayCallBackTranaction(ctx context.Context, in *PayCallBackRequest, opts ...grpc.CallOption) (*PayCallBackResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.PayCallBackTranaction(ctx, in, opts...)
 }
