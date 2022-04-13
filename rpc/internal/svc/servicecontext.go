@@ -12,7 +12,7 @@ import (
 )
 
 type ServiceContext struct {
-	Config config.Config
+	Config      config.Config
 	RedisClient *redis.Client
 	MyDB        *gorm.DB
 }
@@ -37,8 +37,8 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	}
 
 	return &ServiceContext{
-		Config: c,
-		MyDB: myDb,
+		Config:      c,
+		MyDB:        myDb,
 		RedisClient: redisCache,
 	}
 }

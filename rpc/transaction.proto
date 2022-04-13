@@ -88,9 +88,59 @@ message PayOrder {
     string UserIp         = 20;
 }
 
+message InternalOrderRequest {
+  InternalOrder internalOrder = 1;
+  MerchantOrderRateListView merchantOrderRateListView = 2;
+}
+
+message InternalOrderResponse {
+  string orderNo = 1;
+}
+
+message InternalOrder {
+  string Imgurl         = 1;
+  string MerchantCode   = 2;
+  string UserAccount    = 3;
+  double OrderAmount    = 4;
+  string CurrencyCode   = 5;
+  string MerchantAccountName = 6;
+  string MerchantBankAccount = 7;
+  string MerchantBankCity = 8;
+  string merchantBankProvince = 9;
+  string MerchantBankNo = 10;
+  string MerchantBankName = 11;
+  string ChannelBankName = 12;
+  string ChannelAccountName = 13;
+  string ChannelBankAccount = 14;
+  string ChannelBankNo = 15;
+}
+
+message MerchantOrderRateListView {
+  string ChannelPayTypesCode = 1;
+  string PayTypeCode = 2;
+  string PayTypeCodeNum = 3;
+  double MerHandlingFee = 4;
+  double MerFee = 5;
+  string Designation = 6;
+  string DesignationNo = 7;
+  string ChannelCode = 8;
+  string CurrencyCode = 9;
+  double MaxInternalCharge = 10;
+  double SingleMinCharge = 11;
+  double SingleMaxCharge = 12;
+  string MerchantCode = 13;
+  string MerchnrateStatus = 14;
+  string ChnStatus = 15;
+  string ChnIsProxy = 16;
+  string CptStatus = 17;
+  double CptFee = 18;
+  double CptHandlingFee = 19;
+}
 
 service Transaction {
   rpc ProxyOrderTranaction(ProxyOrderReq_DFB) returns (ProxyOrderResp_DFB);
 
   rpc PayOrderTranaction(PayOrderRequest) returns (PayOrderResponse);
+
+  rpc InternalOrderTransaction(InternalOrderRequest) returns (InternalOrderResponse);
 }
