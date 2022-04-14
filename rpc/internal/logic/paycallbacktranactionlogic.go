@@ -7,12 +7,11 @@ import (
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/types"
+	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"gorm.io/gorm"
 	"math"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
-	"github.com/copo888/transaction_service/rpc/transaction"
-
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -30,7 +29,7 @@ func NewPayCallBackTranactionLogic(ctx context.Context, svcCtx *svc.ServiceConte
 	}
 }
 
-func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transaction.PayCallBackRequest) (resp *transaction.PayCallBackResponse, err error) {
+func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transactionclient.PayCallBackRequest) (resp *transactionclient.PayCallBackResponse, err error) {
 	var order *types.OrderX
 
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
@@ -74,7 +73,7 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transaction.PayCa
 		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
 	}
 
-	return &transaction.PayCallBackResponse{
+	return &transactionclient.PayCallBackResponse{
 		MerchantCode:        order.MerchantCode,
 		MerchantOrderNo:     order.MerchantOrderNo,
 		OrderNo:             order.OrderNo,
@@ -86,7 +85,7 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transaction.PayCa
 	}, nil
 }
 
-func (l *PayCallBackTranactionLogic) updateOrderAndBalance(db *gorm.DB, req *transaction.PayCallBackRequest, order *types.OrderX) (err error) {
+func (l *PayCallBackTranactionLogic) updateOrderAndBalance(db *gorm.DB, req *transactionclient.PayCallBackRequest, order *types.OrderX) (err error) {
 
 	var merchantBalanceRecord types.MerchantBalanceRecord
 

@@ -9,7 +9,6 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
-	"github.com/copo888/transaction_service/rpc/transaction"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -28,7 +27,7 @@ func NewProxyOrderTranactionDFBLogic(ctx context.Context, svcCtx *svc.ServiceCon
 	}
 }
 
-func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transaction.ProxyOrderRequest) (*transaction.ProxyOrderResponse, error) {
+func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionclient.ProxyOrderRequest) (*transactionclient.ProxyOrderResponse, error) {
 	tx := l.svcCtx.MyDB
 	req := in.Req
 	rate := in.Rate

@@ -11,7 +11,6 @@ import (
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
-	"github.com/copo888/transaction_service/rpc/transaction"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -29,7 +28,7 @@ func NewProxyOrderTranactionXFBLogic(ctx context.Context, svcCtx *svc.ServiceCon
 	}
 }
 
-func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(in *transaction.ProxyOrderRequest) (*transaction.ProxyOrderResponse, error) {
+func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(in *transactionclient.ProxyOrderRequest) (*transactionclient.ProxyOrderResponse, error) {
 	tx := l.svcCtx.MyDB
 	req := in.Req
 	rate := in.Rate
@@ -152,5 +151,5 @@ func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(in *transaction.
 
 	return proxyOrderResp, nil
 
-	return &transaction.ProxyOrderResponse{}, nil
+	return &transactionclient.ProxyOrderResponse{}, nil
 }
