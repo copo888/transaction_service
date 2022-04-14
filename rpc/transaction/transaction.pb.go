@@ -24,7 +24,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-type ProxyOrderReq_DFB struct {
+type ProxyOrderRequest struct {
 	Req                  *ProxyPayOrderRequest `protobuf:"bytes,1,opt,name=req,proto3" json:"req,omitempty"`
 	Rate                 *CorrespondMerChnRate `protobuf:"bytes,2,opt,name=rate,proto3" json:"rate,omitempty"`
 	BalanceType          string                `protobuf:"bytes,3,opt,name=balanceType,proto3" json:"balanceType,omitempty"`
@@ -33,85 +33,124 @@ type ProxyOrderReq_DFB struct {
 	XXX_sizecache        int32                 `json:"-"`
 }
 
-func (m *ProxyOrderReq_DFB) Reset()         { *m = ProxyOrderReq_DFB{} }
-func (m *ProxyOrderReq_DFB) String() string { return proto.CompactTextString(m) }
-func (*ProxyOrderReq_DFB) ProtoMessage()    {}
-func (*ProxyOrderReq_DFB) Descriptor() ([]byte, []int) {
+func (m *ProxyOrderRequest) Reset()         { *m = ProxyOrderRequest{} }
+func (m *ProxyOrderRequest) String() string { return proto.CompactTextString(m) }
+func (*ProxyOrderRequest) ProtoMessage()    {}
+func (*ProxyOrderRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_2cc4e03d2c28c490, []int{0}
 }
 
-func (m *ProxyOrderReq_DFB) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ProxyOrderReq_DFB.Unmarshal(m, b)
+func (m *ProxyOrderRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ProxyOrderRequest.Unmarshal(m, b)
 }
-func (m *ProxyOrderReq_DFB) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ProxyOrderReq_DFB.Marshal(b, m, deterministic)
+func (m *ProxyOrderRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ProxyOrderRequest.Marshal(b, m, deterministic)
 }
-func (m *ProxyOrderReq_DFB) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ProxyOrderReq_DFB.Merge(m, src)
+func (m *ProxyOrderRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ProxyOrderRequest.Merge(m, src)
 }
-func (m *ProxyOrderReq_DFB) XXX_Size() int {
-	return xxx_messageInfo_ProxyOrderReq_DFB.Size(m)
+func (m *ProxyOrderRequest) XXX_Size() int {
+	return xxx_messageInfo_ProxyOrderRequest.Size(m)
 }
-func (m *ProxyOrderReq_DFB) XXX_DiscardUnknown() {
-	xxx_messageInfo_ProxyOrderReq_DFB.DiscardUnknown(m)
+func (m *ProxyOrderRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ProxyOrderRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ProxyOrderReq_DFB proto.InternalMessageInfo
+var xxx_messageInfo_ProxyOrderRequest proto.InternalMessageInfo
 
-func (m *ProxyOrderReq_DFB) GetReq() *ProxyPayOrderRequest {
+func (m *ProxyOrderRequest) GetReq() *ProxyPayOrderRequest {
 	if m != nil {
 		return m.Req
 	}
 	return nil
 }
 
-func (m *ProxyOrderReq_DFB) GetRate() *CorrespondMerChnRate {
+func (m *ProxyOrderRequest) GetRate() *CorrespondMerChnRate {
 	if m != nil {
 		return m.Rate
 	}
 	return nil
 }
 
-func (m *ProxyOrderReq_DFB) GetBalanceType() string {
+func (m *ProxyOrderRequest) GetBalanceType() string {
 	if m != nil {
 		return m.BalanceType
 	}
 	return ""
 }
 
-type ProxyOrderResp_DFB struct {
+type ProxyOrderResponse struct {
 	ProxyOrderNo         string   `protobuf:"bytes,1,opt,name=ProxyOrderNo,proto3" json:"ProxyOrderNo,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ProxyOrderResp_DFB) Reset()         { *m = ProxyOrderResp_DFB{} }
-func (m *ProxyOrderResp_DFB) String() string { return proto.CompactTextString(m) }
-func (*ProxyOrderResp_DFB) ProtoMessage()    {}
-func (*ProxyOrderResp_DFB) Descriptor() ([]byte, []int) {
+func (m *ProxyOrderResponse) Reset()         { *m = ProxyOrderResponse{} }
+func (m *ProxyOrderResponse) String() string { return proto.CompactTextString(m) }
+func (*ProxyOrderResponse) ProtoMessage()    {}
+func (*ProxyOrderResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_2cc4e03d2c28c490, []int{1}
 }
 
-func (m *ProxyOrderResp_DFB) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ProxyOrderResp_DFB.Unmarshal(m, b)
+func (m *ProxyOrderResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ProxyOrderResponse.Unmarshal(m, b)
 }
-func (m *ProxyOrderResp_DFB) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ProxyOrderResp_DFB.Marshal(b, m, deterministic)
+func (m *ProxyOrderResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ProxyOrderResponse.Marshal(b, m, deterministic)
 }
-func (m *ProxyOrderResp_DFB) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ProxyOrderResp_DFB.Merge(m, src)
+func (m *ProxyOrderResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ProxyOrderResponse.Merge(m, src)
 }
-func (m *ProxyOrderResp_DFB) XXX_Size() int {
-	return xxx_messageInfo_ProxyOrderResp_DFB.Size(m)
+func (m *ProxyOrderResponse) XXX_Size() int {
+	return xxx_messageInfo_ProxyOrderResponse.Size(m)
 }
-func (m *ProxyOrderResp_DFB) XXX_DiscardUnknown() {
-	xxx_messageInfo_ProxyOrderResp_DFB.DiscardUnknown(m)
+func (m *ProxyOrderResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ProxyOrderResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ProxyOrderResp_DFB proto.InternalMessageInfo
+var xxx_messageInfo_ProxyOrderResponse proto.InternalMessageInfo
 
-func (m *ProxyOrderResp_DFB) GetProxyOrderNo() string {
+func (m *ProxyOrderResponse) GetProxyOrderNo() string {
+	if m != nil {
+		return m.ProxyOrderNo
+	}
+	return ""
+}
+
+type ProxyOrderResp_XFB struct {
+	ProxyOrderNo         string   `protobuf:"bytes,1,opt,name=ProxyOrderNo,proto3" json:"ProxyOrderNo,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ProxyOrderResp_XFB) Reset()         { *m = ProxyOrderResp_XFB{} }
+func (m *ProxyOrderResp_XFB) String() string { return proto.CompactTextString(m) }
+func (*ProxyOrderResp_XFB) ProtoMessage()    {}
+func (*ProxyOrderResp_XFB) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2cc4e03d2c28c490, []int{2}
+}
+
+func (m *ProxyOrderResp_XFB) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ProxyOrderResp_XFB.Unmarshal(m, b)
+}
+func (m *ProxyOrderResp_XFB) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ProxyOrderResp_XFB.Marshal(b, m, deterministic)
+}
+func (m *ProxyOrderResp_XFB) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ProxyOrderResp_XFB.Merge(m, src)
+}
+func (m *ProxyOrderResp_XFB) XXX_Size() int {
+	return xxx_messageInfo_ProxyOrderResp_XFB.Size(m)
+}
+func (m *ProxyOrderResp_XFB) XXX_DiscardUnknown() {
+	xxx_messageInfo_ProxyOrderResp_XFB.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ProxyOrderResp_XFB proto.InternalMessageInfo
+
+func (m *ProxyOrderResp_XFB) GetProxyOrderNo() string {
 	if m != nil {
 		return m.ProxyOrderNo
 	}
