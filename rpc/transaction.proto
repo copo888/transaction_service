@@ -92,6 +92,25 @@ message PayOrder {
     string UserIp         = 20;
 }
 
+message PayCallBackRequest {
+  string CallbackTime   = 1;
+  string ChannelOrderNo = 2;
+  double OrderAmount    = 3;
+  string OrderStatus    = 4;
+  string PayOrderNo     = 5;
+}
+
+message PayCallBackResponse {
+  string MerchantCode        = 1;
+  string MerchantOrderNo     = 2;
+  string OrderNo             = 3;
+  double OrderAmount         = 4;
+  double TransferHandlingFee = 5;
+  string NotifyUrl           = 6;
+  string OrderTime           = 7;
+  string PayOrderTime        = 8;
+}
+
 
 service Transaction {
 
@@ -100,4 +119,6 @@ service Transaction {
   rpc ProxyOrderTranaction_XFB(ProxyOrderRequest) returns (ProxyOrderResponse);
 
   rpc PayOrderTranaction(PayOrderRequest) returns (PayOrderResponse);
+
+  rpc PayCallBackTranaction(PayCallBackRequest) returns (PayCallBackResponse);
 }
