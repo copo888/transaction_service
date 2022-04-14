@@ -4,13 +4,17 @@ package transaction;
 
 option go_package = "./transaction";
 
-message ProxyOrderReq_DFB {
+message ProxyOrderRequest {
   ProxyPayOrderRequest req = 1;
   CorrespondMerChnRate rate =2;
   string balanceType = 3;
 }
 
-message ProxyOrderResp_DFB {
+message ProxyOrderResponse {
+  string ProxyOrderNo = 1;
+}
+
+message ProxyOrderResp_XFB {
   string ProxyOrderNo = 1;
 }
 
@@ -160,12 +164,37 @@ message WithdrawOrderResponse {
   string OrderNo = 1;
 }
 
+message PayCallBackRequest {
+  string CallbackTime   = 1;
+  string ChannelOrderNo = 2;
+  double OrderAmount    = 3;
+  string OrderStatus    = 4;
+  string PayOrderNo     = 5;
+}
+
+message PayCallBackResponse {
+  string MerchantCode        = 1;
+  string MerchantOrderNo     = 2;
+  string OrderNo             = 3;
+  double OrderAmount         = 4;
+  double TransferHandlingFee = 5;
+  string NotifyUrl           = 6;
+  string OrderTime           = 7;
+  string PayOrderTime        = 8;
+}
+
 service Transaction {
-  rpc ProxyOrderTranaction(ProxyOrderReq_DFB) returns (ProxyOrderResp_DFB);
+
+  rpc ProxyOrderTranaction_DFB(ProxyOrderRequest) returns (ProxyOrderResponse);
+
+  rpc ProxyOrderTranaction_XFB(ProxyOrderRequest) returns (ProxyOrderResponse);
 
   rpc PayOrderTranaction(PayOrderRequest) returns (PayOrderResponse);
 
   rpc InternalOrderTransaction(InternalOrderRequest) returns (InternalOrderResponse);
 
   rpc WithdrawOrderTransaction(WithdrawOrderRequest) returns (WithdrawOrderResponse);
+
+  rpc PayCallBackTranaction(PayCallBackRequest) returns (PayCallBackResponse);
+
 }

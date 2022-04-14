@@ -32,9 +32,14 @@ func (s *TransactionServer) Watch(req *grpc_health_v1.HealthCheckRequest, w grpc
 	return nil
 }
 
-func (s *TransactionServer) ProxyOrderTranaction(ctx context.Context, in *transaction.ProxyOrderReq_DFB) (*transaction.ProxyOrderResp_DFB, error) {
-	l := logic.NewProxyOrderTranactionLogic(ctx, s.svcCtx)
-	return l.ProxyOrderTranaction(in)
+func (s *TransactionServer) ProxyOrderTranaction_DFB(ctx context.Context, in *transaction.ProxyOrderRequest) (*transaction.ProxyOrderResponse, error) {
+	l := logic.NewProxyOrderTranactionDFBLogic(ctx, s.svcCtx)
+	return l.ProxyOrderTranaction_DFB(in)
+}
+
+func (s *TransactionServer) ProxyOrderTranaction_XFB(ctx context.Context, in *transaction.ProxyOrderRequest) (*transaction.ProxyOrderResponse, error) {
+	l := logic.NewProxyOrderTranactionXFBLogic(ctx, s.svcCtx)
+	return l.ProxyOrderTranaction_XFB(in)
 }
 
 func (s *TransactionServer) PayOrderTranaction(ctx context.Context, in *transaction.PayOrderRequest) (*transaction.PayOrderResponse, error) {
@@ -50,4 +55,9 @@ func (s *TransactionServer) InternalOrderTransaction(ctx context.Context, in *tr
 func (s *TransactionServer) WithdrawOrderTransaction(ctx context.Context, in *transaction.WithdrawOrderRequest) (*transaction.WithdrawOrderResponse, error) {
 	l := logic.NewWithdrawOrderTransactionLogic(ctx, s.svcCtx)
 	return l.WithdrawOrderTransaction(in)
+}
+
+func (s *TransactionServer) PayCallBackTranaction(ctx context.Context, in *transaction.PayCallBackRequest) (*transaction.PayCallBackResponse, error) {
+	l := logic.NewPayCallBackTranactionLogic(ctx, s.svcCtx)
+	return l.PayCallBackTranaction(in)
 }
