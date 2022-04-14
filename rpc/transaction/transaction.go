@@ -6,15 +6,19 @@ package transaction
 import (
 	"context"
 
+
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"
 )
 
 type (
+
+
 	Transaction interface {
 		ProxyOrderTranaction(ctx context.Context, in *ProxyOrderReq_DFB, opts ...grpc.CallOption) (*ProxyOrderResp_DFB, error)
 		PayOrderTranaction(ctx context.Context, in *PayOrderRequest, opts ...grpc.CallOption) (*PayOrderResponse, error)
 		InternalOrderTransaction(ctx context.Context, in *InternalOrderRequest, opts ...grpc.CallOption) (*InternalOrderResponse, error)
+		WithdrawOrderTransaction(ctx context.Context, in *WithdrawOrderRequest, opts ...grpc.CallOption) (*WithdrawOrderResponse, error)
 	}
 
 	defaultTransaction struct {
@@ -41,4 +45,9 @@ func (m *defaultTransaction) PayOrderTranaction(ctx context.Context, in *PayOrde
 func (m *defaultTransaction) InternalOrderTransaction(ctx context.Context, in *InternalOrderRequest, opts ...grpc.CallOption) (*InternalOrderResponse, error) {
 	client := NewTransactionClient(m.cli.Conn())
 	return client.InternalOrderTransaction(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) WithdrawOrderTransaction(ctx context.Context, in *WithdrawOrderRequest, opts ...grpc.CallOption) (*WithdrawOrderResponse, error) {
+	client := NewTransactionClient(m.cli.Conn())
+	return client.WithdrawOrderTransaction(ctx, in, opts...)
 }

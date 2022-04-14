@@ -46,3 +46,8 @@ func (s *TransactionServer) InternalOrderTransaction(ctx context.Context, in *tr
 	l := logic.NewInternalOrderTransactionLogic(ctx, s.svcCtx)
 	return l.InternalOrderTransaction(in)
 }
+
+func (s *TransactionServer) WithdrawOrderTransaction(ctx context.Context, in *transaction.WithdrawOrderRequest) (*transaction.WithdrawOrderResponse, error) {
+	l := logic.NewWithdrawOrderTransactionLogic(ctx, s.svcCtx)
+	return l.WithdrawOrderTransaction(in)
+}

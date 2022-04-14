@@ -137,10 +137,35 @@ message MerchantOrderRateListView {
   double CptHandlingFee = 19;
 }
 
+message WithdrawOrderRequest {
+  string MerchantCode = 1;
+  string UserAccount = 2;
+  string MerchantAccountName = 3;
+  string MerchantBankeAccount = 4;
+  string MerchantBankNo = 5;
+  string MerchantBankName = 6;
+  string MerchantBankProvince = 7;
+  string MerchantBankCity = 8;
+  string CurrencyCode = 9;
+  double OrderAmount = 10;
+  string Inderx = 11;
+  string OrderNo = 12;
+  double HandlingFee = 13;
+  string Source = 14;
+  string MerchantOrderNo = 15;
+  string NotifyUrl = 16;
+  string PageUrl = 17;
+}
+message WithdrawOrderResponse {
+  string OrderNo = 1;
+}
+
 service Transaction {
   rpc ProxyOrderTranaction(ProxyOrderReq_DFB) returns (ProxyOrderResp_DFB);
 
   rpc PayOrderTranaction(PayOrderRequest) returns (PayOrderResponse);
 
   rpc InternalOrderTransaction(InternalOrderRequest) returns (InternalOrderResponse);
+
+  rpc WithdrawOrderTransaction(WithdrawOrderRequest) returns (WithdrawOrderResponse);
 }
