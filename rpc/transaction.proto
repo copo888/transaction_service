@@ -95,7 +95,9 @@ message PayOrder {
 
 service Transaction {
 
-  rpc ProxyOrderTranaction(ProxyOrderRequest) returns (ProxyOrderResponse);
+  rpc ProxyOrderTranaction_DFB(ProxyOrderRequest) returns (ProxyOrderResponse);
+
+  rpc ProxyOrderTranaction_XFB(ProxyOrderRequest) returns (ProxyOrderResponse);
 
   rpc PayOrderTranaction(PayOrderRequest) returns (PayOrderResponse);
 }

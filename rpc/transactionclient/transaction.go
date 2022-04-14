@@ -23,7 +23,8 @@ type (
 	ProxyPayOrderRequest = transaction.ProxyPayOrderRequest
 
 	Transaction interface {
-		ProxyOrderTranaction(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error)
+		ProxyOrderTranaction_DFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error)
+		ProxyOrderTranaction_XFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error)
 		PayOrderTranaction(ctx context.Context, in *PayOrderRequest, opts ...grpc.CallOption) (*PayOrderResponse, error)
 	}
 
@@ -38,9 +39,14 @@ func NewTransaction(cli zrpc.Client) Transaction {
 	}
 }
 
-func (m *defaultTransaction) ProxyOrderTranaction(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error) {
+func (m *defaultTransaction) ProxyOrderTranaction_DFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
-	return client.ProxyOrderTranaction(ctx, in, opts...)
+	return client.ProxyOrderTranaction_DFB(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) ProxyOrderTranaction_XFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.ProxyOrderTranaction_XFB(ctx, in, opts...)
 }
 
 func (m *defaultTransaction) PayOrderTranaction(ctx context.Context, in *PayOrderRequest, opts ...grpc.CallOption) (*PayOrderResponse, error) {

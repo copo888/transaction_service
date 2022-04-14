@@ -33,9 +33,14 @@ func (s *TransactionServer) Watch(req *grpc_health_v1.HealthCheckRequest, w grpc
 	return nil
 }
 
-func (s *TransactionServer) ProxyOrderTranaction(ctx context.Context, in *transactionclient.ProxyOrderRequest) (*transactionclient.ProxyOrderResponse, error) {
-	l := logic.NewProxyOrderTranactionLogic(ctx, s.svcCtx)
-	return l.ProxyOrderTranaction(in)
+func (s *TransactionServer) ProxyOrderTranaction_DFB(ctx context.Context, in *transactionclient.ProxyOrderRequest) (*transactionclient.ProxyOrderResponse, error) {
+	l := logic.NewProxyOrderTranactionDFBLogic(ctx, s.svcCtx)
+	return l.ProxyOrderTranaction_DFB(in)
+}
+
+func (s *TransactionServer) ProxyOrderTranaction_XFB(ctx context.Context, in *transactionclient.ProxyOrderRequest) (*transactionclient.ProxyOrderResponse, error) {
+	l := logic.NewProxyOrderTranactionXFBLogic(ctx, s.svcCtx)
+	return l.ProxyOrderTranaction_XFB(in)
 }
 
 func (s *TransactionServer) PayOrderTranaction(ctx context.Context, in *transactionclient.PayOrderRequest) (*transactionclient.PayOrderResponse, error) {
