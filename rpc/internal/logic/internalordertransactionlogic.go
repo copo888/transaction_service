@@ -7,11 +7,10 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/model"
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
+	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"gorm.io/gorm"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
-	"github.com/copo888/transaction_service/rpc/transaction"
-
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -29,7 +28,7 @@ func NewInternalOrderTransactionLogic(ctx context.Context, svcCtx *svc.ServiceCo
 	}
 }
 
-func (l *InternalOrderTransactionLogic) InternalOrderTransaction(in *transaction.InternalOrderRequest) (resp *transaction.InternalOrderResponse, err error) {
+func (l *InternalOrderTransactionLogic) InternalOrderTransaction(in *transactionclient.InternalOrderRequest) (resp *transactionclient.InternalOrderResponse, err error) {
 
 	var internalOrderReq = in.InternalOrder
 	var merchantOrderRateListView = in.MerchantOrderRateListView
@@ -116,7 +115,7 @@ func (l *InternalOrderTransactionLogic) InternalOrderTransaction(in *transaction
 	}).Error; err4 != nil {
 		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
 	}
-	return &transaction.InternalOrderResponse{
+	return &transactionclient.InternalOrderResponse{
 		OrderNo: txOrder.OrderNo,
 	}, nil
 }

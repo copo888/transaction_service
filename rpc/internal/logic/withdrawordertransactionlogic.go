@@ -6,10 +6,9 @@ import (
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
+	"github.com/copo888/transaction_service/rpc/transactionclient"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
-	"github.com/copo888/transaction_service/rpc/transaction"
-
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -27,7 +26,7 @@ func NewWithdrawOrderTransactionLogic(ctx context.Context, svcCtx *svc.ServiceCo
 	}
 }
 
-func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction.WithdrawOrderRequest) (*transaction.WithdrawOrderResponse, error) {
+func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transactionclient.WithdrawOrderRequest) (*transactionclient.WithdrawOrderResponse, error) {
 	tx := l.svcCtx.MyDB
 
 	transferAmount := utils.FloatAdd(in.OrderAmount, in.HandlingFee)
@@ -113,7 +112,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		logx.Error("紀錄訂單歷程出錯:%s", err5.Error())
 	}
 
-	return &transaction.WithdrawOrderResponse{
+	return &transactionclient.WithdrawOrderResponse{
 		OrderNo: txOrder.OrderNo,
 	}, nil
 }
