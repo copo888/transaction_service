@@ -13,7 +13,7 @@ import (
 /*
 	更新代付餘額_扣款(代付提單扣款)
 */
-func UpdateDFBalance_Debit(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
+func UpdateDFBalance_Debit(db *gorm.DB, updateBalance *types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 	var beforeBalance float64
 	var afterBalance float64
 
@@ -75,7 +75,7 @@ func UpdateDFBalance_Debit(db *gorm.DB, updateBalance types.UpdateBalance) (merc
 /*
 	更新下發餘額(支轉代)_扣款(代付提單扣款)
 */
-func UpdateXFBalance_Debit(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
+func UpdateXFBalance_Debit(db *gorm.DB, updateBalance *types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 	var beforeBalance float64
 	var afterBalance float64
 

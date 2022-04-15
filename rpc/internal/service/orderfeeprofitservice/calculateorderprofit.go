@@ -15,10 +15,10 @@ func CalculateOrderProfit(db *gorm.DB, calculateProfit types.CalculateProfit) (e
 	return db.Transaction(func(db *gorm.DB) (err error) {
 		var orderFeeProfits []types.OrderFeeProfit
 		if err = calculateProfitLoop(db, &calculateProfit, &orderFeeProfits); err != nil {
-			logx.Error("計算利潤錯誤: %s ", err.Error())
+			logx.Errorf("計算利潤錯誤: %s ", err.Error())
 			return err
 		}
-		logx.Info("計算利潤: #%v ", orderFeeProfits)
+		logx.Infof("計算利潤: %#v ", orderFeeProfits)
 		//TODO: tx_order 多個欄位判斷是否已計算利潤
 		return
 	})

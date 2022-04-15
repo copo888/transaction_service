@@ -30,6 +30,9 @@ const (
 	PERSON_PROCESS_STATUS_FAIL         = "3"  /*人工处理状态: 失敗*/
 	PERSON_PROCESS_STATUS_NO_ROCESSING = "10" /*人工处理状态: 不需处理*/
 
+	DF_BALANCE = "DFB"
+	XF_BALANCE = "XFB"
+
 //(1=收款; 2=解凍; 3=沖正; 11=出款 ; 12=凍結)
 
 )
