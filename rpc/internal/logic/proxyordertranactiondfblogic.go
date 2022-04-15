@@ -3,6 +3,8 @@ package logic
 import (
 	"context"
 	"github.com/copo888/transaction_service/common/constants"
+	"github.com/copo888/transaction_service/common/errorz"
+	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/model"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
@@ -11,6 +13,7 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"github.com/zeromicro/go-zero/core/logx"
+	"gorm.io/gorm"
 )
 
 type ProxyOrderTranactionDFBLogic struct {
@@ -27,14 +30,14 @@ func NewProxyOrderTranactionDFBLogic(ctx context.Context, svcCtx *svc.ServiceCon
 	}
 }
 
-func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionclient.ProxyOrderRequest) (*transactionclient.ProxyOrderResponse, error) {
+func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionclient.ProxyOrderRequest) (resp *transactionclient.ProxyOrderResponse, err error) {
 	tx := l.svcCtx.MyDB
 	req := in.Req
 	rate := in.Rate
-	balanceType := in.BalanceType
 
 	// 依商户是否给回调网址，决定是否回调商户flag
 	var isMerchantCallback string
+	merchantBalanceRecord := types.MerchantBalanceRecord{}
 	if req.NotifyUrl != "" {
 		isMerchantCallback = constants.MERCHANT_CALL_BACK_NO
 	} else {
@@ -45,6 +48,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		OrderNo:              model.GenerateOrderNo("DF"),
 		MerchantOrderNo:      req.OrderNo,
 		OrderAmount:          req.OrderAmount,
+		BalanceType:          constants.DF_BALANCE,
 		Type:                 constants.ORDER_TYPE_DF,
 		Status:               constants.WAIT_PROCESS,
 		ChannelCode:          rate.ChannelCode,
@@ -68,19 +72,9 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		NotifyUrl:          req.NotifyUrl,
 		IsMerchantCallback: isMerchantCallback,
 	}
-	tx.Begin()
-	// 创建订单
-	var transAt types.JsonTime
-	if err3 := tx.Table("tx_orders").Create(&types.OrderX{
-		Order:   *txOrder,
-		TransAt: transAt}).Error; err3 != nil {
-		logx.Errorf("新增代付API提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err3.Error())
-		tx.Rollback()
-		return nil, err3
-	}
 
 	// 新增收支记录，与更新商户余额(商户账户号是黑名单，把交易金额为设为 0)
-	updateBalance := types.UpdateBalance{
+	updateBalance := &types.UpdateBalance{
 		MerchantCode:    txOrder.MerchantCode,
 		CurrencyCode:    txOrder.CurrencyCode,
 		OrderNo:         txOrder.OrderNo,
@@ -89,7 +83,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		PayTypeCodeNum:  txOrder.PayTypeCodeNum,
 		TransferAmount:  txOrder.TransferAmount,
 		TransactionType: "11", //異動類型 (1=收款; 2=解凍; 3=沖正; 11=出款 ; 12=凍結)
-		BalanceType:     balanceType,
+		BalanceType:     constants.DF_BALANCE,
 		CreatedBy:       txOrder.MerchantCode,
 	}
 
@@ -97,37 +91,44 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 	//是。1. 失败单 2. 手续费、费率设为0 3.不在txOrder计算利润 4.交易金额设为0 更动钱包
 	isBlock, _ := model.NewBankBlockAccount(tx).CheckIsBlockAccount(txOrder.MerchantBankAccount)
 	if isBlock { //银行账号为黑名单
-		logx.Infof("交易账户%s-%s在黑名单内，使用0元假扣款", txOrder.MerchantAccountName, txOrder.MerchantBankNo)
+		logx.Infof("交易账户%s-%s在黑名单内", txOrder.MerchantAccountName, txOrder.MerchantBankNo)
 		updateBalance.TransferAmount = 0                           // 使用0元前往钱包扣款
 		txOrder.ErrorType = constants.ERROR6_BANK_ACCOUNT_IS_BLACK //交易账户为黑名单
 		txOrder.ErrorNote = constants.BANK_ACCOUNT_IS_BLACK        //失败原因：黑名单交易失败
 		txOrder.Status = constants.PROXY_PAY_FAIL                  //状态:失败
 		txOrder.Fee = 0                                            //写入本次手续费(未发送到渠道的交易，都设为0元)
 		txOrder.HandlingFee = 0
-		//txOrder.TransAt     = time.Now().Format("20060102150405") //失败单,一并写入交易日期
-		transAt = types.JsonTime{}.New()
+		//transAt = types.JsonTime{}.New()
 		logx.Infof("商户 %s，代付订单 %#v ，交易账户为黑名单", txOrder.MerchantCode, txOrder)
-	} else { //不为黑名单
+	}
+
+	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
 		//交易金额 = 订单金额 + 商户手续费
 		txOrder.TransferAmount = utils.FloatAdd(txOrder.OrderAmount, txOrder.TransferHandlingFee)
 		updateBalance.TransferAmount = txOrder.TransferAmount //扣款依然傳正值
-
 		//更新钱包且新增商户钱包异动记录
-		merchantBalanceRecord, err1 := merchantbalanceservice.UpdateDFBalance_Debit(tx, updateBalance)
-		if err1 != nil {
-			logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err1.Error(), updateBalance)
-			//TODO  IF 更新钱包错误是response.DATABASE_FAILURE THEN return SYSTEM_ERROR
-			tx.Rollback()
-			return nil, err1
+		if merchantBalanceRecord, err = merchantbalanceservice.UpdateDFBalance_Debit(tx, updateBalance); err != nil {
+			logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
+			return errorz.New(response.SYSTEM_ERROR, err.Error())
 		} else {
 			logx.Infof("代付API提单 %s，錢包扣款成功", merchantBalanceRecord.OrderNo)
-			txOrder.BalanceType = balanceType                           // 餘額類型(下发余额、代付余额)
 			txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance // 商戶錢包異動紀錄
 			txOrder.Balance = merchantBalanceRecord.AfterBalance
 		}
+
+		// 创建订单
+		if err = tx.Table("tx_orders").Create(&types.OrderX{
+			Order:   *txOrder,
+			TransAt: types.JsonTime{}.New()}).Error; err != nil {
+			logx.Errorf("新增代付API提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err.Error())
+			return
+		}
+
+		return nil
+	}); err != nil {
+		return
 	}
-	tx.Commit()
 
 	// 計算利潤(不報錯) TODO: 異步??
 	if err4 := orderfeeprofitservice.CalculateOrderProfit(l.svcCtx.MyDB, types.CalculateProfit{
@@ -141,6 +142,18 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		OrderAmount:         txOrder.OrderAmount,
 	}); err4 != nil {
 		logx.Error("計算利潤出錯:%s", err4.Error())
+	}
+
+	// 新單新增訂單歷程 (不抱錯) TODO: 異步??
+	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
+		OrderAction: types.OrderAction{
+			OrderNo:     txOrder.OrderNo,
+			Action:      "PLACE_ORDER",
+			UserAccount: req.MerchantId,
+			Comment:     "",
+		},
+	}).Error; err4 != nil {
+		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
 	}
 
 	proxyOrderResp := &transactionclient.ProxyOrderResponse{
