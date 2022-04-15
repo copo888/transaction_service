@@ -68,7 +68,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		NotifyUrl:          req.NotifyUrl,
 		IsMerchantCallback: isMerchantCallback,
 	}
-
+	tx.Begin()
 	// 创建订单
 	var transAt types.JsonTime
 	if err3 := tx.Table("tx_orders").Create(&types.OrderX{
@@ -93,7 +93,6 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		CreatedBy:       txOrder.MerchantCode,
 	}
 
-	tx.Begin()
 	//判断是否是银行账号是否是黑名单
 	//是。1. 失败单 2. 手续费、费率设为0 3.不在txOrder计算利润 4.交易金额设为0 更动钱包
 	isBlock, _ := model.NewBankBlockAccount(tx).CheckIsBlockAccount(txOrder.MerchantBankAccount)
@@ -129,7 +128,8 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		}
 	}
 	tx.Commit()
-	// 計算利潤 TODO: 異步??
+
+	// 計算利潤(不報錯) TODO: 異步??
 	if err4 := orderfeeprofitservice.CalculateOrderProfit(l.svcCtx.MyDB, types.CalculateProfit{
 		MerchantCode:        txOrder.MerchantCode,
 		OrderNo:             txOrder.OrderNo,

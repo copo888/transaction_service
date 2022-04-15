@@ -21,8 +21,8 @@ import (
 )
 
 var (
-	configFile = flag.String("f", "etc/transaction.yaml", "the config file")
-	envFile    = flag.String("env", "etc/.env", "the env file")
+	configFile = flag.String("f", "rpc/etc/transaction.yaml", "the config file")
+	envFile    = flag.String("env", "rpc/etc/.env", "the env file")
 )
 
 func main() {
