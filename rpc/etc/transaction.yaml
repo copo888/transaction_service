@@ -23,4 +23,6 @@ Consul:
   Tag:
     - ${CONSUL_KEY}
 
+Target: consul://${CONSUL_HOST}/@?wait=14s
+
 
