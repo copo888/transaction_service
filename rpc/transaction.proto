@@ -184,19 +184,37 @@ message PayCallBackResponse {
 }
 
 message InternalReviewSuccessRequest {
-  string orderNo = 1;
+  string OrderNo = 1;
+  string UserAccount = 2;
 }
 
 message InternalReviewSuccessResponse {
-  string orderNo = 1;
+  string OrderNo = 1;
 }
 
 message WithdrawReviewFailRequest {
-
+  string OrderNo = 1;
+  string UserAccount = 2;
+  string Memo = 3;
 }
 
 message WithdrawReviewFailResponse {
+  string OrderNo = 1;
+}
 
+message WithdrawReviewSuccessRequest {
+  string OrderNo = 1;
+  string UserAccount = 2;
+  repeated ChannelWithdraw channelWithdraw = 3;
+}
+
+message WithdrawReviewSuccessResponse {
+  string OrderNo = 1;
+}
+
+message ChannelWithdraw {
+  string ChannelCode = 1;
+  double WithdrawAmount = 2;
 }
 
 service Transaction {
@@ -215,4 +233,7 @@ service Transaction {
 
   rpc InternalReviewSuccessTransaction(InternalReviewSuccessRequest) returns (InternalReviewSuccessResponse);
 
+  rpc WithdrawReviewFailTransaction(WithdrawReviewFailRequest) returns (WithdrawReviewFailResponse);
+
+  rpc WithdrawReviewSuccessTransaction(WithdrawReviewSuccessRequest) returns (WithdrawReviewSuccessResponse);
 }

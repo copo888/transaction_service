@@ -13,6 +13,7 @@ import (
 )
 
 type (
+	ChannelWithdraw               = transaction.ChannelWithdraw
 	CorrespondMerChnRate          = transaction.CorrespondMerChnRate
 	InternalOrder                 = transaction.InternalOrder
 	InternalOrderRequest          = transaction.InternalOrderRequest
@@ -33,6 +34,8 @@ type (
 	WithdrawOrderResponse         = transaction.WithdrawOrderResponse
 	WithdrawReviewFailRequest     = transaction.WithdrawReviewFailRequest
 	WithdrawReviewFailResponse    = transaction.WithdrawReviewFailResponse
+	WithdrawReviewSuccessRequest  = transaction.WithdrawReviewSuccessRequest
+	WithdrawReviewSuccessResponse = transaction.WithdrawReviewSuccessResponse
 
 	Transaction interface {
 		ProxyOrderTranaction_DFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error)
@@ -42,6 +45,8 @@ type (
 		WithdrawOrderTransaction(ctx context.Context, in *WithdrawOrderRequest, opts ...grpc.CallOption) (*WithdrawOrderResponse, error)
 		PayCallBackTranaction(ctx context.Context, in *PayCallBackRequest, opts ...grpc.CallOption) (*PayCallBackResponse, error)
 		InternalReviewSuccessTransaction(ctx context.Context, in *InternalReviewSuccessRequest, opts ...grpc.CallOption) (*InternalReviewSuccessResponse, error)
+		WithdrawReviewFailTransaction(ctx context.Context, in *WithdrawReviewFailRequest, opts ...grpc.CallOption) (*WithdrawReviewFailResponse, error)
+		WithdrawReviewSuccessTransaction(ctx context.Context, in *WithdrawReviewSuccessRequest, opts ...grpc.CallOption) (*WithdrawReviewSuccessResponse, error)
 	}
 
 	defaultTransaction struct {
@@ -88,4 +93,14 @@ func (m *defaultTransaction) PayCallBackTranaction(ctx context.Context, in *PayC
 func (m *defaultTransaction) InternalReviewSuccessTransaction(ctx context.Context, in *InternalReviewSuccessRequest, opts ...grpc.CallOption) (*InternalReviewSuccessResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.InternalReviewSuccessTransaction(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) WithdrawReviewFailTransaction(ctx context.Context, in *WithdrawReviewFailRequest, opts ...grpc.CallOption) (*WithdrawReviewFailResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.WithdrawReviewFailTransaction(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) WithdrawReviewSuccessTransaction(ctx context.Context, in *WithdrawReviewSuccessRequest, opts ...grpc.CallOption) (*WithdrawReviewSuccessResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.WithdrawReviewSuccessTransaction(ctx, in, opts...)
 }

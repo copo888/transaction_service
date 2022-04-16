@@ -16,21 +16,21 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-type InternalReviewSuccessTransactionLogic struct {
+type WithdrawReviewFailTransactionLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 	logx.Logger
 }
 
-func NewInternalReviewSuccessTransactionLogic(ctx context.Context, svcCtx *svc.ServiceContext) *InternalReviewSuccessTransactionLogic {
-	return &InternalReviewSuccessTransactionLogic{
+func NewWithdrawReviewFailTransactionLogic(ctx context.Context, svcCtx *svc.ServiceContext) *WithdrawReviewFailTransactionLogic {
+	return &WithdrawReviewFailTransactionLogic{
 		ctx:    ctx,
 		svcCtx: svcCtx,
 		Logger: logx.WithContext(ctx),
 	}
 }
 
-func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction(in *transactionclient.InternalReviewSuccessRequest) (resp *transactionclient.InternalReviewSuccessResponse, err error) {
+func (l *WithdrawReviewFailTransactionLogic) WithdrawReviewFailTransaction(in *transactionclient.WithdrawReviewFailRequest) (resp *transactionclient.WithdrawReviewFailResponse, err error) {
 	var txOrder types.OrderX
 	var merchantBalanceRecord types.MerchantBalanceRecord
 
@@ -40,6 +40,7 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 		}
 		return nil, errorz.New(response.DATABASE_FAILURE, err.Error())
 	}
+
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 		// 異動錢包
 		if merchantBalanceRecord, err = l.UpdateBalance(db, types.UpdateBalance{
@@ -47,9 +48,6 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 			CurrencyCode:    txOrder.CurrencyCode,
 			OrderNo:         txOrder.OrderNo,
 			OrderType:       txOrder.Type,
-			ChannelCode:     txOrder.ChannelCode,
-			PayTypeCode:     txOrder.PayTypeCode,
-			PayTypeCodeNum:  txOrder.PayTypeCodeNum,
 			TransactionType: "1",
 			BalanceType:     txOrder.BalanceType,
 			TransferAmount:  txOrder.TransferAmount,
@@ -63,8 +61,8 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 		txOrder.Balance = merchantBalanceRecord.AfterBalance
 		txOrder.TransAt = types.JsonTime{}.New()
 
-		txOrder.Status = constants.SUCCESS
-		txOrder.IsMerchantCallback = constants.IS_MERCHANT_CALLBACK_YES
+		txOrder.Status = constants.FAIL
+		txOrder.IsMerchantCallback = constants.IS_MERCHANT_CALLBACK_NO
 
 		// 編輯訂單
 		if err = db.Table("tx_orders").Updates(&txOrder).Error; err != nil {
@@ -79,7 +77,7 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
 		OrderAction: types.OrderAction{
 			OrderNo:     txOrder.OrderNo,
-			Action:      "SUCCESS",
+			Action:      "REVIEW_FAIL",
 			UserAccount: in.UserAccount,
 			Comment:     "",
 		},
@@ -87,16 +85,14 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
 	}
 
-	resp = &transactionclient.InternalReviewSuccessResponse{
+	resp = &transactionclient.WithdrawReviewFailResponse{
 		OrderNo: txOrder.OrderNo,
 	}
 
 	return resp, nil
 }
 
-// updateBalance
-func (l *InternalReviewSuccessTransactionLogic) UpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
-
+func (l WithdrawReviewFailTransactionLogic) UpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 	var beforeBalance float64
 	var afterBalance float64
 
