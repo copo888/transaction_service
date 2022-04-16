@@ -8,7 +8,6 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/logic"
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/transaction"
-	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
@@ -33,32 +32,37 @@ func (s *TransactionServer) Watch(req *grpc_health_v1.HealthCheckRequest, w grpc
 	return nil
 }
 
-func (s *TransactionServer) ProxyOrderTranaction_DFB(ctx context.Context, in *transactionclient.ProxyOrderRequest) (*transactionclient.ProxyOrderResponse, error) {
+func (s *TransactionServer) ProxyOrderTranaction_DFB(ctx context.Context, in *transaction.ProxyOrderRequest) (*transaction.ProxyOrderResponse, error) {
 	l := logic.NewProxyOrderTranactionDFBLogic(ctx, s.svcCtx)
 	return l.ProxyOrderTranaction_DFB(in)
 }
 
-func (s *TransactionServer) ProxyOrderTranaction_XFB(ctx context.Context, in *transactionclient.ProxyOrderRequest) (*transactionclient.ProxyOrderResponse, error) {
+func (s *TransactionServer) ProxyOrderTranaction_XFB(ctx context.Context, in *transaction.ProxyOrderRequest) (*transaction.ProxyOrderResponse, error) {
 	l := logic.NewProxyOrderTranactionXFBLogic(ctx, s.svcCtx)
 	return l.ProxyOrderTranaction_XFB(in)
 }
 
-func (s *TransactionServer) PayOrderTranaction(ctx context.Context, in *transactionclient.PayOrderRequest) (*transactionclient.PayOrderResponse, error) {
+func (s *TransactionServer) PayOrderTranaction(ctx context.Context, in *transaction.PayOrderRequest) (*transaction.PayOrderResponse, error) {
 	l := logic.NewPayOrderTranactionLogic(ctx, s.svcCtx)
 	return l.PayOrderTranaction(in)
 }
 
-func (s *TransactionServer) InternalOrderTransaction(ctx context.Context, in *transactionclient.InternalOrderRequest) (*transactionclient.InternalOrderResponse, error) {
+func (s *TransactionServer) InternalOrderTransaction(ctx context.Context, in *transaction.InternalOrderRequest) (*transaction.InternalOrderResponse, error) {
 	l := logic.NewInternalOrderTransactionLogic(ctx, s.svcCtx)
 	return l.InternalOrderTransaction(in)
 }
 
-func (s *TransactionServer) WithdrawOrderTransaction(ctx context.Context, in *transactionclient.WithdrawOrderRequest) (*transactionclient.WithdrawOrderResponse, error) {
+func (s *TransactionServer) WithdrawOrderTransaction(ctx context.Context, in *transaction.WithdrawOrderRequest) (*transaction.WithdrawOrderResponse, error) {
 	l := logic.NewWithdrawOrderTransactionLogic(ctx, s.svcCtx)
 	return l.WithdrawOrderTransaction(in)
 }
 
-func (s *TransactionServer) PayCallBackTranaction(ctx context.Context, in *transactionclient.PayCallBackRequest) (*transactionclient.PayCallBackResponse, error) {
+func (s *TransactionServer) PayCallBackTranaction(ctx context.Context, in *transaction.PayCallBackRequest) (*transaction.PayCallBackResponse, error) {
 	l := logic.NewPayCallBackTranactionLogic(ctx, s.svcCtx)
 	return l.PayCallBackTranaction(in)
+}
+
+func (s *TransactionServer) InternalReviewSuccessTransaction(ctx context.Context, in *transaction.InternalReviewSuccessRequest) (*transaction.InternalReviewSuccessResponse, error) {
+	l := logic.NewInternalReviewSuccessTransactionLogic(ctx, s.svcCtx)
+	return l.InternalReviewSuccessTransaction(in)
 }

@@ -183,6 +183,22 @@ message PayCallBackResponse {
   string PayOrderTime        = 8;
 }
 
+message InternalReviewSuccessRequest {
+  string orderNo = 1;
+}
+
+message InternalReviewSuccessResponse {
+  string orderNo = 1;
+}
+
+message WithdrawReviewFailRequest {
+
+}
+
+message WithdrawReviewFailResponse {
+
+}
+
 service Transaction {
 
   rpc ProxyOrderTranaction_DFB(ProxyOrderRequest) returns (ProxyOrderResponse);
@@ -196,5 +212,7 @@ service Transaction {
   rpc WithdrawOrderTransaction(WithdrawOrderRequest) returns (WithdrawOrderResponse);
 
   rpc PayCallBackTranaction(PayCallBackRequest) returns (PayCallBackResponse);
+
+  rpc InternalReviewSuccessTransaction(InternalReviewSuccessRequest) returns (InternalReviewSuccessResponse);
 
 }
