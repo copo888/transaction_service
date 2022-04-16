@@ -181,6 +181,7 @@ message PayCallBackResponse {
   string NotifyUrl           = 6;
   string OrderTime           = 7;
   string PayOrderTime        = 8;
+  string Status              = 9;
 }
 
 service Transaction {
