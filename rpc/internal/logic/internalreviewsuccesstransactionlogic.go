@@ -2,60 +2,74 @@ package logic
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/errorz"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"gorm.io/gorm"
-	"math"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-type PayCallBackTranactionLogic struct {
+type InternalReviewSuccessTransactionLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 	logx.Logger
 }
 
-func NewPayCallBackTranactionLogic(ctx context.Context, svcCtx *svc.ServiceContext) *PayCallBackTranactionLogic {
-	return &PayCallBackTranactionLogic{
+func NewInternalReviewSuccessTransactionLogic(ctx context.Context, svcCtx *svc.ServiceContext) *InternalReviewSuccessTransactionLogic {
+	return &InternalReviewSuccessTransactionLogic{
 		ctx:    ctx,
 		svcCtx: svcCtx,
 		Logger: logx.WithContext(ctx),
 	}
 }
 
-func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transactionclient.PayCallBackRequest) (resp *transactionclient.PayCallBackResponse, err error) {
-	var order *types.OrderX
+func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction(in *transactionclient.InternalReviewSuccessRequest) (resp *transactionclient.InternalReviewSuccessResponse, err error) {
+	var txOrder types.OrderX
+	var merchantBalanceRecord types.MerchantBalanceRecord
 
+	if err = l.svcCtx.MyDB.Table("tx_orders").Where("order_no = ?", in.OrderNo).Take(&txOrder).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errorz.New(response.DATA_NOT_FOUND)
+		}
+		return nil, errorz.New(response.DATABASE_FAILURE, err.Error())
+	}
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
-
-		if err = l.svcCtx.MyDB.Table("tx_orders").
-			Where("order_no = ?", in.PayOrderNo).Take(&order).Error; err != nil {
-			return errorz.New(response.ORDER_NUMBER_NOT_EXIST, err.Error())
+		// 異動錢包
+		if merchantBalanceRecord, err = l.UpdateBalance(db, types.UpdateBalance{
+			MerchantCode:    txOrder.MerchantCode,
+			CurrencyCode:    txOrder.CurrencyCode,
+			OrderNo:         txOrder.OrderNo,
+			OrderType:       txOrder.Type,
+			ChannelCode:     txOrder.ChannelCode,
+			PayTypeCode:     txOrder.PayTypeCode,
+			PayTypeCodeNum:  txOrder.PayTypeCodeNum,
+			TransactionType: "1",
+			BalanceType:     txOrder.BalanceType,
+			TransferAmount:  txOrder.TransferAmount,
+			Comment:         txOrder.Memo,
+			CreatedBy:       in.UserAccount,
+		}); err != nil {
+			return
 		}
 
-		// 處理中的且非鎖定訂單 才能回調
-		if order.Status != "1" || order.IsLock == "1" {
-			return errorz.New(response.TRANSACTION_FAILURE, fmt.Sprintf("(status/isLock): %s/%s", order.Status, order.IsLock))
-		}
+		txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance
+		txOrder.Balance = merchantBalanceRecord.AfterBalance
+		txOrder.TransAt = types.JsonTime{}.New()
 
-		// 下單金額及實付金額差異風控 (差異超過5% 且 超過1元)
-		limit := utils.FloatMul(order.OrderAmount, 0.05)
-		diff := math.Abs(utils.FloatSub(order.OrderAmount, in.OrderAmount))
-		if diff > limit && diff > 1 {
-			return errorz.New(response.ORDER_AMOUNT_ERROR, fmt.Sprintf("(orderAmount/payAmount): %f/%f", order.OrderAmount, in.OrderAmount))
-		}
+		txOrder.Status = constants.SUCCESS
+		txOrder.IsMerchantCallback = constants.IS_MERCHANT_CALLBACK_YES
 
-		// 編輯訂單 異動錢包和餘額
-		if err = l.updateOrderAndBalance(db, in, order); err != nil {
-			return errorz.New(response.SYSTEM_ERROR, err.Error())
+		// 編輯訂單
+		if err = db.Table("tx_orders").Updates(&txOrder).Error; err != nil {
+			return
 		}
-
 		return
 	}); err != nil {
 		return
@@ -64,71 +78,24 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transactionclient
 	// 新單新增訂單歷程 (不抱錯)
 	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
 		OrderAction: types.OrderAction{
-			OrderNo:     order.OrderNo,
+			OrderNo:     txOrder.OrderNo,
 			Action:      "SUCCESS",
-			UserAccount: order.MerchantCode,
+			UserAccount: in.UserAccount,
 			Comment:     "",
 		},
 	}).Error; err4 != nil {
 		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
 	}
 
-	return &transactionclient.PayCallBackResponse{
-		MerchantCode:        order.MerchantCode,
-		MerchantOrderNo:     order.MerchantOrderNo,
-		OrderNo:             order.OrderNo,
-		OrderAmount:         order.OrderAmount,
-		TransferHandlingFee: order.TransferHandlingFee,
-		NotifyUrl:           order.NotifyUrl,
-		OrderTime:           order.CreatedAt.Format("20060102150405000"),
-		PayOrderTime:        order.TransAt.Time().Format("20060102150405000"),
-		Status:              order.Status,
-	}, nil
-}
-
-func (l *PayCallBackTranactionLogic) updateOrderAndBalance(db *gorm.DB, req *transactionclient.PayCallBackRequest, order *types.OrderX) (err error) {
-
-	var merchantBalanceRecord types.MerchantBalanceRecord
-
-	// 回調成功
-	if req.OrderStatus == "20" {
-		// 異動錢包
-		if merchantBalanceRecord, err = l.UpdateBalance(db, types.UpdateBalance{
-			MerchantCode:    order.MerchantCode,
-			CurrencyCode:    order.CurrencyCode,
-			OrderNo:         order.OrderNo,
-			OrderType:       order.Type,
-			ChannelCode:     order.ChannelCode,
-			PayTypeCode:     order.PayTypeCode,
-			PayTypeCodeNum:  order.PayTypeCodeNum,
-			TransactionType: "1",
-			BalanceType:     order.BalanceType,
-			TransferAmount:  order.TransferAmount,
-			Comment:         order.Memo,
-			CreatedBy:       order.MerchantCode,
-		}); err != nil {
-			return
-		}
-
-		order.BeforeBalance = merchantBalanceRecord.BeforeBalance
-		order.Balance = merchantBalanceRecord.AfterBalance
-		order.TransAt = types.JsonTime{}.New()
+	resp = &transactionclient.InternalReviewSuccessResponse{
+		OrderNo: txOrder.OrderNo,
 	}
 
-	order.ChannelOrderNo = req.ChannelOrderNo
-	order.Status = req.OrderStatus
-	order.CallBackStatus = "1"
-
-	// 編輯訂單
-	if err = db.Table("tx_orders").Updates(&order).Error; err != nil {
-		return
-	}
-
-	return
+	return resp, nil
 }
 
-// UpdateBalance TransferAmount
-func (l *PayCallBackTranactionLogic) UpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
+// updateBalance
+func (l *InternalReviewSuccessTransactionLogic) UpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 
 	var beforeBalance float64
 	var afterBalance float64

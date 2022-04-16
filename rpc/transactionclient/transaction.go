@@ -13,22 +13,29 @@ import (
 )
 
 type (
-	CorrespondMerChnRate      = transaction.CorrespondMerChnRate
-	InternalOrder             = transaction.InternalOrder
-	InternalOrderRequest      = transaction.InternalOrderRequest
-	InternalOrderResponse     = transaction.InternalOrderResponse
-	MerchantOrderRateListView = transaction.MerchantOrderRateListView
-	PayCallBackRequest        = transaction.PayCallBackRequest
-	PayCallBackResponse       = transaction.PayCallBackResponse
-	PayOrder                  = transaction.PayOrder
-	PayOrderRequest           = transaction.PayOrderRequest
-	PayOrderResponse          = transaction.PayOrderResponse
-	ProxyOrderRequest         = transaction.ProxyOrderRequest
-	ProxyOrderResp_XFB        = transaction.ProxyOrderResp_XFB
-	ProxyOrderResponse        = transaction.ProxyOrderResponse
-	ProxyPayOrderRequest      = transaction.ProxyPayOrderRequest
-	WithdrawOrderRequest      = transaction.WithdrawOrderRequest
-	WithdrawOrderResponse     = transaction.WithdrawOrderResponse
+	ChannelWithdraw               = transaction.ChannelWithdraw
+	CorrespondMerChnRate          = transaction.CorrespondMerChnRate
+	InternalOrder                 = transaction.InternalOrder
+	InternalOrderRequest          = transaction.InternalOrderRequest
+	InternalOrderResponse         = transaction.InternalOrderResponse
+	InternalReviewSuccessRequest  = transaction.InternalReviewSuccessRequest
+	InternalReviewSuccessResponse = transaction.InternalReviewSuccessResponse
+	MerchantOrderRateListView     = transaction.MerchantOrderRateListView
+	PayCallBackRequest            = transaction.PayCallBackRequest
+	PayCallBackResponse           = transaction.PayCallBackResponse
+	PayOrder                      = transaction.PayOrder
+	PayOrderRequest               = transaction.PayOrderRequest
+	PayOrderResponse              = transaction.PayOrderResponse
+	ProxyOrderRequest             = transaction.ProxyOrderRequest
+	ProxyOrderResp_XFB            = transaction.ProxyOrderResp_XFB
+	ProxyOrderResponse            = transaction.ProxyOrderResponse
+	ProxyPayOrderRequest          = transaction.ProxyPayOrderRequest
+	WithdrawOrderRequest          = transaction.WithdrawOrderRequest
+	WithdrawOrderResponse         = transaction.WithdrawOrderResponse
+	WithdrawReviewFailRequest     = transaction.WithdrawReviewFailRequest
+	WithdrawReviewFailResponse    = transaction.WithdrawReviewFailResponse
+	WithdrawReviewSuccessRequest  = transaction.WithdrawReviewSuccessRequest
+	WithdrawReviewSuccessResponse = transaction.WithdrawReviewSuccessResponse
 
 	Transaction interface {
 		ProxyOrderTranaction_DFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error)
@@ -37,6 +44,9 @@ type (
 		InternalOrderTransaction(ctx context.Context, in *InternalOrderRequest, opts ...grpc.CallOption) (*InternalOrderResponse, error)
 		WithdrawOrderTransaction(ctx context.Context, in *WithdrawOrderRequest, opts ...grpc.CallOption) (*WithdrawOrderResponse, error)
 		PayCallBackTranaction(ctx context.Context, in *PayCallBackRequest, opts ...grpc.CallOption) (*PayCallBackResponse, error)
+		InternalReviewSuccessTransaction(ctx context.Context, in *InternalReviewSuccessRequest, opts ...grpc.CallOption) (*InternalReviewSuccessResponse, error)
+		WithdrawReviewFailTransaction(ctx context.Context, in *WithdrawReviewFailRequest, opts ...grpc.CallOption) (*WithdrawReviewFailResponse, error)
+		WithdrawReviewSuccessTransaction(ctx context.Context, in *WithdrawReviewSuccessRequest, opts ...grpc.CallOption) (*WithdrawReviewSuccessResponse, error)
 	}
 
 	defaultTransaction struct {
@@ -78,4 +88,19 @@ func (m *defaultTransaction) WithdrawOrderTransaction(ctx context.Context, in *W
 func (m *defaultTransaction) PayCallBackTranaction(ctx context.Context, in *PayCallBackRequest, opts ...grpc.CallOption) (*PayCallBackResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.PayCallBackTranaction(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) InternalReviewSuccessTransaction(ctx context.Context, in *InternalReviewSuccessRequest, opts ...grpc.CallOption) (*InternalReviewSuccessResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.InternalReviewSuccessTransaction(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) WithdrawReviewFailTransaction(ctx context.Context, in *WithdrawReviewFailRequest, opts ...grpc.CallOption) (*WithdrawReviewFailResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.WithdrawReviewFailTransaction(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) WithdrawReviewSuccessTransaction(ctx context.Context, in *WithdrawReviewSuccessRequest, opts ...grpc.CallOption) (*WithdrawReviewSuccessResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.WithdrawReviewSuccessTransaction(ctx, in, opts...)
 }

@@ -184,6 +184,40 @@ message PayCallBackResponse {
   string Status              = 9;
 }
 
+message InternalReviewSuccessRequest {
+  string OrderNo = 1;
+  string UserAccount = 2;
+}
+
+message InternalReviewSuccessResponse {
+  string OrderNo = 1;
+}
+
+message WithdrawReviewFailRequest {
+  string OrderNo = 1;
+  string UserAccount = 2;
+  string Memo = 3;
+}
+
+message WithdrawReviewFailResponse {
+  string OrderNo = 1;
+}
+
+message WithdrawReviewSuccessRequest {
+  string OrderNo = 1;
+  string UserAccount = 2;
+  repeated ChannelWithdraw channelWithdraw = 3;
+}
+
+message WithdrawReviewSuccessResponse {
+  string OrderNo = 1;
+}
+
+message ChannelWithdraw {
+  string ChannelCode = 1;
+  double WithdrawAmount = 2;
+}
+
 service Transaction {
 
   rpc ProxyOrderTranaction_DFB(ProxyOrderRequest) returns (ProxyOrderResponse);
@@ -198,4 +232,9 @@ service Transaction {
 
   rpc PayCallBackTranaction(PayCallBackRequest) returns (PayCallBackResponse);
 
+  rpc InternalReviewSuccessTransaction(InternalReviewSuccessRequest) returns (InternalReviewSuccessResponse);
+
+  rpc WithdrawReviewFailTransaction(WithdrawReviewFailRequest) returns (WithdrawReviewFailResponse);
+
+  rpc WithdrawReviewSuccessTransaction(WithdrawReviewSuccessRequest) returns (WithdrawReviewSuccessResponse);
 }

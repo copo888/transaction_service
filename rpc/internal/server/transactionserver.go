@@ -62,3 +62,18 @@ func (s *TransactionServer) PayCallBackTranaction(ctx context.Context, in *trans
 	l := logic.NewPayCallBackTranactionLogic(ctx, s.svcCtx)
 	return l.PayCallBackTranaction(in)
 }
+
+func (s *TransactionServer) InternalReviewSuccessTransaction(ctx context.Context, in *transactionclient.InternalReviewSuccessRequest) (*transactionclient.InternalReviewSuccessResponse, error) {
+	l := logic.NewInternalReviewSuccessTransactionLogic(ctx, s.svcCtx)
+	return l.InternalReviewSuccessTransaction(in)
+}
+
+func (s *TransactionServer) WithdrawReviewFailTransaction(ctx context.Context, in *transactionclient.WithdrawReviewFailRequest) (*transactionclient.WithdrawReviewFailResponse, error) {
+	l := logic.NewWithdrawReviewFailTransactionLogic(ctx, s.svcCtx)
+	return l.WithdrawReviewFailTransaction(in)
+}
+
+func (s *TransactionServer) WithdrawReviewSuccessTransaction(ctx context.Context, in *transactionclient.WithdrawReviewSuccessRequest) (*transactionclient.WithdrawReviewSuccessResponse, error) {
+	l := logic.NewWithdrawReviewSuccessTransactionLogic(ctx, s.svcCtx)
+	return l.WithdrawReviewSuccessTransaction(in)
+}
