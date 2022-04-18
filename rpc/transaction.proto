@@ -152,13 +152,12 @@ message WithdrawOrderRequest {
   string MerchantBankCity = 8;
   string CurrencyCode = 9;
   double OrderAmount = 10;
-  string Inderx = 11;
-  string OrderNo = 12;
-  double HandlingFee = 13;
-  string Source = 14;
-  string MerchantOrderNo = 15;
-  string NotifyUrl = 16;
-  string PageUrl = 17;
+  string OrderNo = 11;
+  double HandlingFee = 12;
+  string Source = 13;
+  string MerchantOrderNo = 14;
+  string NotifyUrl = 15;
+  string PageUrl = 16;
 }
 message WithdrawOrderResponse {
   string OrderNo = 1;
