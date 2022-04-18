@@ -878,7 +878,8 @@ type Order struct {
 	ChannelBankNo           string  `json:"channelBankNo"`        //渠道銀行代碼
 	ChannelBankName         string  `json:"channelBankName"`      //渠道银行名称
 	ChannelAccountName      string  `json:"channelAccountName"`   //渠道账户姓名
-	OrderAmount             float64 `json:"orderAmount"`
+	OrderAmount             float64 `json:"orderAmount"` //订单金额
+	ActualAmount            float64 `json:"actualAmount"`//实际金额
 	TransferHandlingFee     float64 `json:"transferHandlingFee"`
 	MerchantOrderNo         string  `json:"merchantOrderNo"` //商戶訂單編號
 	ChannelOrderNo          string  `json:"channelOrderNo"`  //渠道订单编号

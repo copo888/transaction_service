@@ -6,6 +6,7 @@ import (
 	"github.com/copo888/transaction_service/common/errorz"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
+	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"gorm.io/gorm"
@@ -61,6 +62,20 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transactionclient
 		return
 	}
 
+	// 計算利潤 (不抱錯) TODO: 異步??
+	if err4 := orderfeeprofitservice.CalculateOrderProfit(l.svcCtx.MyDB, types.CalculateProfit{
+		MerchantCode:        order.MerchantCode,
+		OrderNo:             order.OrderNo,
+		Type:                order.Type,
+		CurrencyCode:        order.CurrencyCode,
+		BalanceType:         order.BalanceType,
+		ChannelCode:         order.ChannelCode,
+		ChannelPayTypesCode: order.ChannelPayTypesCode,
+		OrderAmount:         order.OrderAmount,
+	}); err4 != nil {
+		logx.Error("計算利潤出錯:%s", err4.Error())
+	}
+
 	// 新單新增訂單歷程 (不抱錯)
 	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
 		OrderAction: types.OrderAction{
@@ -92,6 +107,13 @@ func (l *PayCallBackTranactionLogic) updateOrderAndBalance(db *gorm.DB, req *tra
 
 	// 回調成功
 	if req.OrderStatus == "20" {
+		// 回调金额 才是实际收款金额
+		order.ActualAmount = req.OrderAmount
+		// (更改为实际收款金额) 交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
+		order.TransferHandlingFee = utils.FloatAdd(utils.FloatMul(utils.FloatDiv(order.ActualAmount, 100), order.Fee), order.HandlingFee)
+		// (更改为实际收款金额) 計算實際交易金額 = 訂單金額 - 手續費
+		order.TransferAmount = order.ActualAmount - order.TransferHandlingFee
+
 		// 異動錢包
 		if merchantBalanceRecord, err = l.UpdateBalance(db, types.UpdateBalance{
 			MerchantCode:    order.MerchantCode,

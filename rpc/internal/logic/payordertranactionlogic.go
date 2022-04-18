@@ -5,7 +5,6 @@ import (
 	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
-	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
@@ -94,20 +93,6 @@ func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transactionclient.PayOr
 		return nil
 	}); err != nil {
 		return
-	}
-
-	// 計算利潤 (不抱錯) TODO: 異步??
-	if err4 := orderfeeprofitservice.CalculateOrderProfit(l.svcCtx.MyDB, types.CalculateProfit{
-		MerchantCode:        order.MerchantCode,
-		OrderNo:             order.OrderNo,
-		Type:                order.Type,
-		CurrencyCode:        order.CurrencyCode,
-		BalanceType:         order.BalanceType,
-		ChannelCode:         order.ChannelCode,
-		ChannelPayTypesCode: order.ChannelPayTypesCode,
-		OrderAmount:         order.OrderAmount,
-	}); err4 != nil {
-		logx.Error("計算利潤出錯:%s", err4.Error())
 	}
 
 	// 新單新增訂單歷程 (不抱錯) TODO: 異步??
