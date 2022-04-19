@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/utils"
+	"github.com/copo888/transaction_service/rpc/internal/model"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
@@ -61,6 +62,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 	if len(in.MerchantOrderNo) > 0 {
 		txOrder.MerchantOrderNo = in.MerchantOrderNo
 	}
+
 	tx.Begin()
 	// 新增收支记录，更新商户余额
 	updateBalance := types.UpdateBalance{
@@ -72,6 +74,20 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		BalanceType:     txOrder.BalanceType,
 		TransferAmount:  txOrder.TransferAmount,
 		CreatedBy:       in.UserAccount,
+	}
+	if in.Source == constants.API {
+		isBlock, _ := model.NewBankBlockAccount(tx).CheckIsBlockAccount(txOrder.MerchantBankAccount)
+		if isBlock { //银行账号为黑名单
+			logx.Infof("交易账户%s-%s在黑名单内", txOrder.MerchantAccountName, txOrder.MerchantBankNo)
+			updateBalance.TransferAmount = 0                           // 使用0元前往钱包扣款
+			txOrder.ErrorType = constants.ERROR6_BANK_ACCOUNT_IS_BLACK //交易账户为黑名单
+			txOrder.ErrorNote = constants.BANK_ACCOUNT_IS_BLACK        //失败原因：黑名单交易失败
+			txOrder.Status = constants.PROXY_PAY_FAIL                  //状态:失败
+			txOrder.Fee = 0                                            //写入本次手续费(未发送到渠道的交易，都设为0元)
+			txOrder.HandlingFee = 0
+			//transAt = types.JsonTime{}.New()
+			logx.Infof("商户 %s，代付订单 %#v ，交易账户为黑名单", txOrder.MerchantCode, txOrder)
+		}
 	}
 	//更新钱包且新增商户钱包异动记录
 	merchantBalanceRecord, err1 := merchantbalanceservice.UpdateXFBalance_Debit(tx, &updateBalance)

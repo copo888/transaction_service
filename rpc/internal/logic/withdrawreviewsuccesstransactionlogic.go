@@ -120,7 +120,11 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
 	}
 
-	return &transactionclient.WithdrawReviewSuccessResponse{}, nil
+	resp = &transactionclient.WithdrawReviewSuccessResponse{
+		OrderNo: txOrder.OrderNo,
+	}
+
+	return resp, nil
 }
 
 func (l *WithdrawReviewSuccessTransactionLogic) intToFloat64(i int) float64 {
