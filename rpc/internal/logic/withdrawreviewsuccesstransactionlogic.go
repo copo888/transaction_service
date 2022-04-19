@@ -90,7 +90,7 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 		l.CalculateSystemProfit(db, oldOrder, totalChannelHandlingFee)
 
 		// 儲存下發明細記錄
-		if err1 := l.svcCtx.MyDB.Table("tx_order_channels").CreateInBatches(orderChannels, len(orderChannels)).Error; err1 != nil {
+		if err1 := db.Table("tx_order_channels").CreateInBatches(orderChannels, len(orderChannels)).Error; err1 != nil {
 			return errorz.New(response.DATABASE_FAILURE, err1.Error())
 		}
 		// 更新交易時間
@@ -98,7 +98,7 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 		txOrder.Status = constants.SUCCESS
 		txOrder.IsMerchantCallback = constants.IS_MERCHANT_CALLBACK_YES
 		// 更新审核通过
-		if err2 := l.svcCtx.MyDB.Table("tx_orders").Updates(txOrder).Error; err2 != nil {
+		if err2 := db.Table("tx_orders").Updates(txOrder).Error; err2 != nil {
 			return errorz.New(response.DATABASE_FAILURE, err2.Error())
 		}
 

@@ -28,7 +28,7 @@ func NewWithdrawOrderTransactionLogic(ctx context.Context, svcCtx *svc.ServiceCo
 }
 
 func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transactionclient.WithdrawOrderRequest) (*transactionclient.WithdrawOrderResponse, error) {
-	tx := l.svcCtx.MyDB
+	db := l.svcCtx.MyDB
 
 	transferAmount := utils.FloatAdd(in.OrderAmount, in.HandlingFee)
 
@@ -63,7 +63,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		txOrder.MerchantOrderNo = in.MerchantOrderNo
 	}
 
-	tx.Begin()
+	tx := db.Begin()
 	// 新增收支记录，更新商户余额
 	updateBalance := types.UpdateBalance{
 		MerchantCode:    txOrder.MerchantCode,
@@ -117,7 +117,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 	}
 
 	// 新單新增訂單歷程 (不抱錯) TODO: 異步??
-	if err5 := tx.Table("tx_order_actions").Create(&types.OrderActionX{
+	if err5 := db.Table("tx_order_actions").Create(&types.OrderActionX{
 		OrderAction: types.OrderAction{
 			OrderNo:     txOrder.OrderNo,
 			Action:      "PLACE_ORDER",
