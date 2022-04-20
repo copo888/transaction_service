@@ -245,7 +245,7 @@ message ProxyOrderUI {
 message MakeUpReceiptOrderRequest {
   string OrderNo        = 1;
   string ChannelOrderNo = 2;
-  string MakeUpType     = 3;
+  string ReasonType     = 3;
   double Amount         = 4;
   string Comment        = 5;
 }

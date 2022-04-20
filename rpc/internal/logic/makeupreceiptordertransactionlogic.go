@@ -40,7 +40,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	var newOrderNo string
 	var comment string
 
-	 l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
+	if err := l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
 		// 1. 取得訂單
 		if err = db.Table("tx_orders").Where("order_no = ?", req.OrderNo).Find(&order).Error; err != nil {
@@ -93,7 +93,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 		newOrder.IsLock = "1"
 		newOrder.CallBackStatus = "1"
 		newOrder.IsMerchantCallback = "2"
-		newOrder.MakeUpType = req.MakeUpType
+		newOrder.ReasonType = req.ReasonType
 		newOrder.PersonProcessStatus = "10"
 		newOrder.InternalChargeOrderPath = ""
 		newOrder.HandlingFee = order.HandlingFee
@@ -109,18 +109,6 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 			return errorz.New(response.DATABASE_FAILURE, err.Error())
 		}
 
-		// 新單新增訂單歷程
-		if err = db.Table("tx_order_actions").Create(&types.OrderActionX{
-			OrderAction: types.OrderAction{
-				OrderNo:     newOrder.OrderNo,
-				Action:      "MAKE_UP_ORDER",
-				UserAccount: "AAA00061", // TODO: JWT取得
-				Comment:     comment,
-			},
-		}).Error; err != nil {
-			return errorz.New(response.DATABASE_FAILURE, err.Error())
-		}
-
 		// 舊單鎖定
 		order.IsLock = "1"
 		order.Memo = "补单锁定"
@@ -130,20 +118,10 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 			return errorz.New(response.DATABASE_FAILURE, err.Error())
 		}
 
-		// 舊單新增歷程
-		if err = db.Table("tx_order_actions").Create(&types.OrderActionX{
-			OrderAction: types.OrderAction{
-				OrderNo:     order.OrderNo,
-				Action:      "MAKE_UP_LOCK_ORDER",
-				UserAccount: "AAA00061", // TODO: JWT取得
-				Comment:     "",
-			},
-		}).Error; err != nil {
-			return errorz.New(response.DATABASE_FAILURE, err.Error())
-		}
-
 		return nil
-	})
+	}); err != nil {
+		return nil, errorz.New(response.DATABASE_FAILURE, err.Error())
+	}
 
 	// 計算利潤
 	if err := orderfeeprofitservice.CalculateOrderProfit(l.svcCtx.MyDB, types.CalculateProfit{
@@ -157,6 +135,30 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 		OrderAmount:         req.Amount,
 	}); err != nil {
 		logx.Error("計算利潤出錯:%s", err.Error())
+	}
+
+	// 舊單新增歷程
+	if err := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
+		OrderAction: types.OrderAction{
+			OrderNo:     order.OrderNo,
+			Action:      "MAKE_UP_LOCK_ORDER",
+			UserAccount: "AAA00061", // TODO: JWT取得
+			Comment:     "",
+		},
+	}).Error; err != nil {
+		logx.Error("紀錄訂單歷程出錯:%s", err.Error())
+	}
+
+	// 新單新增訂單歷程
+	if err := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
+		OrderAction: types.OrderAction{
+			OrderNo:     newOrder.OrderNo,
+			Action:      "MAKE_UP_ORDER",
+			UserAccount: "AAA00061", // TODO: JWT取得
+			Comment:     comment,
+		},
+	}).Error; err != nil {
+		logx.Error("紀錄訂單歷程出錯:%s", err.Error())
 	}
 
 	return &transaction.MakeUpReceiptOrderResponse{}, nil
