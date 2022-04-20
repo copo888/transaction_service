@@ -176,11 +176,12 @@ message PayCallBackResponse {
   string MerchantOrderNo     = 2;
   string OrderNo             = 3;
   double OrderAmount         = 4;
-  double TransferHandlingFee = 5;
-  string NotifyUrl           = 6;
-  string OrderTime           = 7;
-  string PayOrderTime        = 8;
-  string Status              = 9;
+  double ActualAmount        = 5;
+  double TransferHandlingFee = 6;
+  string NotifyUrl           = 7;
+  string OrderTime           = 8;
+  string PayOrderTime        = 9;
+  string Status              = 10;
 }
 
 message InternalReviewSuccessRequest {

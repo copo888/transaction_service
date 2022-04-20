@@ -71,7 +71,7 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transactionclient
 		BalanceType:         order.BalanceType,
 		ChannelCode:         order.ChannelCode,
 		ChannelPayTypesCode: order.ChannelPayTypesCode,
-		OrderAmount:         order.OrderAmount,
+		OrderAmount:         order.ActualAmount,
 	}); err4 != nil {
 		logx.Error("計算利潤出錯:%s", err4.Error())
 	}
@@ -93,6 +93,7 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transactionclient
 		MerchantOrderNo:     order.MerchantOrderNo,
 		OrderNo:             order.OrderNo,
 		OrderAmount:         order.OrderAmount,
+		ActualAmount:         order.ActualAmount,
 		TransferHandlingFee: order.TransferHandlingFee,
 		NotifyUrl:           order.NotifyUrl,
 		OrderTime:           order.CreatedAt.Format("20060102150405000"),
