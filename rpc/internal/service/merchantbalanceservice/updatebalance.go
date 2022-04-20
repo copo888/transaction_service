@@ -134,6 +134,63 @@ func UpdateXFBalance_Debit(db *gorm.DB, updateBalance *types.UpdateBalance) (mer
 	return
 }
 
+/*
+	更新下發餘額(支轉代)_扣款(代付提單扣款)
+*/
+func UpdateBalanceForZF(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
+
+	var beforeBalance float64
+	var afterBalance float64
+
+	// 1. 取得 商戶餘額表
+	var merchantBalance types.MerchantBalance
+	if err = db.Table("mc_merchant_balances").
+		Where("merchant_code = ? AND currency_code = ? AND balance_type = ?", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType).
+		Take(&merchantBalance).Error; err != nil {
+		return merchantBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
+	}
+
+	// 2. 計算
+	beforeBalance = merchantBalance.Balance
+	afterBalance = utils.FloatAdd(beforeBalance, updateBalance.TransferAmount)
+	merchantBalance.Balance = afterBalance
+
+	// 3. 變更 商戶餘額
+	if err = db.Table("mc_merchant_balances").Select("balance").Updates(types.MerchantBalanceX{
+		MerchantBalance: merchantBalance,
+	}).Error; err != nil {
+		logx.Error(err.Error())
+		return merchantBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
+	}
+
+	// 4. 新增 餘額紀錄
+	merchantBalanceRecord = types.MerchantBalanceRecord{
+		MerchantBalanceId: merchantBalance.ID,
+		MerchantCode:      merchantBalance.MerchantCode,
+		CurrencyCode:      merchantBalance.CurrencyCode,
+		OrderNo:           updateBalance.OrderNo,
+		OrderType:         updateBalance.OrderType,
+		ChannelCode:       updateBalance.ChannelCode,
+		PayTypeCode:       updateBalance.PayTypeCode,
+		PayTypeCodeNum:    updateBalance.PayTypeCodeNum,
+		TransactionType:   updateBalance.TransactionType,
+		BalanceType:       updateBalance.BalanceType,
+		BeforeBalance:     beforeBalance,
+		TransferAmount:    updateBalance.TransferAmount,
+		AfterBalance:      afterBalance,
+		Comment:           updateBalance.Comment,
+		CreatedBy:         updateBalance.CreatedBy,
+	}
+
+	if err = db.Table("mc_merchant_balance_records").Create(&types.MerchantBalanceRecordX{
+		MerchantBalanceRecord: merchantBalanceRecord,
+	}).Error; err != nil {
+		return merchantBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
+	}
+
+	return
+}
+
 // TODO 最後要刪除此方法
 // UpdateBalance TransferAmount需正負(收款传正值/扣款传負值), BalanceType:餘額類型 (DFB=代付餘額 XFB=下發餘額)
 func UpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {

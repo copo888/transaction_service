@@ -14,12 +14,16 @@ import (
 
 type (
 	ChannelWithdraw               = transaction.ChannelWithdraw
+	ConfirmPayOrderRequest        = transaction.ConfirmPayOrderRequest
+	ConfirmPayOrderResponse       = transaction.ConfirmPayOrderResponse
 	CorrespondMerChnRate          = transaction.CorrespondMerChnRate
 	InternalOrder                 = transaction.InternalOrder
 	InternalOrderRequest          = transaction.InternalOrderRequest
 	InternalOrderResponse         = transaction.InternalOrderResponse
 	InternalReviewSuccessRequest  = transaction.InternalReviewSuccessRequest
 	InternalReviewSuccessResponse = transaction.InternalReviewSuccessResponse
+	MakeUpReceiptOrderRequest     = transaction.MakeUpReceiptOrderRequest
+	MakeUpReceiptOrderResponse    = transaction.MakeUpReceiptOrderResponse
 	MerchantOrderRateListView     = transaction.MerchantOrderRateListView
 	PayCallBackRequest            = transaction.PayCallBackRequest
 	PayCallBackResponse           = transaction.PayCallBackResponse
@@ -47,6 +51,8 @@ type (
 		InternalReviewSuccessTransaction(ctx context.Context, in *InternalReviewSuccessRequest, opts ...grpc.CallOption) (*InternalReviewSuccessResponse, error)
 		WithdrawReviewFailTransaction(ctx context.Context, in *WithdrawReviewFailRequest, opts ...grpc.CallOption) (*WithdrawReviewFailResponse, error)
 		WithdrawReviewSuccessTransaction(ctx context.Context, in *WithdrawReviewSuccessRequest, opts ...grpc.CallOption) (*WithdrawReviewSuccessResponse, error)
+		MakeUpReceiptOrderTransaction(ctx context.Context, in *MakeUpReceiptOrderRequest, opts ...grpc.CallOption) (*MakeUpReceiptOrderResponse, error)
+		ConfirmPayOrderTransaction(ctx context.Context, in *ConfirmPayOrderRequest, opts ...grpc.CallOption) (*ConfirmPayOrderResponse, error)
 	}
 
 	defaultTransaction struct {
@@ -103,4 +109,14 @@ func (m *defaultTransaction) WithdrawReviewFailTransaction(ctx context.Context, 
 func (m *defaultTransaction) WithdrawReviewSuccessTransaction(ctx context.Context, in *WithdrawReviewSuccessRequest, opts ...grpc.CallOption) (*WithdrawReviewSuccessResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.WithdrawReviewSuccessTransaction(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) MakeUpReceiptOrderTransaction(ctx context.Context, in *MakeUpReceiptOrderRequest, opts ...grpc.CallOption) (*MakeUpReceiptOrderResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.MakeUpReceiptOrderTransaction(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) ConfirmPayOrderTransaction(ctx context.Context, in *ConfirmPayOrderRequest, opts ...grpc.CallOption) (*ConfirmPayOrderResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.ConfirmPayOrderTransaction(ctx, in, opts...)
 }

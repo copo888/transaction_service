@@ -76,3 +76,13 @@ func (s *TransactionServer) WithdrawReviewSuccessTransaction(ctx context.Context
 	l := logic.NewWithdrawReviewSuccessTransactionLogic(ctx, s.svcCtx)
 	return l.WithdrawReviewSuccessTransaction(in)
 }
+
+func (s *TransactionServer) MakeUpReceiptOrderTransaction(ctx context.Context, in *transaction.MakeUpReceiptOrderRequest) (*transaction.MakeUpReceiptOrderResponse, error) {
+	l := logic.NewMakeUpReceiptOrderTransactionLogic(ctx, s.svcCtx)
+	return l.MakeUpReceiptOrderTransaction(in)
+}
+
+func (s *TransactionServer) ConfirmPayOrderTransaction(ctx context.Context, in *transaction.ConfirmPayOrderRequest) (*transaction.ConfirmPayOrderResponse, error) {
+	l := logic.NewConfirmPayOrderTransactionLogic(ctx, s.svcCtx)
+	return l.ConfirmPayOrderTransaction(in)
+}
