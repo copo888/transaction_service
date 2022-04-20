@@ -1478,11 +1478,12 @@ type PayCallBackResponse struct {
 	MerchantOrderNo      string   `protobuf:"bytes,2,opt,name=MerchantOrderNo,proto3" json:"MerchantOrderNo,omitempty"`
 	OrderNo              string   `protobuf:"bytes,3,opt,name=OrderNo,proto3" json:"OrderNo,omitempty"`
 	OrderAmount          float64  `protobuf:"fixed64,4,opt,name=OrderAmount,proto3" json:"OrderAmount,omitempty"`
-	TransferHandlingFee  float64  `protobuf:"fixed64,5,opt,name=TransferHandlingFee,proto3" json:"TransferHandlingFee,omitempty"`
-	NotifyUrl            string   `protobuf:"bytes,6,opt,name=NotifyUrl,proto3" json:"NotifyUrl,omitempty"`
-	OrderTime            string   `protobuf:"bytes,7,opt,name=OrderTime,proto3" json:"OrderTime,omitempty"`
-	PayOrderTime         string   `protobuf:"bytes,8,opt,name=PayOrderTime,proto3" json:"PayOrderTime,omitempty"`
-	Status               string   `protobuf:"bytes,9,opt,name=Status,proto3" json:"Status,omitempty"`
+	ActualAmount         float64  `protobuf:"fixed64,5,opt,name=ActualAmount,proto3" json:"ActualAmount,omitempty"`
+	TransferHandlingFee  float64  `protobuf:"fixed64,6,opt,name=TransferHandlingFee,proto3" json:"TransferHandlingFee,omitempty"`
+	NotifyUrl            string   `protobuf:"bytes,7,opt,name=NotifyUrl,proto3" json:"NotifyUrl,omitempty"`
+	OrderTime            string   `protobuf:"bytes,8,opt,name=OrderTime,proto3" json:"OrderTime,omitempty"`
+	PayOrderTime         string   `protobuf:"bytes,9,opt,name=PayOrderTime,proto3" json:"PayOrderTime,omitempty"`
+	Status               string   `protobuf:"bytes,10,opt,name=Status,proto3" json:"Status,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1537,6 +1538,13 @@ func (m *PayCallBackResponse) GetOrderNo() string {
 func (m *PayCallBackResponse) GetOrderAmount() float64 {
 	if m != nil {
 		return m.OrderAmount
+	}
+	return 0
+}
+
+func (m *PayCallBackResponse) GetActualAmount() float64 {
+	if m != nil {
+		return m.ActualAmount
 	}
 	return 0
 }
