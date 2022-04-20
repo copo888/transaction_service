@@ -54,6 +54,7 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 		MerchantBankCity:     req.MerchantBankCity,
 		CurrencyCode:         req.CurrencyCode,
 		ChannelCode:          rate.ChannelCode,
+		ChannelPayTypesCode:  rate.ChannelPayTypesCode,
 		Fee:                  rate.MerFee,
 		HandlingFee:          rate.MerHandlingFee,
 		PayTypeCode:          rate.PayTypeCode,
@@ -76,11 +77,24 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 		CreatedBy:       txOrder.MerchantCode,
 	}
 
+	//交易金额 = 订单金额 + 商户手续费
+	txOrder.TransferAmount = utils.FloatAdd(txOrder.OrderAmount, txOrder.TransferHandlingFee)
+	updateBalance.TransferAmount = txOrder.TransferAmount //扣款依然傳正值
+
+	// 判断单笔最大最小金额
+	if rate.SingleMaxCharge < txOrder.TransferAmount {
+		//金额超过上限
+		logx.Errorf("錯誤:代付金額超過上限")
+		return nil, errorz.New(response.ORDER_AMOUNT_LIMIT_MAX)
+	} else if rate.SingleMinCharge > txOrder.TransferAmount {
+		//下发金额未达下限
+		logx.Errorf("錯誤:代付金額未達下限")
+		return nil, errorz.New(response.ORDER_AMOUNT_LIMIT_MIN)
+	}
+
+
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
-		//交易金额 = 订单金额 + 商户手续费
-		txOrder.TransferAmount = utils.FloatAdd(txOrder.OrderAmount, txOrder.TransferHandlingFee)
-		updateBalance.TransferAmount = txOrder.TransferAmount //扣款依然傳正值
 		//更新钱包且新增商户钱包异动记录
 		if merchantBalanceRecord, err = merchantbalanceservice.UpdateDFBalance_Debit(db, updateBalance); err != nil {
 			logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
@@ -119,15 +133,15 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 	}
 
 	// 新單新增訂單歷程 (不抱錯) TODO: 異步??
-	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
+	if err5 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
 		OrderAction: types.OrderAction{
 			OrderNo:     txOrder.OrderNo,
 			Action:      "PLACE_ORDER",
 			UserAccount: req.UserAccount,
 			Comment:     "",
 		},
-	}).Error; err4 != nil {
-		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
+	}).Error; err5 != nil {
+		logx.Error("紀錄訂單歷程出錯:%s", err5.Error())
 	}
 
 	resp = &transactionclient.ProxyOrderUIResponse{

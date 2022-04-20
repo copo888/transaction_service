@@ -76,11 +76,23 @@ func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(in *transa
 		CreatedBy:       txOrder.MerchantCode,
 	}
 
+	//交易金额 = 订单金额 + 商户手续费
+	txOrder.TransferAmount = utils.FloatAdd(txOrder.OrderAmount, txOrder.TransferHandlingFee)
+	updateBalance.TransferAmount = txOrder.TransferAmount //扣款依然傳正值
+
+	// 判断单笔最大最小金额
+	if rate.SingleMaxCharge < txOrder.TransferAmount {
+		//金额超过上限
+		logx.Errorf("錯誤:代付金額超過上限")
+		return nil, errorz.New(response.ORDER_AMOUNT_LIMIT_MAX)
+	} else if rate.SingleMinCharge > txOrder.TransferAmount {
+		//下发金额未达下限
+		logx.Errorf("錯誤:代付金額未達下限")
+		return nil, errorz.New(response.ORDER_AMOUNT_LIMIT_MIN)
+	}
+
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
-		//交易金额 = 订单金额 + 商户手续费
-		txOrder.TransferAmount = utils.FloatAdd(txOrder.OrderAmount, txOrder.TransferHandlingFee)
-		updateBalance.TransferAmount = txOrder.TransferAmount //扣款依然傳正值
 		//更新钱包且新增商户钱包异动记录
 		if merchantBalanceRecord, err = merchantbalanceservice.UpdateDFBalance_Debit(db, updateBalance); err != nil {
 			logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
