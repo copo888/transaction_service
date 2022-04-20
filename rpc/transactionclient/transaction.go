@@ -29,6 +29,9 @@ type (
 	ProxyOrderRequest             = transaction.ProxyOrderRequest
 	ProxyOrderResp_XFB            = transaction.ProxyOrderResp_XFB
 	ProxyOrderResponse            = transaction.ProxyOrderResponse
+	ProxyOrderUI                  = transaction.ProxyOrderUI
+	ProxyOrderUIRequest           = transaction.ProxyOrderUIRequest
+	ProxyOrderUIResponse          = transaction.ProxyOrderUIResponse
 	ProxyPayOrderRequest          = transaction.ProxyPayOrderRequest
 	WithdrawOrderRequest          = transaction.WithdrawOrderRequest
 	WithdrawOrderResponse         = transaction.WithdrawOrderResponse
@@ -47,6 +50,8 @@ type (
 		InternalReviewSuccessTransaction(ctx context.Context, in *InternalReviewSuccessRequest, opts ...grpc.CallOption) (*InternalReviewSuccessResponse, error)
 		WithdrawReviewFailTransaction(ctx context.Context, in *WithdrawReviewFailRequest, opts ...grpc.CallOption) (*WithdrawReviewFailResponse, error)
 		WithdrawReviewSuccessTransaction(ctx context.Context, in *WithdrawReviewSuccessRequest, opts ...grpc.CallOption) (*WithdrawReviewSuccessResponse, error)
+		ProxyOrderUITransaction_DFB(ctx context.Context, in *ProxyOrderUIRequest, opts ...grpc.CallOption) (*ProxyOrderUIResponse, error)
+		ProxyOrderUITransaction_XFB(ctx context.Context, in *ProxyOrderUIRequest, opts ...grpc.CallOption) (*ProxyOrderUIResponse, error)
 	}
 
 	defaultTransaction struct {
@@ -103,4 +108,14 @@ func (m *defaultTransaction) WithdrawReviewFailTransaction(ctx context.Context, 
 func (m *defaultTransaction) WithdrawReviewSuccessTransaction(ctx context.Context, in *WithdrawReviewSuccessRequest, opts ...grpc.CallOption) (*WithdrawReviewSuccessResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.WithdrawReviewSuccessTransaction(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) ProxyOrderUITransaction_DFB(ctx context.Context, in *ProxyOrderUIRequest, opts ...grpc.CallOption) (*ProxyOrderUIResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.ProxyOrderUITransaction_DFB(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) ProxyOrderUITransaction_XFB(ctx context.Context, in *ProxyOrderUIRequest, opts ...grpc.CallOption) (*ProxyOrderUIResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.ProxyOrderUITransaction_XFB(ctx, in, opts...)
 }

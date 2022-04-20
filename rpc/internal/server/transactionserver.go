@@ -77,3 +77,13 @@ func (s *TransactionServer) WithdrawReviewSuccessTransaction(ctx context.Context
 	l := logic.NewWithdrawReviewSuccessTransactionLogic(ctx, s.svcCtx)
 	return l.WithdrawReviewSuccessTransaction(in)
 }
+
+func (s *TransactionServer) ProxyOrderUITransaction_DFB(ctx context.Context, in *transactionclient.ProxyOrderUIRequest) (*transactionclient.ProxyOrderUIResponse, error) {
+	l := logic.NewProxyOrderUITransactionDFBLogic(ctx, s.svcCtx)
+	return l.ProxyOrderUITransaction_DFB(in)
+}
+
+func (s *TransactionServer) ProxyOrderUITransaction_XFB(ctx context.Context, in *transactionclient.ProxyOrderUIRequest) (*transactionclient.ProxyOrderUIResponse, error) {
+	l := logic.NewProxyOrderUITransactionXFBLogic(ctx, s.svcCtx)
+	return l.ProxyOrderUITransaction_XFB(in)
+}

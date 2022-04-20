@@ -217,6 +217,29 @@ message ChannelWithdraw {
   double WithdrawAmount = 2;
 }
 
+message ProxyOrderUIRequest {
+  ProxyOrderUI proxyOrderUI = 1;
+  MerchantOrderRateListView merchantOrderRateListView = 2;
+}
+
+message ProxyOrderUIResponse{
+  string ProxyOrderNo = 1;
+}
+
+message ProxyOrderUI {
+  string MerchantCode = 1;
+  string UserAccount = 2;
+  string OrderNo = 3;
+  double OrderAmount = 4;
+  string MerchantBankAccount = 5;
+  string MerchantBankNo = 6;
+  string MerchantBankName = 7;
+  string MerchantAccountName = 8;
+  string MerchantBankProvince = 9;
+  string MerchantBankCity = 10;
+  string CurrencyCode = 11;
+}
+
 service Transaction {
 
   rpc ProxyOrderTranaction_DFB(ProxyOrderRequest) returns (ProxyOrderResponse);
@@ -236,4 +259,8 @@ service Transaction {
   rpc WithdrawReviewFailTransaction(WithdrawReviewFailRequest) returns (WithdrawReviewFailResponse);
 
   rpc WithdrawReviewSuccessTransaction(WithdrawReviewSuccessRequest) returns (WithdrawReviewSuccessResponse);
+
+  rpc ProxyOrderUITransaction_DFB(ProxyOrderUIRequest) returns (ProxyOrderUIResponse);
+
+  rpc ProxyOrderUITransaction_XFB(ProxyOrderUIRequest) returns (ProxyOrderUIResponse);
 }
