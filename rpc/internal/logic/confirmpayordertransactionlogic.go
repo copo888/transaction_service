@@ -2,10 +2,10 @@ package logic
 
 import (
 	"context"
-	"fmt"
 	"github.com/copo888/transaction_service/common/errorz"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
+	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transaction"
@@ -32,29 +32,86 @@ func NewConfirmPayOrderTransactionLogic(ctx context.Context, svcCtx *svc.Service
 func (l *ConfirmPayOrderTransactionLogic) ConfirmPayOrderTransaction(in *transaction.ConfirmPayOrderRequest) (*transaction.ConfirmPayOrderResponse, error) {
 	var order *types.OrderX
 
-	if err := l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
+	/****     交易開始      ****/
+	txDB := l.svcCtx.MyDB.Begin()
 
-		if err = l.svcCtx.MyDB.Table("tx_orders").
-			Where("order_no = ?", in.OrderNo).Take(&order).Error; err != nil {
-			return errorz.New(response.ORDER_NUMBER_NOT_EXIST, err.Error())
-		}
-
-		// 處理中的且非鎖定訂單 才能確認收款
-		if order.Status != "1" || order.IsLock == "1" {
-			return errorz.New(response.TRANSACTION_FAILURE, fmt.Sprintf("(status/isLock): %s/%s", order.Status, order.IsLock))
-		}
-
-		// 編輯訂單 異動錢包和餘額
-		if err = l.updateOrderAndBalance(db, in, order); err != nil {
-			return errorz.New(response.SYSTEM_ERROR, err.Error())
-		}
-
-		return
-	}); err != nil {
-		return nil, err
+	if err := txDB.Table("tx_orders").
+		Where("order_no = ?", in.OrderNo).Take(&order).Error; err != nil {
+		txDB.Rollback()
+		return &transactionclient.ConfirmPayOrderResponse{
+			Code:    response.ORDER_NUMBER_NOT_EXIST,
+			Message: "商户订单号不存在 ",
+		}, errorz.New(response.TRANSACTION_FAILURE)
 	}
 
-	return &transaction.ConfirmPayOrderResponse{}, nil
+	// 處理中的且非鎖定訂單 才能確認收款
+	if order.Status != "1" || order.IsLock == "1" {
+		txDB.Rollback()
+		return &transactionclient.ConfirmPayOrderResponse{
+			Code:    response.TRANSACTION_FAILURE,
+			Message: "交易失败 订单号已锁定 或 订单状态非处理中 ",
+		}, errorz.New(response.TRANSACTION_FAILURE)
+	}
+
+	// 編輯訂單 異動錢包和餘額
+	if err := l.updateOrderAndBalance(txDB, in, order); err != nil {
+		txDB.Rollback()
+		return &transactionclient.ConfirmPayOrderResponse{
+			Code:    response.SYSTEM_ERROR,
+			Message: "资料库错误 Commit失败",
+		}, err
+	}
+
+	if err := txDB.Commit().Error; err != nil {
+		txDB.Rollback()
+		logx.Errorf("支付回調失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
+		return &transactionclient.ConfirmPayOrderResponse{
+			Code:    response.DATABASE_FAILURE,
+			Message: "资料库错误 Commit失败",
+		}, err
+	}
+	/****     交易結束      ****/
+
+	// 計算利潤 (不抱錯) TODO: 異步??
+	if err4 := orderfeeprofitservice.CalculateOrderProfit(l.svcCtx.MyDB, types.CalculateProfit{
+		MerchantCode:        order.MerchantCode,
+		OrderNo:             order.OrderNo,
+		Type:                order.Type,
+		CurrencyCode:        order.CurrencyCode,
+		BalanceType:         order.BalanceType,
+		ChannelCode:         order.ChannelCode,
+		ChannelPayTypesCode: order.ChannelPayTypesCode,
+		OrderAmount:         order.ActualAmount,
+	}); err4 != nil {
+		logx.Error("計算利潤出錯:%s", err4.Error())
+	}
+
+	// 新單新增訂單歷程 (不抱錯)
+	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
+		OrderAction: types.OrderAction{
+			OrderNo:     order.OrderNo,
+			Action:      "SUCCESS",
+			UserAccount: order.MerchantCode,
+			Comment:     "",
+		},
+	}).Error; err4 != nil {
+		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
+	}
+
+	return &transaction.ConfirmPayOrderResponse{
+		Code:                response.API_SUCCESS,
+		Message:             "操作成功",
+		MerchantCode:        order.MerchantCode,
+		MerchantOrderNo:     order.MerchantOrderNo,
+		OrderNo:             order.OrderNo,
+		OrderAmount:         order.OrderAmount,
+		ActualAmount:        order.ActualAmount,
+		TransferHandlingFee: order.TransferHandlingFee,
+		NotifyUrl:           order.NotifyUrl,
+		OrderTime:           order.CreatedAt.Format("20060102150405000"),
+		PayOrderTime:        order.TransAt.Time().Format("20060102150405000"),
+		Status:              order.Status,
+	}, nil
 }
 
 func (l *ConfirmPayOrderTransactionLogic) updateOrderAndBalance(db *gorm.DB, req *transactionclient.ConfirmPayOrderRequest, order *types.OrderX) (err error) {

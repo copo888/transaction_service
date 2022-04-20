@@ -66,7 +66,9 @@ message PayOrderRequest {
 }
 
 message PayOrderResponse {
-  string PayOrderNo = 1;
+  string Code           = 1;
+  string Message        = 2;
+  string PayOrderNo     = 3;
 }
 
 message PayOrder {
@@ -172,16 +174,19 @@ message PayCallBackRequest {
 }
 
 message PayCallBackResponse {
-  string MerchantCode        = 1;
-  string MerchantOrderNo     = 2;
-  string OrderNo             = 3;
-  double OrderAmount         = 4;
-  double ActualAmount        = 5;
-  double TransferHandlingFee = 6;
-  string NotifyUrl           = 7;
-  string OrderTime           = 8;
-  string PayOrderTime        = 9;
-  string Status              = 10;
+  string Code           = 1;
+  string Message        = 2;
+  string MerchantCode        = 3;
+  string MerchantOrderNo     = 4;
+  string OrderNo             = 5;
+  double OrderAmount         = 6;
+  double ActualAmount        = 7;
+  double TransferHandlingFee = 8;
+  string NotifyUrl           = 9;
+  string OrderTime           = 10;
+  string PayOrderTime        = 11;
+  string Status              = 12;
+
 }
 
 message InternalReviewSuccessRequest {
@@ -251,7 +256,8 @@ message MakeUpReceiptOrderRequest {
 }
 
 message MakeUpReceiptOrderResponse {
-
+  string Code           = 1;
+  string Message        = 2;
 }
 
 // 手動確認收款
@@ -261,7 +267,18 @@ message ConfirmPayOrderRequest {
 }
 
 message ConfirmPayOrderResponse {
-
+  string Code           = 1;
+  string Message        = 2;
+  string MerchantCode        = 3;
+  string MerchantOrderNo     = 4;
+  string OrderNo             = 5;
+  double OrderAmount         = 6;
+  double ActualAmount        = 7;
+  double TransferHandlingFee = 8;
+  string NotifyUrl           = 9;
+  string OrderTime           = 10;
+  string PayOrderTime        = 11;
+  string Status              = 12;
 }
 
 service Transaction {

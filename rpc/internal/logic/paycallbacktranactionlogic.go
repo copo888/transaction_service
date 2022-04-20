@@ -3,7 +3,6 @@ package logic
 import (
 	"context"
 	"fmt"
-	"github.com/copo888/transaction_service/common/errorz"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
@@ -34,34 +33,56 @@ func NewPayCallBackTranactionLogic(ctx context.Context, svcCtx *svc.ServiceConte
 func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transactionclient.PayCallBackRequest) (resp *transactionclient.PayCallBackResponse, err error) {
 	var order *types.OrderX
 
-	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
+	/****     交易開始      ****/
+	txDB := l.svcCtx.MyDB.Begin()
 
-		if err = l.svcCtx.MyDB.Table("tx_orders").
-			Where("order_no = ?", in.PayOrderNo).Take(&order).Error; err != nil {
-			return errorz.New(response.ORDER_NUMBER_NOT_EXIST, err.Error())
-		}
-
-		// 處理中的且非鎖定訂單 才能回調
-		if order.Status != "1" || order.IsLock == "1" {
-			return errorz.New(response.TRANSACTION_FAILURE, fmt.Sprintf("(status/isLock): %s/%s", order.Status, order.IsLock))
-		}
-
-		// 下單金額及實付金額差異風控 (差異超過5% 且 超過1元)
-		limit := utils.FloatMul(order.OrderAmount, 0.05)
-		diff := math.Abs(utils.FloatSub(order.OrderAmount, in.OrderAmount))
-		if diff > limit && diff > 1 {
-			return errorz.New(response.ORDER_AMOUNT_ERROR, fmt.Sprintf("(orderAmount/payAmount): %f/%f", order.OrderAmount, in.OrderAmount))
-		}
-
-		// 編輯訂單 異動錢包和餘額
-		if err = l.updateOrderAndBalance(db, in, order); err != nil {
-			return errorz.New(response.SYSTEM_ERROR, err.Error())
-		}
-
-		return
-	}); err != nil {
-		return
+	if err = txDB.Table("tx_orders").
+		Where("order_no = ?", in.PayOrderNo).Take(&order).Error; err != nil {
+		txDB.Rollback()
+		return &transactionclient.PayCallBackResponse{
+			Code:    response.ORDER_NUMBER_NOT_EXIST,
+			Message: "商户订单号不存在",
+		}, err
 	}
+
+	// 處理中的且非鎖定訂單 才能回調
+	if order.Status != "1" || order.IsLock == "1" {
+		txDB.Rollback()
+		return &transactionclient.PayCallBackResponse{
+			Code:    response.TRANSACTION_FAILURE,
+			Message: "交易失败 订单号已锁定 或 订单状态非处理中",
+		}, err
+	}
+
+	// 下單金額及實付金額差異風控 (差異超過5% 且 超過1元)
+	limit := utils.FloatMul(order.OrderAmount, 0.05)
+	diff := math.Abs(utils.FloatSub(order.OrderAmount, in.OrderAmount))
+	if diff > limit && diff > 1 {
+		txDB.Rollback()
+		return &transactionclient.PayCallBackResponse{
+			Code:    response.ORDER_AMOUNT_ERROR,
+			Message: "商户下单金额和回調金額不符" + fmt.Sprintf("(orderAmount/payAmount): %f/%f", order.OrderAmount, in.OrderAmount),
+		}, err
+	}
+
+	// 編輯訂單 異動錢包和餘額
+	if err = l.updateOrderAndBalance(txDB, in, order); err != nil {
+		txDB.Rollback()
+		return &transactionclient.PayCallBackResponse{
+			Code:    response.SYSTEM_ERROR,
+			Message: "钱包异动失败",
+		}, err
+	}
+
+	if err = txDB.Commit().Error; err != nil {
+		txDB.Rollback()
+		logx.Errorf("支付回調失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
+		return &transactionclient.PayCallBackResponse{
+			Code:    response.DATABASE_FAILURE,
+			Message: "资料库错误 Commit失败",
+		}, err
+	}
+	/****     交易結束      ****/
 
 	// 計算利潤 (不抱錯) TODO: 異步??
 	if err4 := orderfeeprofitservice.CalculateOrderProfit(l.svcCtx.MyDB, types.CalculateProfit{
@@ -90,11 +111,13 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transactionclient
 	}
 
 	return &transactionclient.PayCallBackResponse{
+		Code:                response.API_SUCCESS,
+		Message:             "操作成功",
 		MerchantCode:        order.MerchantCode,
 		MerchantOrderNo:     order.MerchantOrderNo,
 		OrderNo:             order.OrderNo,
 		OrderAmount:         order.OrderAmount,
-		ActualAmount:         order.ActualAmount,
+		ActualAmount:        order.ActualAmount,
 		TransferHandlingFee: order.TransferHandlingFee,
 		NotifyUrl:           order.NotifyUrl,
 		OrderTime:           order.CreatedAt.Format("20060102150405000"),

@@ -3,13 +3,13 @@ package logic
 import (
 	"context"
 	"github.com/copo888/transaction_service/common/constants"
+	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"github.com/zeromicro/go-zero/core/logx"
-	"gorm.io/gorm"
 	"strconv"
 )
 
@@ -75,25 +75,37 @@ func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transactionclient.PayOr
 		return
 	}
 
-	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
+	/****     交易開始      ****/
+	txDB := l.svcCtx.MyDB.Begin()
 
-		order.Fee = correspondMerChnRate.Fee
-		order.HandlingFee = correspondMerChnRate.HandlingFee
-		// 交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
-		order.TransferHandlingFee = utils.FloatAdd(utils.FloatMul(utils.FloatDiv(order.OrderAmount, 100), order.Fee), order.HandlingFee)
-		// 計算實際交易金額 = 訂單金額 - 手續費
-		order.TransferAmount = order.OrderAmount - order.TransferHandlingFee
+	order.Fee = correspondMerChnRate.Fee
+	order.HandlingFee = correspondMerChnRate.HandlingFee
+	// 交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
+	order.TransferHandlingFee = utils.FloatAdd(utils.FloatMul(utils.FloatDiv(order.OrderAmount, 100), order.Fee), order.HandlingFee)
+	// 計算實際交易金額 = 訂單金額 - 手續費
+	order.TransferAmount = order.OrderAmount - order.TransferHandlingFee
 
-		if err = db.Table("tx_orders").Create(&types.OrderX{
-			Order: *order,
-		}).Error; err != nil {
-			return
-		}
-
-		return nil
-	}); err != nil {
-		return
+	if err = txDB.Table("tx_orders").Create(&types.OrderX{
+		Order: *order,
+	}).Error; err != nil {
+		txDB.Rollback()
+		return &transactionclient.PayOrderResponse{
+			Code: response.DATABASE_FAILURE,
+			Message: "数据库错误 tx_orders Create",
+			PayOrderNo: order.OrderNo,
+		}, err
 	}
+
+	if err = txDB.Commit().Error; err != nil {
+		txDB.Rollback()
+		logx.Errorf("支付提单失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
+		return &transactionclient.PayOrderResponse{
+			Code: response.DATABASE_FAILURE,
+			Message: "Commit 数据库错误",
+			PayOrderNo: order.OrderNo,
+		}, err
+	}
+	/****     交易結束      ****/
 
 	// 新單新增訂單歷程 (不抱錯) TODO: 異步??
 	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
@@ -108,6 +120,8 @@ func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transactionclient.PayOr
 	}
 
 	return &transactionclient.PayOrderResponse{
+		Code:    response.API_SUCCESS,
+		Message: "操作成功",
 		PayOrderNo: order.OrderNo,
 	}, nil
 }
