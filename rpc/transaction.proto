@@ -241,6 +241,29 @@ message ProxyOrderUI {
   string CurrencyCode = 11;
 }
 
+// 補單
+message MakeUpReceiptOrderRequest {
+  string OrderNo        = 1;
+  string ChannelOrderNo = 2;
+  string MakeUpType     = 3;
+  double Amount         = 4;
+  string Comment        = 5;
+}
+
+message MakeUpReceiptOrderResponse {
+
+}
+
+// 手動確認收款
+message ConfirmPayOrderRequest {
+  string OrderNo = 1;
+  string Comment = 2;
+}
+
+message ConfirmPayOrderResponse {
+
+}
+
 service Transaction {
 
   rpc ProxyOrderTranaction_DFB(ProxyOrderRequest) returns (ProxyOrderResponse);
@@ -264,4 +287,9 @@ service Transaction {
   rpc ProxyOrderUITransaction_DFB(ProxyOrderUIRequest) returns (ProxyOrderUIResponse);
 
   rpc ProxyOrderUITransaction_XFB(ProxyOrderUIRequest) returns (ProxyOrderUIResponse);
+
+  rpc MakeUpReceiptOrderTransaction(MakeUpReceiptOrderRequest) returns (MakeUpReceiptOrderResponse);
+
+  rpc ConfirmPayOrderTransaction(ConfirmPayOrderRequest) returns (ConfirmPayOrderResponse);
+
 }

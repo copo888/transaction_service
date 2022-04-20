@@ -14,12 +14,16 @@ import (
 
 type (
 	ChannelWithdraw               = transaction.ChannelWithdraw
+	ConfirmPayOrderRequest        = transaction.ConfirmPayOrderRequest
+	ConfirmPayOrderResponse       = transaction.ConfirmPayOrderResponse
 	CorrespondMerChnRate          = transaction.CorrespondMerChnRate
 	InternalOrder                 = transaction.InternalOrder
 	InternalOrderRequest          = transaction.InternalOrderRequest
 	InternalOrderResponse         = transaction.InternalOrderResponse
 	InternalReviewSuccessRequest  = transaction.InternalReviewSuccessRequest
 	InternalReviewSuccessResponse = transaction.InternalReviewSuccessResponse
+	MakeUpReceiptOrderRequest     = transaction.MakeUpReceiptOrderRequest
+	MakeUpReceiptOrderResponse    = transaction.MakeUpReceiptOrderResponse
 	MerchantOrderRateListView     = transaction.MerchantOrderRateListView
 	PayCallBackRequest            = transaction.PayCallBackRequest
 	PayCallBackResponse           = transaction.PayCallBackResponse
@@ -52,6 +56,8 @@ type (
 		WithdrawReviewSuccessTransaction(ctx context.Context, in *WithdrawReviewSuccessRequest, opts ...grpc.CallOption) (*WithdrawReviewSuccessResponse, error)
 		ProxyOrderUITransaction_DFB(ctx context.Context, in *ProxyOrderUIRequest, opts ...grpc.CallOption) (*ProxyOrderUIResponse, error)
 		ProxyOrderUITransaction_XFB(ctx context.Context, in *ProxyOrderUIRequest, opts ...grpc.CallOption) (*ProxyOrderUIResponse, error)
+		MakeUpReceiptOrderTransaction(ctx context.Context, in *MakeUpReceiptOrderRequest, opts ...grpc.CallOption) (*MakeUpReceiptOrderResponse, error)
+		ConfirmPayOrderTransaction(ctx context.Context, in *ConfirmPayOrderRequest, opts ...grpc.CallOption) (*ConfirmPayOrderResponse, error)
 	}
 
 	defaultTransaction struct {
@@ -118,4 +124,14 @@ func (m *defaultTransaction) ProxyOrderUITransaction_DFB(ctx context.Context, in
 func (m *defaultTransaction) ProxyOrderUITransaction_XFB(ctx context.Context, in *ProxyOrderUIRequest, opts ...grpc.CallOption) (*ProxyOrderUIResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.ProxyOrderUITransaction_XFB(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) MakeUpReceiptOrderTransaction(ctx context.Context, in *MakeUpReceiptOrderRequest, opts ...grpc.CallOption) (*MakeUpReceiptOrderResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.MakeUpReceiptOrderTransaction(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) ConfirmPayOrderTransaction(ctx context.Context, in *ConfirmPayOrderRequest, opts ...grpc.CallOption) (*ConfirmPayOrderResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.ConfirmPayOrderTransaction(ctx, in, opts...)
 }
