@@ -2,7 +2,6 @@ package logic
 
 import (
 	"context"
-	"github.com/copo888/transaction_service/common/errorz"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
@@ -41,7 +40,7 @@ func (l *ConfirmPayOrderTransactionLogic) ConfirmPayOrderTransaction(in *transac
 		return &transactionclient.ConfirmPayOrderResponse{
 			Code:    response.ORDER_NUMBER_NOT_EXIST,
 			Message: "商户订单号不存在 ",
-		}, errorz.New(response.TRANSACTION_FAILURE)
+		}, nil
 	}
 
 	// 處理中的且非鎖定訂單 才能確認收款
@@ -50,7 +49,7 @@ func (l *ConfirmPayOrderTransactionLogic) ConfirmPayOrderTransaction(in *transac
 		return &transactionclient.ConfirmPayOrderResponse{
 			Code:    response.TRANSACTION_FAILURE,
 			Message: "交易失败 订单号已锁定 或 订单状态非处理中 ",
-		}, errorz.New(response.TRANSACTION_FAILURE)
+		}, nil
 	}
 
 	// 編輯訂單 異動錢包和餘額
@@ -58,8 +57,8 @@ func (l *ConfirmPayOrderTransactionLogic) ConfirmPayOrderTransaction(in *transac
 		txDB.Rollback()
 		return &transactionclient.ConfirmPayOrderResponse{
 			Code:    response.SYSTEM_ERROR,
-			Message: "资料库错误 Commit失败",
-		}, err
+			Message: "updateOrderAndBalance 失败",
+		}, nil
 	}
 
 	if err := txDB.Commit().Error; err != nil {
@@ -68,7 +67,7 @@ func (l *ConfirmPayOrderTransactionLogic) ConfirmPayOrderTransaction(in *transac
 		return &transactionclient.ConfirmPayOrderResponse{
 			Code:    response.DATABASE_FAILURE,
 			Message: "资料库错误 Commit失败",
-		}, err
+		}, nil
 	}
 	/****     交易結束      ****/
 

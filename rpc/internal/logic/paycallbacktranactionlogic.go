@@ -42,7 +42,7 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transactionclient
 		return &transactionclient.PayCallBackResponse{
 			Code:    response.ORDER_NUMBER_NOT_EXIST,
 			Message: "商户订单号不存在",
-		}, err
+		}, nil
 	}
 
 	// 處理中的且非鎖定訂單 才能回調
@@ -51,7 +51,7 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transactionclient
 		return &transactionclient.PayCallBackResponse{
 			Code:    response.TRANSACTION_FAILURE,
 			Message: "交易失败 订单号已锁定 或 订单状态非处理中",
-		}, err
+		}, nil
 	}
 
 	// 下單金額及實付金額差異風控 (差異超過5% 且 超過1元)
@@ -62,7 +62,7 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transactionclient
 		return &transactionclient.PayCallBackResponse{
 			Code:    response.ORDER_AMOUNT_ERROR,
 			Message: "商户下单金额和回調金額不符" + fmt.Sprintf("(orderAmount/payAmount): %f/%f", order.OrderAmount, in.OrderAmount),
-		}, err
+		}, nil
 	}
 
 	// 編輯訂單 異動錢包和餘額
@@ -71,7 +71,7 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transactionclient
 		return &transactionclient.PayCallBackResponse{
 			Code:    response.SYSTEM_ERROR,
 			Message: "钱包异动失败",
-		}, err
+		}, nil
 	}
 
 	if err = txDB.Commit().Error; err != nil {
@@ -80,7 +80,7 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transactionclient
 		return &transactionclient.PayCallBackResponse{
 			Code:    response.DATABASE_FAILURE,
 			Message: "资料库错误 Commit失败",
-		}, err
+		}, nil
 	}
 	/****     交易結束      ****/
 

@@ -93,7 +93,7 @@ func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transactionclient.PayOr
 			Code: response.DATABASE_FAILURE,
 			Message: "数据库错误 tx_orders Create",
 			PayOrderNo: order.OrderNo,
-		}, err
+		}, nil
 	}
 
 	if err = txDB.Commit().Error; err != nil {
@@ -103,7 +103,7 @@ func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transactionclient.PayOr
 			Code: response.DATABASE_FAILURE,
 			Message: "Commit 数据库错误",
 			PayOrderNo: order.OrderNo,
-		}, err
+		}, nil
 	}
 	/****     交易結束      ****/
 

@@ -22,4 +22,7 @@ var (
 	ORDER_STATUS_WRONG_CANNOT_MAKE_UP        = "1094006" //订单状态错误,不可补单
 	AMOUNT_MUST_BE_GREATER_THAN_ZERO         = "1094007" //金额需大於零
 	ORDER_IS_MAKE_UP_ORDER_DONT_MAKE_UP      = "1094008" //此订单为补单, 不可再补单
+	ONLY_SUCCESSFUL_ORDER_CAN_CALL_BACK      = "1094009" //只有成功單可以回調
+	ORDER_DOES_NOT_NEED_CALL_BACK            = "1094010" //此订单不需回調
+	ORDER_IS_STATUS_IS_LOCK                  = "1094011" //此订单狀態已鎖定
 )
