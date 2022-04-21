@@ -44,11 +44,18 @@ func (l *ConfirmPayOrderTransactionLogic) ConfirmPayOrderTransaction(in *transac
 	}
 
 	// 處理中的且非鎖定訂單 才能確認收款
-	if order.Status != "1" || order.IsLock == "1" {
+	if order.Status != "1" {
 		txDB.Rollback()
 		return &transactionclient.ConfirmPayOrderResponse{
-			Code:    response.TRANSACTION_FAILURE,
-			Message: "交易失败 订单号已锁定 或 订单状态非处理中 ",
+			Code:    response.ORDER_STATUS_WRONG,
+			Message: "订单状态非处理中 ",
+		}, nil
+	}
+	if order.IsLock == "1" {
+		txDB.Rollback()
+		return &transactionclient.ConfirmPayOrderResponse{
+			Code:    response.ORDER_IS_STATUS_IS_LOCK,
+			Message: "订单号已锁定",
 		}, nil
 	}
 

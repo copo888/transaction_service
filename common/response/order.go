@@ -25,4 +25,5 @@ var (
 	ONLY_SUCCESSFUL_ORDER_CAN_CALL_BACK      = "1094009" //只有成功單可以回調
 	ORDER_DOES_NOT_NEED_CALL_BACK            = "1094010" //此订单不需回調
 	ORDER_IS_STATUS_IS_LOCK                  = "1094011" //此订单狀態已鎖定
+	ORDER_STATUS_WRONG                       = "1094012" //订单状态錯誤
 )
