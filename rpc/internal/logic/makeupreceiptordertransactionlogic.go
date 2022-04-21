@@ -9,11 +9,10 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
+	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"gorm.io/gorm"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
-	"github.com/copo888/transaction_service/rpc/transaction"
-
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -31,7 +30,7 @@ func NewMakeUpReceiptOrderTransactionLogic(ctx context.Context, svcCtx *svc.Serv
 	}
 }
 
-func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *transaction.MakeUpReceiptOrderRequest) (*transaction.MakeUpReceiptOrderResponse, error) {
+func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *transactionclient.MakeUpReceiptOrderRequest) (*transactionclient.MakeUpReceiptOrderResponse, error) {
 	var order types.Order
 	var newOrder types.Order
 
@@ -56,7 +55,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 
 		// 計算交易金額 (訂單金額 - 手續費)
 		transferHandlingFee := utils.FloatAdd(utils.FloatMul(utils.FloatDiv(req.Amount, 100), order.Fee), order.HandlingFee)
-		 // 計算實際交易金額 = 訂單金額 - 手續費
+		// 計算實際交易金額 = 訂單金額 - 手續費
 		transferAmount = req.Amount - transferHandlingFee
 
 		// 變更 商戶餘額並記錄
@@ -161,11 +160,10 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 		logx.Error("紀錄訂單歷程出錯:%s", err.Error())
 	}
 
-	return &transaction.MakeUpReceiptOrderResponse{}, nil
+	return &transactionclient.MakeUpReceiptOrderResponse{}, nil
 }
 
-
-func (l *MakeUpReceiptOrderTransactionLogic) verifyMakeUpReceiptOrder(order types.Order, req *transaction.MakeUpReceiptOrderRequest) error {
+func (l *MakeUpReceiptOrderTransactionLogic) verifyMakeUpReceiptOrder(order types.Order, req *transactionclient.MakeUpReceiptOrderRequest) error {
 	// 檢查訂單狀態 (處理中 成功 失敗) 才能補單
 	if !(order.Status == "1" || order.Status == "20" || order.Status == "30") {
 		return errorz.New(response.ORDER_STATUS_WRONG_CANNOT_MAKE_UP, "订单状态错误,不可补单")

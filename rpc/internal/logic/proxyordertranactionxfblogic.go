@@ -109,7 +109,7 @@ func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(in *transactionc
 		txOrder.TransferAmount = utils.FloatAdd(txOrder.OrderAmount, txOrder.TransferHandlingFee)
 		updateBalance.TransferAmount = txOrder.TransferAmount //扣款依然傳正值
 		//更新钱包且新增商户钱包异动记录
-		if merchantBalanceRecord, err = merchantbalanceservice.UpdateXFBalance_Debit(tx, updateBalance); err != nil {
+		if merchantBalanceRecord, err = merchantbalanceservice.UpdateXFBalance_Debit(db, updateBalance); err != nil {
 			logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
 			return errorz.New(response.SYSTEM_ERROR, err.Error())
 		} else {
@@ -119,7 +119,7 @@ func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(in *transactionc
 		}
 
 		// 创建订单
-		if err = tx.Table("tx_orders").Create(&types.OrderX{
+		if err = db.Table("tx_orders").Create(&types.OrderX{
 			Order:   *txOrder,
 			TransAt: types.JsonTime{}.New()}).Error; err != nil {
 			logx.Errorf("新增代付API提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err.Error())
