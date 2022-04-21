@@ -1,0 +1,9 @@
+version: "2"
+services:
+  api:
+    container_name: transaction_service
+    image: transaction_service
+    restart: always
+    network_mode: host
+    volumes:
+      - /root/logs/transaction_service:/app/logs
