@@ -36,30 +36,31 @@ func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(in *transa
 	merchantBalanceRecord := types.MerchantBalanceRecord{}
 
 	txOrder := &types.Order{
-		MerchantCode: req.MerchantCode,
-		CreatedBy: req.UserAccount,
+		MerchantCode:         req.MerchantCode,
+		CreatedBy:            req.UserAccount,
 		MerchantOrderNo:      "COPO_" + req.OrderNo,
 		OrderNo:              req.OrderNo,
 		OrderAmount:          req.OrderAmount,
 		BalanceType:          constants.XF_BALANCE,
 		Type:                 constants.ORDER_TYPE_DF,
 		Status:               constants.WAIT_PROCESS,
-		Source: constants.UI,
-		IsMerchantCallback: constants.MERCHANT_CALL_BACK_DONT_USE,
+		Source:               constants.UI,
+		IsMerchantCallback:   constants.MERCHANT_CALL_BACK_DONT_USE,
 		MerchantBankAccount:  req.MerchantBankAccount,
 		MerchantBankNo:       req.MerchantBankNo,
 		MerchantBankName:     req.MerchantBankName,
 		MerchantAccountName:  req.MerchantAccountName,
 		MerchantBankProvince: req.MerchantBankProvince,
 		MerchantBankCity:     req.MerchantBankCity,
-		CurrencyCode: req.CurrencyCode,
+		CurrencyCode:         req.CurrencyCode,
 		ChannelCode:          rate.ChannelCode,
-		Fee: rate.MerFee,
-		HandlingFee: rate.MerHandlingFee,
-		PayTypeCode: rate.PayTypeCode,
-		PayTypeCodeNum: rate.PayTypeCodeNum,
-		PayTypeNum: rate.PayTypeCode + rate.PayTypeCodeNum,
-		IsLock: "0",
+		ChannelPayTypesCode:  rate.ChannelPayTypesCode,
+		Fee:                  rate.MerFee,
+		HandlingFee:          rate.MerHandlingFee,
+		PayTypeCode:          rate.PayTypeCode,
+		PayTypeCodeNum:       rate.PayTypeCodeNum,
+		PayTypeNum:           rate.PayTypeCode + rate.PayTypeCodeNum,
+		IsLock:               "0",
 	}
 
 	// 新增收支记录，与更新商户余额(商户账户号是黑名单，把交易金额为设为 0)
@@ -81,13 +82,13 @@ func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(in *transa
 	updateBalance.TransferAmount = txOrder.TransferAmount //扣款依然傳正值
 
 	// 判断单笔最大最小金额
-	if rate.SingleMaxCharge < txOrder.TransferAmount {
+	if txOrder.OrderAmount < rate.SingleMinCharge {
 		//金额超过上限
-		logx.Errorf("錯誤:代付金額超過上限")
-		return nil, errorz.New(response.ORDER_AMOUNT_LIMIT_MAX)
-	} else if rate.SingleMinCharge > txOrder.TransferAmount {
-		//下发金额未达下限
 		logx.Errorf("錯誤:代付金額未達下限")
+		return nil, errorz.New(response.ORDER_AMOUNT_LIMIT_MAX)
+	} else if txOrder.OrderAmount > rate.SingleMaxCharge {
+		//下发金额未达下限
+		logx.Errorf("錯誤:代付金額超過上限")
 		return nil, errorz.New(response.ORDER_AMOUNT_LIMIT_MIN)
 	}
 
