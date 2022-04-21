@@ -8,6 +8,7 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/model"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
+
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transaction"
@@ -30,7 +31,7 @@ func NewMakeUpReceiptOrderTransactionLogic(ctx context.Context, svcCtx *svc.Serv
 	}
 }
 
-func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *transaction.MakeUpReceiptOrderRequest) (*transaction.MakeUpReceiptOrderResponse, error) {
+func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *transactionclient.MakeUpReceiptOrderRequest) (*transactionclient.MakeUpReceiptOrderResponse, error) {
 	var order types.Order
 	var newOrder types.Order
 	var transferAmount float64
@@ -182,6 +183,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 		logx.Error("紀錄訂單歷程出錯:%s", err.Error())
 	}
 
+
 	return &transaction.MakeUpReceiptOrderResponse{
 		Code:                response.API_SUCCESS,
 		Message:             "操作成功",
@@ -190,6 +192,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 
 
 func (l *MakeUpReceiptOrderTransactionLogic) verifyMakeUpReceiptOrder(order types.Order, req *transaction.MakeUpReceiptOrderRequest) string {
+
 	// 檢查訂單狀態 (處理中 成功 失敗) 才能補單
 	if !(order.Status == "1" || order.Status == "20" || order.Status == "30") {
 		return response.ORDER_STATUS_WRONG_CANNOT_MAKE_UP
@@ -205,3 +208,4 @@ func (l *MakeUpReceiptOrderTransactionLogic) verifyMakeUpReceiptOrder(order type
 
 	return ""
 }
+

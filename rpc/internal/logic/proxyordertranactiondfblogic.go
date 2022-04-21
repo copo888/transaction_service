@@ -36,7 +36,8 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 	rate := in.Rate
 
 	// 依商户是否给回调网址，决定是否回调商户flag
-	var isMerchantCallback string
+	var isMerchantCallback string //0：否、1:是、2:不需回调
+	//var calBackStatus string //渠道回調狀態(0:處理中1:成功2:失敗)
 	merchantBalanceRecord := types.MerchantBalanceRecord{}
 	if req.NotifyUrl != "" {
 		isMerchantCallback = constants.MERCHANT_CALL_BACK_NO
@@ -108,7 +109,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		txOrder.TransferAmount = utils.FloatAdd(txOrder.OrderAmount, txOrder.TransferHandlingFee)
 		updateBalance.TransferAmount = txOrder.TransferAmount //扣款依然傳正值
 		//更新钱包且新增商户钱包异动记录
-		if merchantBalanceRecord, err = merchantbalanceservice.UpdateDFBalance_Debit(tx, updateBalance); err != nil {
+		if merchantBalanceRecord, err = merchantbalanceservice.UpdateDFBalance_Debit(db, updateBalance); err != nil {
 			logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
 			return errorz.New(response.SYSTEM_ERROR, err.Error())
 		} else {
@@ -118,7 +119,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		}
 
 		// 创建订单
-		if err = tx.Table("tx_orders").Create(&types.OrderX{
+		if err = db.Table("tx_orders").Create(&types.OrderX{
 			Order:   *txOrder,
 			TransAt: types.JsonTime{}.New()}).Error; err != nil {
 			logx.Errorf("新增代付API提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err.Error())

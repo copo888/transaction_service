@@ -7,7 +7,6 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
-	"github.com/copo888/transaction_service/rpc/transaction"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"gorm.io/gorm"
 
@@ -28,7 +27,7 @@ func NewConfirmPayOrderTransactionLogic(ctx context.Context, svcCtx *svc.Service
 	}
 }
 
-func (l *ConfirmPayOrderTransactionLogic) ConfirmPayOrderTransaction(in *transaction.ConfirmPayOrderRequest) (*transaction.ConfirmPayOrderResponse, error) {
+func (l *ConfirmPayOrderTransactionLogic) ConfirmPayOrderTransaction(in *transactionclient.ConfirmPayOrderRequest) (*transactionclient.ConfirmPayOrderResponse, error) {
 	var order *types.OrderX
 
 	/****     交易開始      ****/
@@ -104,7 +103,7 @@ func (l *ConfirmPayOrderTransactionLogic) ConfirmPayOrderTransaction(in *transac
 		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
 	}
 
-	return &transaction.ConfirmPayOrderResponse{
+	return &transactionclient.ConfirmPayOrderResponse{
 		Code:                response.API_SUCCESS,
 		Message:             "操作成功",
 		MerchantCode:        order.MerchantCode,
@@ -123,8 +122,6 @@ func (l *ConfirmPayOrderTransactionLogic) ConfirmPayOrderTransaction(in *transac
 func (l *ConfirmPayOrderTransactionLogic) updateOrderAndBalance(db *gorm.DB, req *transactionclient.ConfirmPayOrderRequest, order *types.OrderX) (err error) {
 
 	var merchantBalanceRecord types.MerchantBalanceRecord
-
-
 
 	// 異動錢包
 	if merchantBalanceRecord, err = merchantbalanceservice.UpdateBalanceForZF(db, types.UpdateBalance{
