@@ -302,6 +302,17 @@ message RecoverReceiptOrderResponse {
   string Message        = 2;
 }
 
+message PersonalRebundRequest {
+  string OrderNo = 1;
+  string UserAccount = 2;
+  string Memo = 3;
+  string action = 4;
+}
+
+message PersonalRebundResponse {
+  string orderNo = 1;
+}
+
 service Transaction {
 
   rpc ProxyOrderTranaction_DFB(ProxyOrderRequest) returns (ProxyOrderResponse);
@@ -335,4 +346,8 @@ service Transaction {
   rpc ConfirmPayOrderTransaction(ConfirmPayOrderRequest) returns (ConfirmPayOrderResponse);
 
   rpc RecoverReceiptOrderTransaction (RecoverReceiptOrderRequest) returns (RecoverReceiptOrderResponse);
+
+  rpc PersonalRebundTransaction_DFB (PersonalRebundRequest) returns (PersonalRebundResponse);
+
+  rpc PersonalRebundTransaction_XFB (PersonalRebundRequest) returns (PersonalRebundResponse);
 }

@@ -30,6 +30,8 @@ type (
 	PayOrder                      = transaction.PayOrder
 	PayOrderRequest               = transaction.PayOrderRequest
 	PayOrderResponse              = transaction.PayOrderResponse
+	PersonalRebundRequest         = transaction.PersonalRebundRequest
+	PersonalRebundResponse        = transaction.PersonalRebundResponse
 	ProxyOrderRequest             = transaction.ProxyOrderRequest
 	ProxyOrderResp_XFB            = transaction.ProxyOrderResp_XFB
 	ProxyOrderResponse            = transaction.ProxyOrderResponse
@@ -65,6 +67,8 @@ type (
 		MakeUpReceiptOrderTransaction(ctx context.Context, in *MakeUpReceiptOrderRequest, opts ...grpc.CallOption) (*MakeUpReceiptOrderResponse, error)
 		ConfirmPayOrderTransaction(ctx context.Context, in *ConfirmPayOrderRequest, opts ...grpc.CallOption) (*ConfirmPayOrderResponse, error)
 		RecoverReceiptOrderTransaction(ctx context.Context, in *RecoverReceiptOrderRequest, opts ...grpc.CallOption) (*RecoverReceiptOrderResponse, error)
+		PersonalRebundTransaction_DFB(ctx context.Context, in *PersonalRebundRequest, opts ...grpc.CallOption) (*PersonalRebundResponse, error)
+		PersonalRebundTransaction_XFB(ctx context.Context, in *PersonalRebundRequest, opts ...grpc.CallOption) (*PersonalRebundResponse, error)
 	}
 
 	defaultTransaction struct {
@@ -158,3 +162,12 @@ func (m *defaultTransaction) RecoverReceiptOrderTransaction(ctx context.Context,
 	return client.RecoverReceiptOrderTransaction(ctx, in, opts...)
 }
 
+func (m *defaultTransaction) PersonalRebundTransaction_DFB(ctx context.Context, in *PersonalRebundRequest, opts ...grpc.CallOption) (*PersonalRebundResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.PersonalRebundTransaction_DFB(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) PersonalRebundTransaction_XFB(ctx context.Context, in *PersonalRebundRequest, opts ...grpc.CallOption) (*PersonalRebundResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.PersonalRebundTransaction_XFB(ctx, in, opts...)
+}

@@ -24,6 +24,7 @@ steps:
         - docker-compose -f docker-compose.yml down
         - docker rmi -f $(docker images --filter="reference=transaction_service" --quiet)
         - docker rmi -f $(docker images -qf "dangling=true")
+        - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o bin/transaction rpc/transaction.go
         - docker build -t transaction_service -f rpc/Dockerfile .
         - docker-compose -f docker-compose.yml up -d
     when:

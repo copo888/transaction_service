@@ -10,7 +10,6 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
-	"github.com/copo888/transaction_service/rpc/transaction"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -43,8 +42,8 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	// 1. 取得訂單
 	if err := txDB.Table("tx_orders").Where("order_no = ?", req.OrderNo).Find(&order).Error; err != nil {
 		txDB.Rollback()
-		return &transaction.MakeUpReceiptOrderResponse{
-			Code:    response.DATABASE_FAILURE,
+		return &transactionclient.MakeUpReceiptOrderResponse{
+			Code: response.DATABASE_FAILURE,
 			Message: "取得訂單失敗",
 		}, nil
 	}
@@ -52,8 +51,8 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	// 驗證
 	if errCode := l.verifyMakeUpReceiptOrder(order, req); errCode != "" {
 		txDB.Rollback()
-		return &transaction.MakeUpReceiptOrderResponse{
-			Code:    errCode,
+		return &transactionclient.MakeUpReceiptOrderResponse{
+			Code: errCode,
 			Message: "驗證失敗: " + errCode,
 		}, nil
 	}
@@ -83,8 +82,8 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	})
 	if err != nil {
 		txDB.Rollback()
-		return &transaction.MakeUpReceiptOrderResponse{
-			Code:    response.SYSTEM_ERROR,
+		return &transactionclient.MakeUpReceiptOrderResponse{
+			Code: response.SYSTEM_ERROR,
 			Message: "更新錢包失敗",
 		}, nil
 	}
@@ -119,8 +118,8 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 		TransAt: types.JsonTime{}.New(),
 	}).Error; err != nil {
 		txDB.Rollback()
-		return &transaction.MakeUpReceiptOrderResponse{
-			Code:    response.SYSTEM_ERROR,
+		return &transactionclient.MakeUpReceiptOrderResponse{
+			Code: response.SYSTEM_ERROR,
 			Message: "新增訂單失敗",
 		}, nil
 	}
@@ -132,8 +131,8 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 		Order: order,
 	}).Error; err != nil {
 		txDB.Rollback()
-		return &transaction.MakeUpReceiptOrderResponse{
-			Code:    response.SYSTEM_ERROR,
+		return &transactionclient.MakeUpReceiptOrderResponse{
+			Code: response.SYSTEM_ERROR,
 			Message: "舊單鎖定失敗",
 		}, nil
 	}
@@ -146,7 +145,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 		IsCalculateCommission: true,
 	}); err != nil {
 		txDB.Rollback()
-		return &transaction.MakeUpReceiptOrderResponse{
+		return &transactionclient.MakeUpReceiptOrderResponse{
 			Code:    response.SYSTEM_ERROR,
 			Message: "計算利潤出錯",
 		}, nil
@@ -155,7 +154,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	if err := txDB.Commit().Error; err != nil {
 		txDB.Rollback()
 		logx.Errorf("支付補單失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
-		return &transaction.MakeUpReceiptOrderResponse{
+		return &transactionclient.MakeUpReceiptOrderResponse{
 			Code:    response.DATABASE_FAILURE,
 			Message: "资料库错误 Commit失败",
 		}, nil
@@ -186,13 +185,14 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 		logx.Error("紀錄訂單歷程出錯:%s", err.Error())
 	}
 
-	return &transaction.MakeUpReceiptOrderResponse{
+	return &transactionclient.MakeUpReceiptOrderResponse{
 		Code:    response.API_SUCCESS,
 		Message: "操作成功",
 	}, nil
 }
 
-func (l *MakeUpReceiptOrderTransactionLogic) verifyMakeUpReceiptOrder(order types.Order, req *transaction.MakeUpReceiptOrderRequest) string {
+
+func (l *MakeUpReceiptOrderTransactionLogic) verifyMakeUpReceiptOrder(order types.Order, req *transactionclient.MakeUpReceiptOrderRequest) string {
 
 	// 檢查訂單狀態 (處理中 成功 失敗) 才能補單
 	if !(order.Status == "1" || order.Status == "20" || order.Status == "30") {
