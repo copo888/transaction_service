@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"fmt"
+	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
@@ -148,7 +149,7 @@ func (l *PayCallBackTranactionLogic) updateOrderAndBalance(db *gorm.DB, req *tra
 			ChannelCode:     order.ChannelCode,
 			PayTypeCode:     order.PayTypeCode,
 			PayTypeCodeNum:  order.PayTypeCodeNum,
-			TransactionType: "1",
+			TransactionType: constants.TRANSACTION_TYPE_RECEIPT,
 			BalanceType:     order.BalanceType,
 			TransferAmount:  order.TransferAmount,
 			Comment:         order.Memo,

@@ -70,7 +70,7 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 		ChannelCode:     order.ChannelCode,
 		PayTypeCode:     order.PayTypeCode,
 		PayTypeCodeNum:  order.PayTypeCodeNum,
-		TransactionType: "1",
+		TransactionType: constants.TRANSACTION_TYPE_RECOVER,
 		BalanceType:     order.BalanceType,
 		TransferAmount:  transferAmount,
 		Comment:         req.Comment,

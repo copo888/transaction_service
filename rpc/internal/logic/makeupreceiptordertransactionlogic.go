@@ -74,7 +74,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 		ChannelCode:     order.ChannelCode,
 		PayTypeCode:     order.PayTypeCode,
 		PayTypeCodeNum:  order.PayTypeCodeNum,
-		TransactionType: "1",
+		TransactionType: constants.TRANSACTION_TYPE_MAKE_UP,
 		BalanceType:     order.BalanceType,
 		TransferAmount:  transferAmount,
 		Comment:         comment,
