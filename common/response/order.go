@@ -26,4 +26,5 @@ var (
 	ORDER_DOES_NOT_NEED_CALL_BACK            = "1094010" //此订单不需回調
 	ORDER_IS_STATUS_IS_LOCK                  = "1094011" //此订单狀態已鎖定
 	ORDER_STATUS_WRONG                       = "1094012" //订单状态錯誤
+	ORIGINAL_ORDER_NOT_CALCULATED_COMMISSION = "1094013" //原訂單還未計算傭金,請稍後
 )

@@ -231,6 +231,13 @@ type CalculateProfit struct {
 	OrderAmount         float64
 }
 
+type CalculateSubOrderProfit struct {
+	OldOrderNo            string
+	NewOrderNo            string
+	OrderAmount           float64
+	IsCalculateCommission bool
+}
+
 type PayOrderRequestX struct {
 	PayOrderRequest
 	MyIp string `json:"my_ip, optional"`

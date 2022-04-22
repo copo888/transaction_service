@@ -50,6 +50,7 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 
 	// 驗證
 	if errCode := l.verifyOrder(order, req); errCode != "" {
+		txDB.Rollback()
 		return &transaction.RecoverReceiptOrderResponse{
 			Code:    errCode,
 			Message: "驗證失敗: " + errCode,
@@ -108,12 +109,13 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 	newOrder.TransferHandlingFee = transferHandlingFee
 	newOrder.Memo = "原订单:" + order.OrderNo + " \n" + req.Comment
 	newOrder.Source = constants.ORDER_SOURCE_BY_PLATFORM
-	newOrder.IsCalculateProfit = constants.IS_CALCULATE_PROFIT_NO
+	newOrder.IsCalculateProfit = constants.IS_CALCULATE_PROFIT_YES
 
 	if err = txDB.Table("tx_orders").Create(&types.OrderX{
 		Order:   newOrder,
 		TransAt: types.JsonTime{}.New(),
 	}).Error; err != nil {
+		txDB.Rollback()
 		return &transaction.RecoverReceiptOrderResponse{
 			Code:    response.SYSTEM_ERROR,
 			Message: "新增訂單失敗",
@@ -126,6 +128,7 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 	if err = txDB.Table("tx_orders").Updates(&types.OrderX{
 		Order: order,
 	}).Error; err != nil {
+		txDB.Rollback()
 		return &transaction.RecoverReceiptOrderResponse{
 			Code:    response.SYSTEM_ERROR,
 			Message: "舊單鎖定失敗",
@@ -133,26 +136,22 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 	}
 
 	// 追回單利潤計算方式不同 要放在交易裡
-	if err = orderfeeprofitservice.CalculateOrderProfitForRecover(txDB, types.CalculateProfit{
-		MerchantCode:        order.MerchantCode,
-		OrderNo:             newOrderNo,
-		Type:                order.Type,
-		CurrencyCode:        order.CurrencyCode,
-		BalanceType:         order.BalanceType,
-		ChannelCode:         order.ChannelCode,
-		ChannelPayTypesCode: order.ChannelPayTypesCode,
-		OrderAmount:         req.Amount,
-	}, req.IsCalculateCommission); err != nil {
+	if err = orderfeeprofitservice.CalculateSubOrderProfit(txDB, types.CalculateSubOrderProfit{
+		OldOrderNo:            order.OrderNo,
+		NewOrderNo:            newOrderNo,
+		OrderAmount:           req.Amount,
+		IsCalculateCommission: req.IsCalculateCommission,
+	}); err != nil {
 		txDB.Rollback()
 		return &transaction.RecoverReceiptOrderResponse{
 			Code:    response.SYSTEM_ERROR,
-			Message: "計算利潤錯誤",
+			Message: "計算利潤出錯",
 		}, nil
 	}
 
 	if err := txDB.Commit().Error; err != nil {
 		txDB.Rollback()
-		logx.Errorf("支付補單失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
+		logx.Errorf("支付追回失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
 		return &transactionclient.RecoverReceiptOrderResponse{
 			Code:    response.DATABASE_FAILURE,
 			Message: "资料库错误 Commit失败",
@@ -195,9 +194,15 @@ func (l *RecoverReceiptOrderTransactionLogic) verifyOrder(order types.Order, req
 	if order.Status != constants.SUCCESS {
 		return response.ORDER_STATUS_WRONG
 	}
+
 	// 鎖定單不可追回 (已補單 已追回)
 	if order.IsLock == constants.IS_LOCK_YES {
 		return response.ORDER_IS_STATUS_IS_LOCK
+	}
+
+	// 訂單還未計算傭金,請稍後
+	if order.IsCalculateProfit != constants.IS_CALCULATE_PROFIT_YES {
+		return response.ORIGINAL_ORDER_NOT_CALCULATED_COMMISSION
 	}
 
 	if req.Amount <= 0 {

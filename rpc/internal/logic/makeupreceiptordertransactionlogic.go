@@ -8,7 +8,6 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/model"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
-
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transaction"
@@ -45,15 +44,16 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	if err := txDB.Table("tx_orders").Where("order_no = ?", req.OrderNo).Find(&order).Error; err != nil {
 		txDB.Rollback()
 		return &transaction.MakeUpReceiptOrderResponse{
-			Code: response.DATABASE_FAILURE,
+			Code:    response.DATABASE_FAILURE,
 			Message: "取得訂單失敗",
 		}, nil
 	}
 
 	// 驗證
 	if errCode := l.verifyMakeUpReceiptOrder(order, req); errCode != "" {
+		txDB.Rollback()
 		return &transaction.MakeUpReceiptOrderResponse{
-			Code: errCode,
+			Code:    errCode,
 			Message: "驗證失敗: " + errCode,
 		}, nil
 	}
@@ -84,7 +84,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	if err != nil {
 		txDB.Rollback()
 		return &transaction.MakeUpReceiptOrderResponse{
-			Code: response.SYSTEM_ERROR,
+			Code:    response.SYSTEM_ERROR,
 			Message: "更新錢包失敗",
 		}, nil
 	}
@@ -112,14 +112,15 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	newOrder.TransferHandlingFee = transferHandlingFee
 	newOrder.Memo = "原订单:" + order.OrderNo + " \n" + req.Comment
 	newOrder.Source = constants.ORDER_SOURCE_BY_PLATFORM
-	newOrder.IsCalculateProfit = constants.IS_CALCULATE_PROFIT_NO
+	newOrder.IsCalculateProfit = constants.IS_CALCULATE_PROFIT_YES
 
 	if err = txDB.Table("tx_orders").Create(&types.OrderX{
 		Order:   newOrder,
 		TransAt: types.JsonTime{}.New(),
 	}).Error; err != nil {
+		txDB.Rollback()
 		return &transaction.MakeUpReceiptOrderResponse{
-			Code: response.SYSTEM_ERROR,
+			Code:    response.SYSTEM_ERROR,
 			Message: "新增訂單失敗",
 		}, nil
 	}
@@ -130,35 +131,36 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	if err = txDB.Table("tx_orders").Updates(&types.OrderX{
 		Order: order,
 	}).Error; err != nil {
+		txDB.Rollback()
 		return &transaction.MakeUpReceiptOrderResponse{
-			Code: response.SYSTEM_ERROR,
+			Code:    response.SYSTEM_ERROR,
 			Message: "舊單鎖定失敗",
+		}, nil
+	}
+
+	// 補單計算利潤方式與正常單不同 要放在交易
+	if err = orderfeeprofitservice.CalculateSubOrderProfit(l.svcCtx.MyDB, types.CalculateSubOrderProfit{
+		OldOrderNo:            order.OrderNo,
+		NewOrderNo:            newOrderNo,
+		OrderAmount:           req.Amount,
+		IsCalculateCommission: true,
+	}); err != nil {
+		txDB.Rollback()
+		return &transaction.MakeUpReceiptOrderResponse{
+			Code:    response.SYSTEM_ERROR,
+			Message: "計算利潤出錯",
 		}, nil
 	}
 
 	if err := txDB.Commit().Error; err != nil {
 		txDB.Rollback()
 		logx.Errorf("支付補單失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
-		return &transactionclient.MakeUpReceiptOrderResponse{
+		return &transaction.MakeUpReceiptOrderResponse{
 			Code:    response.DATABASE_FAILURE,
 			Message: "资料库错误 Commit失败",
 		}, nil
 	}
 	/****     交易結束      ****/
-
-	// 計算利潤
-	if err := orderfeeprofitservice.CalculateOrderProfit(l.svcCtx.MyDB, types.CalculateProfit{
-		MerchantCode:        order.MerchantCode,
-		OrderNo:             newOrderNo,
-		Type:                order.Type,
-		CurrencyCode:        order.CurrencyCode,
-		BalanceType:         order.BalanceType,
-		ChannelCode:         order.ChannelCode,
-		ChannelPayTypesCode: order.ChannelPayTypesCode,
-		OrderAmount:         req.Amount,
-	}); err != nil {
-		logx.Error("計算利潤出錯:%s", err.Error())
-	}
 
 	// 舊單新增歷程
 	if err := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
@@ -184,13 +186,11 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 		logx.Error("紀錄訂單歷程出錯:%s", err.Error())
 	}
 
-
 	return &transaction.MakeUpReceiptOrderResponse{
-		Code:                response.API_SUCCESS,
-		Message:             "操作成功",
+		Code:    response.API_SUCCESS,
+		Message: "操作成功",
 	}, nil
 }
-
 
 func (l *MakeUpReceiptOrderTransactionLogic) verifyMakeUpReceiptOrder(order types.Order, req *transaction.MakeUpReceiptOrderRequest) string {
 
@@ -203,10 +203,14 @@ func (l *MakeUpReceiptOrderTransactionLogic) verifyMakeUpReceiptOrder(order type
 		return response.ORDER_IS_STATUS_IS_LOCK
 	}
 
+	// 訂單還未計算傭金,請稍後
+	if order.IsCalculateProfit != constants.IS_CALCULATE_PROFIT_YES {
+		return response.ORIGINAL_ORDER_NOT_CALCULATED_COMMISSION
+	}
+
 	if req.Amount <= 0 {
 		return response.AMOUNT_MUST_BE_GREATER_THAN_ZERO
 	}
 
 	return ""
 }
-

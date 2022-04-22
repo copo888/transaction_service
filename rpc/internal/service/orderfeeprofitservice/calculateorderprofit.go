@@ -29,8 +29,8 @@ func CalculateOrderProfit(db *gorm.DB, calculateProfit types.CalculateProfit) (e
 	})
 }
 
-// CalculateOrderProfitForRecover 追回單計算利潤 (方式不同 開專用func)
-func CalculateOrderProfitForRecover(db *gorm.DB, calculateProfit types.CalculateProfit, isCalculateCommission bool) (err error) {
+// CalculateOrderProfitForIsCommission 可決定是否計算代理傭金
+func CalculateOrderProfitForIsCommission(db *gorm.DB, calculateProfit types.CalculateProfit, isCalculateCommission bool) (err error) {
 	return db.Transaction(func(db *gorm.DB) (err error) {
 		var orderFeeProfits []types.OrderFeeProfit
 		if err = calculateProfitLoop(db, &calculateProfit, &orderFeeProfits, isCalculateCommission); err != nil {
