@@ -31,11 +31,15 @@ func NewPersonalRebundTransactionXFBLogic(ctx context.Context, svcCtx *svc.Servi
 func (l *PersonalRebundTransactionXFBLogic) PersonalRebundTransaction_XFB(in *transactionclient.PersonalRebundRequest) (resp *transactionclient.PersonalRebundResponse, err error) {
 	merchantBalanceRecord := types.MerchantBalanceRecord{}
 	var txOrder = types.Order{}
-	if err = l.svcCtx.MyDB.Table("tx_orders").Where("order_no = ?", in.OrderNo).Take(txOrder).Error; err != nil {
+	if err = l.svcCtx.MyDB.Table("tx_orders").Where("order_no = ?", in.OrderNo).Take(&txOrder).Error; err != nil {
 		return nil, errorz.New(response.DATABASE_FAILURE, err.Error())
 	}
 	//失败单
 	txOrder.Status = constants.FAIL
+	transactionType := "4"
+	if in.Action == "REVERSAL" {
+		transactionType = "3"
+	}
 
 	updateBalance := &types.UpdateBalance{
 		MerchantCode:    txOrder.MerchantCode,
@@ -45,7 +49,7 @@ func (l *PersonalRebundTransactionXFBLogic) PersonalRebundTransaction_XFB(in *tr
 		PayTypeCode:     txOrder.PayTypeCode,
 		PayTypeCodeNum:  txOrder.PayTypeCodeNum,
 		TransferAmount:  txOrder.TransferAmount,
-		TransactionType: "4", //異動類型 (1=收款; 2=解凍; 3=沖正;4=出款退回,11=出款 ; 12=凍結)
+		TransactionType: transactionType, //異動類型 (1=收款; 2=解凍; 3=沖正;4=出款退回,11=出款 ; 12=凍結)
 		BalanceType:     constants.XF_BALANCE,
 		CreatedBy:       in.UserAccount,
 	}
@@ -53,7 +57,7 @@ func (l *PersonalRebundTransactionXFBLogic) PersonalRebundTransaction_XFB(in *tr
 	//调整异动钱包，并更新订单
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
-		if merchantBalanceRecord, err = merchantbalanceservice.UpdateDFBalance_Deposit(db, *updateBalance); err != nil {
+		if merchantBalanceRecord, err = merchantbalanceservice.UpdateXFBalance_Deposit(db, *updateBalance); err != nil {
 			logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
 			return
 		} else {
