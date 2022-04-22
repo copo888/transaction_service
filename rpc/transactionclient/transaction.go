@@ -157,4 +157,3 @@ func (m *defaultTransaction) RecoverReceiptOrderTransaction(ctx context.Context,
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.RecoverReceiptOrderTransaction(ctx, in, opts...)
 }
-

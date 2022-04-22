@@ -12,8 +12,6 @@ import (
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
-	"github.com/copo888/transaction_service/rpc/transaction"
-
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -31,7 +29,7 @@ func NewRecoverReceiptOrderTransactionLogic(ctx context.Context, svcCtx *svc.Ser
 	}
 }
 
-func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req *transaction.RecoverReceiptOrderRequest) (*transaction.RecoverReceiptOrderResponse, error) {
+func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req *transactionclient.RecoverReceiptOrderRequest) (*transactionclient.RecoverReceiptOrderResponse, error) {
 	var order types.Order
 	var newOrder types.Order
 	var transferAmount float64
@@ -42,7 +40,7 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 	// 取得訂單
 	if err := txDB.Table("tx_orders").Where("order_no = ?", req.OrderNo).Find(&order).Error; err != nil {
 		txDB.Rollback()
-		return &transaction.RecoverReceiptOrderResponse{
+		return &transactionclient.RecoverReceiptOrderResponse{
 			Code:    response.DATABASE_FAILURE,
 			Message: "取得訂單失敗",
 		}, nil
@@ -50,7 +48,7 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 
 	// 驗證
 	if errCode := l.verifyOrder(order, req); errCode != "" {
-		return &transaction.RecoverReceiptOrderResponse{
+		return &transactionclient.RecoverReceiptOrderResponse{
 			Code:    errCode,
 			Message: "驗證失敗: " + errCode,
 		}, nil
@@ -79,7 +77,7 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 	})
 	if err != nil {
 		txDB.Rollback()
-		return &transaction.RecoverReceiptOrderResponse{
+		return &transactionclient.RecoverReceiptOrderResponse{
 			Code:    response.SYSTEM_ERROR,
 			Message: "更新錢包失敗",
 		}, nil
@@ -114,7 +112,7 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 		Order:   newOrder,
 		TransAt: types.JsonTime{}.New(),
 	}).Error; err != nil {
-		return &transaction.RecoverReceiptOrderResponse{
+		return &transactionclient.RecoverReceiptOrderResponse{
 			Code:    response.SYSTEM_ERROR,
 			Message: "新增訂單失敗",
 		}, nil
@@ -126,7 +124,7 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 	if err = txDB.Table("tx_orders").Updates(&types.OrderX{
 		Order: order,
 	}).Error; err != nil {
-		return &transaction.RecoverReceiptOrderResponse{
+		return &transactionclient.RecoverReceiptOrderResponse{
 			Code:    response.SYSTEM_ERROR,
 			Message: "舊單鎖定失敗",
 		}, nil
@@ -144,7 +142,7 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 		OrderAmount:         req.Amount,
 	}, req.IsCalculateCommission); err != nil {
 		txDB.Rollback()
-		return &transaction.RecoverReceiptOrderResponse{
+		return &transactionclient.RecoverReceiptOrderResponse{
 			Code:    response.SYSTEM_ERROR,
 			Message: "計算利潤錯誤",
 		}, nil
@@ -184,13 +182,13 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 		logx.Error("紀錄訂單歷程出錯:%s", err.Error())
 	}
 
-	return &transaction.RecoverReceiptOrderResponse{
+	return &transactionclient.RecoverReceiptOrderResponse{
 		Code:    response.API_SUCCESS,
 		Message: "操作成功",
 	}, nil
 }
 
-func (l *RecoverReceiptOrderTransactionLogic) verifyOrder(order types.Order, req *transaction.RecoverReceiptOrderRequest) string {
+func (l *RecoverReceiptOrderTransactionLogic) verifyOrder(order types.Order, req *transactionclient.RecoverReceiptOrderRequest) string {
 	// 檢查訂單狀態 成功單才能追回
 	if order.Status != constants.SUCCESS {
 		return response.ORDER_STATUS_WRONG
