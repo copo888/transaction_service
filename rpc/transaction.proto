@@ -14,6 +14,7 @@ message ProxyPayFailRequest{
   string merchantCode = 1;
   string orderNo      = 2;
   string transAt      = 3;
+  string memo         = 4;
 }
 
 message ProxyPayFailResponse{

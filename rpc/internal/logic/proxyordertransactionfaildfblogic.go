@@ -40,6 +40,10 @@ func (l *ProxyOrderTransactionFailDFBLogic) ProxyOrderTransactionFail_DFB(in *tr
 	if len(in.TransAt) > 0 {
 		txOrder.TransAt = in.TransAt
 	}
+	memo := ""
+	if len(in.Memo) > 0 {
+		memo = in.Memo
+	}
 
 	updateBalance := &types.UpdateBalance{
 		MerchantCode:    txOrder.MerchantCode,
@@ -78,7 +82,7 @@ func (l *ProxyOrderTransactionFailDFBLogic) ProxyOrderTransactionFail_DFB(in *tr
 			OrderNo:     txOrder.OrderNo,
 			Action:      constants.ACTION_DF_REFUND,
 			UserAccount: in.MerchantCode,
-			Comment:     "代付失败退款",
+			Comment:     memo,
 		},
 	}).Error; err4 != nil {
 		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
