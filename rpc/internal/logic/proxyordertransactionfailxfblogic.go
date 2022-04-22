@@ -36,9 +36,6 @@ func (l *ProxyOrderTransactionFailXFBLogic) ProxyOrderTransactionFail_XFB(in *tr
 	}
 	//失败单
 	txOrder.Status = constants.FAIL
-	if len(in.TransAt) > 0 {
-		txOrder.TransAt = in.TransAt
-	}
 
 	updateBalance := &types.UpdateBalance{
 		MerchantCode:    txOrder.MerchantCode,

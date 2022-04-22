@@ -112,3 +112,13 @@ func (s *TransactionServer) RecoverReceiptOrderTransaction(ctx context.Context, 
 	l := logic.NewRecoverReceiptOrderTransactionLogic(ctx, s.svcCtx)
 	return l.RecoverReceiptOrderTransaction(in)
 }
+
+func (s *TransactionServer) PersonalRebundTransaction_DFB(ctx context.Context, in *transactionclient.PersonalRebundRequest) (*transactionclient.PersonalRebundResponse, error) {
+	l := logic.NewPersonalRebundTransactionDFBLogic(ctx, s.svcCtx)
+	return l.PersonalRebundTransaction_DFB(in)
+}
+
+func (s *TransactionServer) PersonalRebundTransaction_XFB(ctx context.Context, in *transactionclient.PersonalRebundRequest) (*transactionclient.PersonalRebundResponse, error) {
+	l := logic.NewPersonalRebundTransactionXFBLogic(ctx, s.svcCtx)
+	return l.PersonalRebundTransaction_XFB(in)
+}
