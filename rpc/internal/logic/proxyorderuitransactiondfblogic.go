@@ -82,13 +82,13 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 	updateBalance.TransferAmount = txOrder.TransferAmount //扣款依然傳正值
 
 	// 判断单笔最大最小金额
-	if rate.SingleMaxCharge < txOrder.TransferAmount {
+	if  txOrder.OrderAmount < rate.SingleMinCharge {
 		//金额超过上限
-		logx.Errorf("錯誤:代付金額超過上限")
-		return nil, errorz.New(response.ORDER_AMOUNT_LIMIT_MAX)
-	} else if rate.SingleMinCharge > txOrder.TransferAmount {
-		//下发金额未达下限
 		logx.Errorf("錯誤:代付金額未達下限")
+		return nil, errorz.New(response.ORDER_AMOUNT_LIMIT_MAX)
+	} else if txOrder.OrderAmount > rate.SingleMaxCharge {
+		//下发金额未达下限
+		logx.Errorf("錯誤:代付金額超過上限")
 		return nil, errorz.New(response.ORDER_AMOUNT_LIMIT_MIN)
 	}
 

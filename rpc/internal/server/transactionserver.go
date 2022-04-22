@@ -42,6 +42,16 @@ func (s *TransactionServer) ProxyOrderTranaction_XFB(ctx context.Context, in *tr
 	return l.ProxyOrderTranaction_XFB(in)
 }
 
+func (s *TransactionServer) ProxyOrderTransactionFail_DFB(ctx context.Context, in *transaction.ProxyPayFailRequest) (*transaction.ProxyPayFailResponse, error) {
+	l := logic.NewProxyOrderTransactionFailDFBLogic(ctx, s.svcCtx)
+	return l.ProxyOrderTransactionFail_DFB(in)
+}
+
+func (s *TransactionServer) ProxyOrderTransactionFail_XFB(ctx context.Context, in *transaction.ProxyPayFailRequest) (*transaction.ProxyPayFailResponse, error) {
+	l := logic.NewProxyOrderTransactionFailXFBLogic(ctx, s.svcCtx)
+	return l.ProxyOrderTransactionFail_XFB(in)
+}
+
 func (s *TransactionServer) PayOrderTranaction(ctx context.Context, in *transaction.PayOrderRequest) (*transaction.PayOrderResponse, error) {
 	l := logic.NewPayOrderTranactionLogic(ctx, s.svcCtx)
 	return l.PayOrderTranaction(in)

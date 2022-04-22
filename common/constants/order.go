@@ -34,7 +34,21 @@ const (
 	DF_BALANCE = "DFB"
 	XF_BALANCE = "XFB"
 
+
 	IS_CALCULATE_PROFIT_YES = "1" /*已記算傭金利潤: 是*/
 	IS_CALCULATE_PROFIT_NO  = "0" /*已記算傭金利潤: 否*/
+
+	ACTION_FROZEN             = "FROZEN"        //冻结
+	ACTION_MAKE_UP_ORDER      = "MAKE_UP_ORDER" //补单
+	ACTION_PLACE_ORDER        = "PLACE_ORDER"   //创建订单
+	ACTION_REVIEW_FAIL        = "REVIEW_FAIL"   //审核失败
+	ACTION_MAKE_UP_LOCK_ORDER = "MAKE_UP_LOCK_ORDER"
+	ACTION_PERSON_PROCESSING  = "PERSON_PROCESSING" //人工处理中
+	ACTION_PROCESS_SUCCESS    = "PROCESS_SUCCESS"   //人工处理通过
+	ACTION_UNFROZEN           = "UNFROZEN"          //解冻
+	ACTION_REVERSAL           = "REVERSAL"          //冲正
+	ACTION_REVIEW_SUCCESS     = "REVIEW_SUCCESS"    //审核成功
+	ACTION_SUCCESS            = "SUCCESS"           //成功
+	ACTION_DF_REFUND          = "DF_REFUND"         //代付还款
 
 )

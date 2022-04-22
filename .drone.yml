@@ -1,0 +1,37 @@
+kind: pipeline
+name: transaction_service
+
+clone:
+  disable: true
+
+steps:
+  - name: transaction.rpc
+    image: appleboy/drone-ssh
+    settings:
+      host:
+        from_secret: host
+      username:
+        from_secret: user
+      password:
+        from_secret: pwd
+      port:
+        from_secret: port
+      script:
+        - cd /root/transaction_service
+        - git checkout -- .
+        - git pull
+        - go mod tidy
+        - docker-compose -f docker-compose.yml down
+        - docker rmi -f $(docker images --filter="reference=transaction_service" --quiet)
+        - docker rmi -f $(docker images -qf "dangling=true")
+        - docker build -t transaction_service -f rpc/Dockerfile .
+        - docker-compose -f docker-compose.yml up -d
+    when:
+      branch:
+        - master
+      event:
+        - push
+trigger:
+  branch:
+    - master
+

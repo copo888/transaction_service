@@ -10,6 +10,15 @@ message ProxyOrderRequest {
   string balanceType = 3;
 }
 
+message ProxyPayFailRequest{
+  string merchantCode = 1;
+  string orderNo      = 2;
+}
+
+message ProxyPayFailResponse{
+  string ProxyOrderNo = 1;
+}
+
 message ProxyOrderResponse {
   string ProxyOrderNo = 1;
 }
@@ -298,6 +307,10 @@ service Transaction {
   rpc ProxyOrderTranaction_DFB(ProxyOrderRequest) returns (ProxyOrderResponse);
 
   rpc ProxyOrderTranaction_XFB(ProxyOrderRequest) returns (ProxyOrderResponse);
+
+  rpc ProxyOrderTransactionFail_DFB(ProxyPayFailRequest) returns (ProxyPayFailResponse);
+
+  rpc ProxyOrderTransactionFail_XFB(ProxyPayFailRequest) returns (ProxyPayFailResponse);
 
   rpc PayOrderTranaction(PayOrderRequest) returns (PayOrderResponse);
 

@@ -4,6 +4,7 @@ import (
 	"github.com/copo888/transaction_service/common/errorz"
 	"github.com/copo888/transaction_service/common/random"
 	"github.com/copo888/transaction_service/common/response"
+	"github.com/copo888/transaction_service/rpc/internal/types"
 	"gorm.io/gorm"
 	"time"
 )
@@ -41,4 +42,25 @@ func GenerateOrderNo(orderType string) string {
 	randomStr := random.GetRandomString(5, random.ALL, random.MIX)
 	result = orderType + t + randomStr
 	return result
+}
+
+/*
+	@param orderNo    : copo訂單號
+    @param merOrderNo : 商戶訂單號
+*/
+func QueryOrderByOrderNo(db *gorm.DB, orderNo string, merOrderNo string) (*types.Order, error) {
+	txOrder := &types.Order{}
+	if orderNo != "" || len(orderNo) > 0 {
+		if err := db.Table("tx_orders").Where("order_no = ?", orderNo).Find(&txOrder).Error; err != nil {
+			return nil, errorz.New(response.DATABASE_FAILURE, err.Error())
+		}
+	} else if merOrderNo != "" || len(merOrderNo) > 0 {
+		if err := db.Table("tx_orders").Where("merchant_order_no = ?", orderNo, merOrderNo).Find(&txOrder).Error; err != nil {
+			return nil, errorz.New(response.DATABASE_FAILURE, err.Error())
+		}
+	} else {
+		return nil, errorz.New(response.DATABASE_FAILURE)
+	}
+
+	return txOrder, nil
 }
