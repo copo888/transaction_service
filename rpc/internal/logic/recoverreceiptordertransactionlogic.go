@@ -8,64 +8,61 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/model"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
-	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
-	"github.com/copo888/transaction_service/rpc/transaction"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
+
+	"github.com/copo888/transaction_service/rpc/internal/svc"
+	"github.com/copo888/transaction_service/rpc/transaction"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-type MakeUpReceiptOrderTransactionLogic struct {
+type RecoverReceiptOrderTransactionLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 	logx.Logger
 }
 
-func NewMakeUpReceiptOrderTransactionLogic(ctx context.Context, svcCtx *svc.ServiceContext) *MakeUpReceiptOrderTransactionLogic {
-	return &MakeUpReceiptOrderTransactionLogic{
+func NewRecoverReceiptOrderTransactionLogic(ctx context.Context, svcCtx *svc.ServiceContext) *RecoverReceiptOrderTransactionLogic {
+	return &RecoverReceiptOrderTransactionLogic{
 		ctx:    ctx,
 		svcCtx: svcCtx,
 		Logger: logx.WithContext(ctx),
 	}
 }
 
-func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *transaction.MakeUpReceiptOrderRequest) (*transaction.MakeUpReceiptOrderResponse, error) {
+func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req *transaction.RecoverReceiptOrderRequest) (*transaction.RecoverReceiptOrderResponse, error) {
 	var order types.Order
 	var newOrder types.Order
 	var transferAmount float64
-	var newOrderNo string
-	var comment string
 
 	/****     交易開始      ****/
 	txDB := l.svcCtx.MyDB.Begin()
 
-	// 1. 取得訂單
+	// 取得訂單
 	if err := txDB.Table("tx_orders").Where("order_no = ?", req.OrderNo).Find(&order).Error; err != nil {
 		txDB.Rollback()
-		return &transaction.MakeUpReceiptOrderResponse{
-			Code: response.DATABASE_FAILURE,
+		return &transaction.RecoverReceiptOrderResponse{
+			Code:    response.DATABASE_FAILURE,
 			Message: "取得訂單失敗",
 		}, nil
 	}
 
 	// 驗證
-	if errCode := l.verifyMakeUpReceiptOrder(order, req); errCode != "" {
-		return &transaction.MakeUpReceiptOrderResponse{
-			Code: errCode,
+	if errCode := l.verifyOrder(order, req); errCode != "" {
+		return &transaction.RecoverReceiptOrderResponse{
+			Code:    errCode,
 			Message: "驗證失敗: " + errCode,
 		}, nil
 	}
 
-	newOrderNo = model.GenerateOrderNo(order.Type)
-
+	newOrderNo := model.GenerateOrderNo(order.Type)
 	// 計算交易手續費 (金額 / 100 * 費率 + 手續費)
 	transferHandlingFee := utils.FloatAdd(utils.FloatMul(utils.FloatDiv(req.Amount, 100), order.Fee), order.HandlingFee)
-	// 計算實際交易金額 = 訂單金額 - 手續費
-	transferAmount = req.Amount - transferHandlingFee
+	// 計算實際交易金額 = 訂單金額 + 手續費
+	transferAmount = -req.Amount + transferHandlingFee
 
 	// 變更 商戶餘額並記錄
-
 	merchantBalanceRecord, err := merchantbalanceservice.UpdateBalanceForZF(txDB, types.UpdateBalance{
 		MerchantCode:    order.MerchantCode,
 		CurrencyCode:    order.CurrencyCode,
@@ -77,13 +74,13 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 		TransactionType: "1",
 		BalanceType:     order.BalanceType,
 		TransferAmount:  transferAmount,
-		Comment:         comment,
+		Comment:         req.Comment,
 		CreatedBy:       "AAA00061", // TODO: JWT取得
 	})
 	if err != nil {
 		txDB.Rollback()
-		return &transaction.MakeUpReceiptOrderResponse{
-			Code: response.SYSTEM_ERROR,
+		return &transaction.RecoverReceiptOrderResponse{
+			Code:    response.SYSTEM_ERROR,
 			Message: "更新錢包失敗",
 		}, nil
 	}
@@ -93,17 +90,17 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	newOrder.ID = 0
 	newOrder.Status = constants.SUCCESS
 	newOrder.SourceOrderNo = order.OrderNo
-	newOrder.ChannelOrderNo = req.ChannelOrderNo
+	newOrder.ChannelOrderNo = ""
 	newOrder.OrderNo = newOrderNo
-	newOrder.OrderAmount = req.Amount
-	newOrder.ActualAmount = req.Amount
+	newOrder.OrderAmount = order.OrderAmount
+	newOrder.ActualAmount = -req.Amount
 	newOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance
 	newOrder.TransferAmount = merchantBalanceRecord.TransferAmount
 	newOrder.Balance = merchantBalanceRecord.AfterBalance
 	newOrder.IsLock = constants.IS_LOCK_NO
 	newOrder.CallBackStatus = constants.CALL_BACK_STATUS_PROCESSING
-	newOrder.IsMerchantCallback = constants.IS_MERCHANT_CALLBACK_NO
-	newOrder.ReasonType = req.ReasonType
+	newOrder.IsMerchantCallback = constants.IS_MERCHANT_CALLBACK_NOT_NEED
+	newOrder.ReasonType = "11"
 	newOrder.PersonProcessStatus = constants.PERSON_PROCESS_STATUS_NO_ROCESSING
 	newOrder.InternalChargeOrderPath = ""
 	newOrder.HandlingFee = order.HandlingFee
@@ -117,36 +114,26 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 		Order:   newOrder,
 		TransAt: types.JsonTime{}.New(),
 	}).Error; err != nil {
-		return &transaction.MakeUpReceiptOrderResponse{
-			Code: response.SYSTEM_ERROR,
+		return &transaction.RecoverReceiptOrderResponse{
+			Code:    response.SYSTEM_ERROR,
 			Message: "新增訂單失敗",
 		}, nil
 	}
 
 	// 舊單鎖定
 	order.IsLock = "1"
-	order.Memo = "补单:" + newOrderNo + " \n" + order.Memo
+	order.Memo = "追回:" + newOrderNo + " \n" + order.Memo
 	if err = txDB.Table("tx_orders").Updates(&types.OrderX{
 		Order: order,
 	}).Error; err != nil {
-		return &transaction.MakeUpReceiptOrderResponse{
-			Code: response.SYSTEM_ERROR,
+		return &transaction.RecoverReceiptOrderResponse{
+			Code:    response.SYSTEM_ERROR,
 			Message: "舊單鎖定失敗",
 		}, nil
 	}
 
-	if err := txDB.Commit().Error; err != nil {
-		txDB.Rollback()
-		logx.Errorf("支付補單失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
-		return &transactionclient.MakeUpReceiptOrderResponse{
-			Code:    response.DATABASE_FAILURE,
-			Message: "资料库错误 Commit失败",
-		}, nil
-	}
-	/****     交易結束      ****/
-
-	// 計算利潤
-	if err := orderfeeprofitservice.CalculateOrderProfit(l.svcCtx.MyDB, types.CalculateProfit{
+	// 追回單利潤計算方式不同 要放在交易裡
+	if err = orderfeeprofitservice.CalculateOrderProfitForRecover(txDB, types.CalculateProfit{
 		MerchantCode:        order.MerchantCode,
 		OrderNo:             newOrderNo,
 		Type:                order.Type,
@@ -155,9 +142,23 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 		ChannelCode:         order.ChannelCode,
 		ChannelPayTypesCode: order.ChannelPayTypesCode,
 		OrderAmount:         req.Amount,
-	}); err != nil {
-		logx.Error("計算利潤出錯:%s", err.Error())
+	}, req.IsCalculateCommission); err != nil {
+		txDB.Rollback()
+		return &transaction.RecoverReceiptOrderResponse{
+			Code:    response.SYSTEM_ERROR,
+			Message: "計算利潤錯誤",
+		}, nil
 	}
+
+	if err := txDB.Commit().Error; err != nil {
+		txDB.Rollback()
+		logx.Errorf("支付補單失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
+		return &transactionclient.RecoverReceiptOrderResponse{
+			Code:    response.DATABASE_FAILURE,
+			Message: "资料库错误 Commit失败",
+		}, nil
+	}
+	/****     交易結束      ****/
 
 	// 舊單新增歷程
 	if err := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
@@ -177,25 +178,24 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 			OrderNo:     newOrder.OrderNo,
 			Action:      "MAKE_UP_ORDER",
 			UserAccount: "AAA00061", // TODO: JWT取得
-			Comment:     comment,
+			Comment:     req.Comment,
 		},
 	}).Error; err != nil {
 		logx.Error("紀錄訂單歷程出錯:%s", err.Error())
 	}
 
-	return &transaction.MakeUpReceiptOrderResponse{
-		Code:                response.API_SUCCESS,
-		Message:             "操作成功",
+	return &transaction.RecoverReceiptOrderResponse{
+		Code:    response.API_SUCCESS,
+		Message: "操作成功",
 	}, nil
 }
 
-
-func (l *MakeUpReceiptOrderTransactionLogic) verifyMakeUpReceiptOrder(order types.Order, req *transaction.MakeUpReceiptOrderRequest) string {
-	// 檢查訂單狀態 (處理中 成功 失敗) 才能補單
-	if !(order.Status == "1" || order.Status == "20" || order.Status == "30") {
-		return response.ORDER_STATUS_WRONG_CANNOT_MAKE_UP
+func (l *RecoverReceiptOrderTransactionLogic) verifyOrder(order types.Order, req *transaction.RecoverReceiptOrderRequest) string {
+	// 檢查訂單狀態 成功單才能追回
+	if order.Status != constants.SUCCESS {
+		return response.ORDER_STATUS_WRONG
 	}
-
+	// 鎖定單不可追回 (已補單 已追回)
 	if order.IsLock == constants.IS_LOCK_YES {
 		return response.ORDER_IS_STATUS_IS_LOCK
 	}

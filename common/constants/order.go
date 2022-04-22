@@ -23,6 +23,7 @@ const (
 
 	IS_MERCHANT_CALLBACK_YES = "1" /*是否已經回調商戶: 是*/
 	IS_MERCHANT_CALLBACK_NO  = "0" /*是否已經回調商戶: 否*/
+	IS_MERCHANT_CALLBACK_NOT_NEED = "2" /*是否已經回調商戶: 不需*/
 
 	PERSON_PROCESS_STATUS_WAIT_PROCESS = "0"  /*人工处理状态: 待處理*/
 	PERSON_PROCESS_STATUS_PROCESSING   = "1"  /*人工处理状态: 處理中*/
@@ -33,6 +34,7 @@ const (
 	DF_BALANCE = "DFB"
 	XF_BALANCE = "XFB"
 
-//(1=收款; 2=解凍; 3=沖正; 11=出款 ; 12=凍結)
+	IS_CALCULATE_PROFIT_YES = "1" /*已記算傭金利潤: 是*/
+	IS_CALCULATE_PROFIT_NO  = "0" /*已記算傭金利潤: 否*/
 
 )

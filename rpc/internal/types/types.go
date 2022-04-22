@@ -885,7 +885,8 @@ type Order struct {
 	ChannelOrderNo          string  `json:"channelOrderNo"`  //渠道订单编号
 	Source                  string  `json:"source"`          //1:平台 2:API
 	SourceOrderNo           string  `json:"sourceOrderNo"`   //來源訂單編號(From NC)
-	ReasonType              string  `json:"reasonType"`       //原因類型(1=修改金額/2=重複支付/3=其他)
+	ReasonType              string  `json:"reasonType"`      //原因類型(1=(補單)修改金額/2=(補單)重複支付/3=(補單)其它/11=追回)
+	IsCalculateProfit       string  `json:"is_calculate_profit"` //已記算傭金利潤(0=否,1=是)
 	CallBackStatus          string  `json:"callBackStatus, optional"`
 	NotifyUrl               string  `json:"notifyUrl, optional"`
 	PageUrl                 string  `json:"pageUrl, optional"`

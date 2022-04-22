@@ -37,6 +37,8 @@ type (
 	ProxyOrderUIRequest           = transaction.ProxyOrderUIRequest
 	ProxyOrderUIResponse          = transaction.ProxyOrderUIResponse
 	ProxyPayOrderRequest          = transaction.ProxyPayOrderRequest
+	RecoverReceiptOrderRequest    = transaction.RecoverReceiptOrderRequest
+	RecoverReceiptOrderResponse   = transaction.RecoverReceiptOrderResponse
 	WithdrawOrderRequest          = transaction.WithdrawOrderRequest
 	WithdrawOrderResponse         = transaction.WithdrawOrderResponse
 	WithdrawReviewFailRequest     = transaction.WithdrawReviewFailRequest
@@ -58,6 +60,7 @@ type (
 		ProxyOrderUITransaction_XFB(ctx context.Context, in *ProxyOrderUIRequest, opts ...grpc.CallOption) (*ProxyOrderUIResponse, error)
 		MakeUpReceiptOrderTransaction(ctx context.Context, in *MakeUpReceiptOrderRequest, opts ...grpc.CallOption) (*MakeUpReceiptOrderResponse, error)
 		ConfirmPayOrderTransaction(ctx context.Context, in *ConfirmPayOrderRequest, opts ...grpc.CallOption) (*ConfirmPayOrderResponse, error)
+		RecoverReceiptOrderTransaction(ctx context.Context, in *RecoverReceiptOrderRequest, opts ...grpc.CallOption) (*RecoverReceiptOrderResponse, error)
 	}
 
 	defaultTransaction struct {
@@ -134,4 +137,9 @@ func (m *defaultTransaction) MakeUpReceiptOrderTransaction(ctx context.Context, 
 func (m *defaultTransaction) ConfirmPayOrderTransaction(ctx context.Context, in *ConfirmPayOrderRequest, opts ...grpc.CallOption) (*ConfirmPayOrderResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.ConfirmPayOrderTransaction(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) RecoverReceiptOrderTransaction(ctx context.Context, in *RecoverReceiptOrderRequest, opts ...grpc.CallOption) (*RecoverReceiptOrderResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.RecoverReceiptOrderTransaction(ctx, in, opts...)
 }

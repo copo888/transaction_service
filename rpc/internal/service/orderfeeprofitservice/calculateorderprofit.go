@@ -2,6 +2,7 @@ package orderfeeprofitservice
 
 import (
 	"errors"
+	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/errorz"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
@@ -14,24 +15,46 @@ import (
 func CalculateOrderProfit(db *gorm.DB, calculateProfit types.CalculateProfit) (err error) {
 	return db.Transaction(func(db *gorm.DB) (err error) {
 		var orderFeeProfits []types.OrderFeeProfit
-		if err = calculateProfitLoop(db, &calculateProfit, &orderFeeProfits); err != nil {
+		if err = calculateProfitLoop(db, &calculateProfit, &orderFeeProfits, true); err != nil {
 			logx.Errorf("計算利潤錯誤: %s ", err.Error())
 			return err
 		}
 		logx.Infof("計算利潤: %#v ", orderFeeProfits)
-		//TODO: tx_order 多個欄位判斷是否已計算利潤
+
+		if err = updateOrderByIsCalculateProfit(db, calculateProfit.OrderNo); err != nil {
+			logx.Errorf("計算利潤錯誤: %s ", err.Error())
+			return err
+		}
+		return
+	})
+}
+
+// CalculateOrderProfitForRecover 追回單計算利潤 (方式不同 開專用func)
+func CalculateOrderProfitForRecover(db *gorm.DB, calculateProfit types.CalculateProfit, isCalculateCommission bool) (err error) {
+	return db.Transaction(func(db *gorm.DB) (err error) {
+		var orderFeeProfits []types.OrderFeeProfit
+		if err = calculateProfitLoop(db, &calculateProfit, &orderFeeProfits, isCalculateCommission); err != nil {
+			logx.Errorf("計算利潤錯誤: %s ", err.Error())
+			return err
+		}
+		logx.Infof("計算利潤: %#v ", orderFeeProfits)
+
+		if err = updateOrderByIsCalculateProfit(db, calculateProfit.OrderNo); err != nil {
+			logx.Errorf("計算利潤錯誤: %s ", err.Error())
+			return err
+		}
 		return
 	})
 }
 
 // calculateProfitLoop 計算利潤迴圈
-func calculateProfitLoop(db *gorm.DB, calculateProfit *types.CalculateProfit, orderFeeProfits *[]types.OrderFeeProfit) (err error) {
+func calculateProfitLoop(db *gorm.DB, calculateProfit *types.CalculateProfit, orderFeeProfits *[]types.OrderFeeProfit, isCalculateCommission bool) (err error) {
 
 	var merchant *types.Merchant
 	var agentLayerCode string
 	var agentParentCode string
 
-	// 1. 取得商戶
+	// 1. 不是算系統利潤時 要取當前計算商戶(或代理商戶)
 	if calculateProfit.MerchantCode != "00000000" {
 		if err = db.Table("mc_merchants").Where("code = ?", calculateProfit.MerchantCode).Take(&merchant).Error; err != nil {
 			return errorz.New(response.DATABASE_FAILURE, err.Error())
@@ -55,10 +78,12 @@ func calculateProfitLoop(db *gorm.DB, calculateProfit *types.CalculateProfit, or
 
 	// 3. 設置手續費
 	if calculateProfit.MerchantCode != "00000000" {
+		// MerchantCode 不是 00000000 要取商戶費率
 		if err = setMerchantFee(db, calculateProfit, &orderFeeProfit); err != nil {
 			return
 		}
 	} else {
+		// MerchantCode 是 00000000 要取渠道費率
 		if err = setChannelFee(db, calculateProfit, &orderFeeProfit); err != nil {
 			return
 		}
@@ -77,19 +102,19 @@ func calculateProfitLoop(db *gorm.DB, calculateProfit *types.CalculateProfit, or
 		return errorz.New(response.DATABASE_FAILURE, err.Error())
 	}
 
-	// 6.判斷是否計算下一筆利潤
+	// 6.判斷是否計算下一筆利潤傭金
 	*orderFeeProfits = append(*orderFeeProfits, orderFeeProfit)
 	if calculateProfit.MerchantCode == "00000000" {
-		// 已計算系統利潤 END
+		// 已計算系統利潤 結束迴圈
 		return
-	} else if agentParentCode != "" {
-		// 有上層代理
+	} else if agentParentCode != "" && isCalculateCommission {
+		// 有上層代理 且 需計算傭金 要接下去算代理傭金
 		calculateProfit.MerchantCode = agentParentCode
-		return calculateProfitLoop(db, calculateProfit, orderFeeProfits)
+		return calculateProfitLoop(db, calculateProfit, orderFeeProfits, isCalculateCommission)
 	} else {
 		// 沒上層代理 開始計算系統利潤
 		calculateProfit.MerchantCode = "00000000"
-		return calculateProfitLoop(db, calculateProfit, orderFeeProfits)
+		return calculateProfitLoop(db, calculateProfit, orderFeeProfits, isCalculateCommission)
 	}
 }
 
@@ -155,3 +180,10 @@ func setChannelFee(db *gorm.DB, calculateProfit *types.CalculateProfit, orderFee
 
 	return
 }
+
+func updateOrderByIsCalculateProfit(db *gorm.DB, orderNo string) error {
+	return db.Table("tx_orders").
+		Where("order_no = ?", orderNo).
+		Updates(map[string]interface{}{"is_calculate_profit": constants.IS_CALCULATE_PROFIT_YES}).Error
+}
+

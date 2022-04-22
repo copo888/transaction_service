@@ -70,7 +70,7 @@ func (l *ConfirmPayOrderTransactionLogic) ConfirmPayOrderTransaction(in *transac
 
 	if err := txDB.Commit().Error; err != nil {
 		txDB.Rollback()
-		logx.Errorf("支付回調失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
+		logx.Errorf("支付確認收款Commit失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
 		return &transactionclient.ConfirmPayOrderResponse{
 			Code:    response.DATABASE_FAILURE,
 			Message: "资料库错误 Commit失败",
@@ -150,7 +150,7 @@ func (l *ConfirmPayOrderTransactionLogic) updateOrderAndBalance(db *gorm.DB, req
 	order.Balance = merchantBalanceRecord.AfterBalance
 	order.TransAt = types.JsonTime{}.New()
 	order.Status = "20"
-	order.Memo = req.Comment
+	order.Memo = req.Comment + " \n" + order.Memo
 
 	// 編輯訂單
 	if err = db.Table("tx_orders").Updates(&order).Error; err != nil {

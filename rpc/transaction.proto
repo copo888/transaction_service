@@ -281,6 +281,18 @@ message ConfirmPayOrderResponse {
   string Status              = 12;
 }
 
+message RecoverReceiptOrderRequest {
+  string OrderNo               = 1;
+  double Amount                = 2;
+  bool   isCalculateCommission = 3;
+  string Comment               = 4;
+}
+
+message RecoverReceiptOrderResponse {
+  string Code           = 1;
+  string Message        = 2;
+}
+
 service Transaction {
 
   rpc ProxyOrderTranaction_DFB(ProxyOrderRequest) returns (ProxyOrderResponse);
@@ -309,4 +321,5 @@ service Transaction {
 
   rpc ConfirmPayOrderTransaction(ConfirmPayOrderRequest) returns (ConfirmPayOrderResponse);
 
+  rpc RecoverReceiptOrderTransaction (RecoverReceiptOrderRequest) returns (RecoverReceiptOrderResponse);
 }

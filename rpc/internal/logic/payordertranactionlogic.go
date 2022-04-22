@@ -66,6 +66,7 @@ func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transactionclient.PayOr
 		NotifyUrl:           payOrderReq.NotifyUrl,
 		PageUrl:             payOrderReq.PageUrl,
 		PersonProcessStatus: constants.PERSON_PROCESS_STATUS_NO_ROCESSING,
+		IsCalculateProfit:   constants.IS_CALCULATE_PROFIT_NO,
 		CreatedBy:           payOrderReq.MerchantId,
 		UpdatedBy:           payOrderReq.MerchantId,
 	}

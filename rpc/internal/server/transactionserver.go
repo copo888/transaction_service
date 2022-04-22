@@ -96,3 +96,8 @@ func (s *TransactionServer) ConfirmPayOrderTransaction(ctx context.Context, in *
 	l := logic.NewConfirmPayOrderTransactionLogic(ctx, s.svcCtx)
 	return l.ConfirmPayOrderTransaction(in)
 }
+
+func (s *TransactionServer) RecoverReceiptOrderTransaction(ctx context.Context, in *transaction.RecoverReceiptOrderRequest) (*transaction.RecoverReceiptOrderResponse, error) {
+	l := logic.NewRecoverReceiptOrderTransactionLogic(ctx, s.svcCtx)
+	return l.RecoverReceiptOrderTransaction(in)
+}
