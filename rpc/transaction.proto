@@ -6,13 +6,13 @@ option go_package = "./transaction";
 
 message ProxyOrderRequest {
   ProxyPayOrderRequest req = 1;
-  CorrespondMerChnRate rate =2;
+  CorrespondMerChnRate rate = 2;
   string balanceType = 3;
 }
 
 message ProxyPayFailRequest{
   string merchantCode = 1;
-  string orderNo      = 2;
+  string orderNo = 2;
 }
 
 message ProxyPayFailResponse{
@@ -28,79 +28,79 @@ message ProxyOrderResp_XFB {
 }
 
 message ProxyPayOrderRequest{
-  string AccessType    = 1;
-  string MerchantId    = 2;
-  string Sign          = 3;
-  string NotifyUrl     = 4;
-  string Language      = 5;
-  string OrderNo       = 6;
-  string BankId        = 7;
-  string BankName      = 8;
-  string BankProvince  = 9;
-  string BankCity      = 10;
-  string BranchName    = 11;
-  string BankNo        = 12;
-  double OrderAmount   = 13;
-  string DefrayName    = 14;
-  string DefrayId      = 15;
-  string DefrayMobile  = 16;
-  string DefrayEmail   = 17;
-  string Currency      = 18;
-  string PayTypeSubNo  = 19;
+  string AccessType = 1;
+  string MerchantId = 2;
+  string Sign = 3;
+  string NotifyUrl = 4;
+  string Language = 5;
+  string OrderNo = 6;
+  string BankId = 7;
+  string BankName = 8;
+  string BankProvince = 9;
+  string BankCity = 10;
+  string BranchName = 11;
+  string BankNo = 12;
+  double OrderAmount = 13;
+  string DefrayName = 14;
+  string DefrayId = 15;
+  string DefrayMobile = 16;
+  string DefrayEmail = 17;
+  string Currency = 18;
+  string PayTypeSubNo = 19;
 }
 
 message CorrespondMerChnRate{
-  string MerchantCode        = 1;
+  string MerchantCode = 1;
   string ChannelPayTypesCode = 2;
-  string ChannelCode         = 3;
-  string PayTypeCode         = 4;
-  string PayTypeCodeNum      = 5;
-  string Designation         = 6;
-  string DesignationNo       = 7;
-  double Fee                = 8;
-  double HandlingFee        = 9;
-  double ChFee              = 10;
-  double ChHandlingFee      = 11;
-  double SingleMinCharge    = 12;
-  double SingleMaxCharge    = 13;
-  string CurrencyCode        = 14;
-  string ApiUrl              = 15;
+  string ChannelCode = 3;
+  string PayTypeCode = 4;
+  string PayTypeCodeNum = 5;
+  string Designation = 6;
+  string DesignationNo = 7;
+  double Fee = 8;
+  double HandlingFee = 9;
+  double ChFee = 10;
+  double ChHandlingFee = 11;
+  double SingleMinCharge = 12;
+  double SingleMaxCharge = 13;
+  string CurrencyCode = 14;
+  string ApiUrl = 15;
 }
 
 message PayOrderRequest {
-  PayOrder payOrder         = 1;
+  PayOrder payOrder = 1;
   CorrespondMerChnRate Rate = 2;
-  string OrderNo            = 3;
-  string ChannelOrderNo     = 4;
+  string OrderNo = 3;
+  string ChannelOrderNo = 4;
 }
 
 message PayOrderResponse {
-  string Code           = 1;
-  string Message        = 2;
-  string PayOrderNo     = 3;
+  string Code = 1;
+  string Message = 2;
+  string PayOrderNo = 3;
 }
 
 message PayOrder {
-    string AccessType     = 1;
-    string MerchantId     = 2;
-    string NotifyUrl      = 3;
-    string PageUrl        = 4;
-    string Language       = 5;
-    string Sign           = 6;
-    string JumpType       = 7;
-    string LoginType      = 8;
-    string OrderNo        = 9;
-    string OrderAmount    = 10;
-    string Currency       = 11;
-    string PayType        = 12;
-    string OrderTime      = 13;
-    string OrderName      = 14;
-    string BankCode       = 15;
-    string Phone          = 16;
-    string PayTypeNo      = 17;
-    string UserId         = 18;
-    string MerchantLevel  = 19;
-    string UserIp         = 20;
+  string AccessType = 1;
+  string MerchantId = 2;
+  string NotifyUrl = 3;
+  string PageUrl = 4;
+  string Language = 5;
+  string Sign = 6;
+  string JumpType = 7;
+  string LoginType = 8;
+  string OrderNo = 9;
+  string OrderAmount = 10;
+  string Currency = 11;
+  string PayType = 12;
+  string OrderTime = 13;
+  string OrderName = 14;
+  string BankCode = 15;
+  string Phone = 16;
+  string PayTypeNo = 17;
+  string UserId = 18;
+  string MerchantLevel = 19;
+  string UserIp = 20;
 }
 
 message InternalOrderRequest {
@@ -113,11 +113,11 @@ message InternalOrderResponse {
 }
 
 message InternalOrder {
-  string Imgurl         = 1;
-  string MerchantCode   = 2;
-  string UserAccount    = 3;
-  double OrderAmount    = 4;
-  string CurrencyCode   = 5;
+  string Imgurl = 1;
+  string MerchantCode = 2;
+  string UserAccount = 3;
+  double OrderAmount = 4;
+  string CurrencyCode = 5;
   string MerchantAccountName = 6;
   string MerchantBankAccount = 7;
   string MerchantBankCity = 8;
@@ -175,26 +175,26 @@ message WithdrawOrderResponse {
 }
 
 message PayCallBackRequest {
-  string CallbackTime   = 1;
+  string CallbackTime = 1;
   string ChannelOrderNo = 2;
-  double OrderAmount    = 3;
-  string OrderStatus    = 4;
-  string PayOrderNo     = 5;
+  double OrderAmount = 3;
+  string OrderStatus = 4;
+  string PayOrderNo = 5;
 }
 
 message PayCallBackResponse {
-  string Code           = 1;
-  string Message        = 2;
-  string MerchantCode        = 3;
-  string MerchantOrderNo     = 4;
-  string OrderNo             = 5;
-  double OrderAmount         = 6;
-  double ActualAmount        = 7;
+  string Code = 1;
+  string Message = 2;
+  string MerchantCode = 3;
+  string MerchantOrderNo = 4;
+  string OrderNo = 5;
+  double OrderAmount = 6;
+  double ActualAmount = 7;
   double TransferHandlingFee = 8;
-  string NotifyUrl           = 9;
-  string OrderTime           = 10;
-  string PayOrderTime        = 11;
-  string Status              = 12;
+  string NotifyUrl = 9;
+  string OrderTime = 10;
+  string PayOrderTime = 11;
+  string Status = 12;
 
 }
 
@@ -257,16 +257,16 @@ message ProxyOrderUI {
 
 // 補單
 message MakeUpReceiptOrderRequest {
-  string OrderNo        = 1;
+  string OrderNo = 1;
   string ChannelOrderNo = 2;
-  string ReasonType     = 3;
-  double Amount         = 4;
-  string Comment        = 5;
+  string ReasonType = 3;
+  double Amount = 4;
+  string Comment = 5;
 }
 
 message MakeUpReceiptOrderResponse {
-  string Code           = 1;
-  string Message        = 2;
+  string Code = 1;
+  string Message = 2;
 }
 
 // 手動確認收款
@@ -276,30 +276,50 @@ message ConfirmPayOrderRequest {
 }
 
 message ConfirmPayOrderResponse {
-  string Code           = 1;
-  string Message        = 2;
-  string MerchantCode        = 3;
-  string MerchantOrderNo     = 4;
-  string OrderNo             = 5;
-  double OrderAmount         = 6;
-  double ActualAmount        = 7;
+  string Code = 1;
+  string Message = 2;
+  string MerchantCode = 3;
+  string MerchantOrderNo = 4;
+  string OrderNo = 5;
+  double OrderAmount = 6;
+  double ActualAmount = 7;
   double TransferHandlingFee = 8;
-  string NotifyUrl           = 9;
-  string OrderTime           = 10;
-  string PayOrderTime        = 11;
-  string Status              = 12;
+  string NotifyUrl = 9;
+  string OrderTime = 10;
+  string PayOrderTime = 11;
+  string Status = 12;
 }
 
 message RecoverReceiptOrderRequest {
-  string OrderNo               = 1;
-  double Amount                = 2;
+  string OrderNo = 1;
+  double Amount = 2;
   bool   isCalculateCommission = 3;
-  string Comment               = 4;
+  string Comment = 4;
 }
 
 message RecoverReceiptOrderResponse {
-  string Code           = 1;
-  string Message        = 2;
+  string Code = 1;
+  string Message = 2;
+}
+
+message FrozenReceiptOrderRequest {
+  string OrderNo = 1;
+  double FrozenAmount = 2;
+  string Comment = 3;
+}
+
+message FrozenReceiptOrderResponse {
+  string Code = 1;
+  string Message = 2;
+}
+
+message UnFrozenReceiptOrderRequest {
+  string OrderNo = 1;
+}
+
+message UnFrozenReceiptOrderResponse {
+  string Code = 1;
+  string Message = 2;
 }
 
 message PersonalRebundRequest {
@@ -346,6 +366,10 @@ service Transaction {
   rpc ConfirmPayOrderTransaction(ConfirmPayOrderRequest) returns (ConfirmPayOrderResponse);
 
   rpc RecoverReceiptOrderTransaction (RecoverReceiptOrderRequest) returns (RecoverReceiptOrderResponse);
+
+  rpc FrozenReceiptOrderTransaction (FrozenReceiptOrderRequest) returns (FrozenReceiptOrderResponse);
+
+  rpc UnFrozenReceiptOrderTransaction (UnFrozenReceiptOrderRequest) returns (UnFrozenReceiptOrderResponse);
 
   rpc PersonalRebundTransaction_DFB (PersonalRebundRequest) returns (PersonalRebundResponse);
 

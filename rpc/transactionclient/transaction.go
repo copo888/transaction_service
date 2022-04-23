@@ -17,6 +17,8 @@ type (
 	ConfirmPayOrderRequest        = transaction.ConfirmPayOrderRequest
 	ConfirmPayOrderResponse       = transaction.ConfirmPayOrderResponse
 	CorrespondMerChnRate          = transaction.CorrespondMerChnRate
+	FrozenReceiptOrderRequest     = transaction.FrozenReceiptOrderRequest
+	FrozenReceiptOrderResponse    = transaction.FrozenReceiptOrderResponse
 	InternalOrder                 = transaction.InternalOrder
 	InternalOrderRequest          = transaction.InternalOrderRequest
 	InternalOrderResponse         = transaction.InternalOrderResponse
@@ -43,6 +45,8 @@ type (
 	ProxyPayOrderRequest          = transaction.ProxyPayOrderRequest
 	RecoverReceiptOrderRequest    = transaction.RecoverReceiptOrderRequest
 	RecoverReceiptOrderResponse   = transaction.RecoverReceiptOrderResponse
+	UnFrozenReceiptOrderRequest   = transaction.UnFrozenReceiptOrderRequest
+	UnFrozenReceiptOrderResponse  = transaction.UnFrozenReceiptOrderResponse
 	WithdrawOrderRequest          = transaction.WithdrawOrderRequest
 	WithdrawOrderResponse         = transaction.WithdrawOrderResponse
 	WithdrawReviewFailRequest     = transaction.WithdrawReviewFailRequest
@@ -67,6 +71,8 @@ type (
 		MakeUpReceiptOrderTransaction(ctx context.Context, in *MakeUpReceiptOrderRequest, opts ...grpc.CallOption) (*MakeUpReceiptOrderResponse, error)
 		ConfirmPayOrderTransaction(ctx context.Context, in *ConfirmPayOrderRequest, opts ...grpc.CallOption) (*ConfirmPayOrderResponse, error)
 		RecoverReceiptOrderTransaction(ctx context.Context, in *RecoverReceiptOrderRequest, opts ...grpc.CallOption) (*RecoverReceiptOrderResponse, error)
+		FrozenReceiptOrderTransaction(ctx context.Context, in *FrozenReceiptOrderRequest, opts ...grpc.CallOption) (*FrozenReceiptOrderResponse, error)
+		UnFrozenReceiptOrderTransaction(ctx context.Context, in *UnFrozenReceiptOrderRequest, opts ...grpc.CallOption) (*UnFrozenReceiptOrderResponse, error)
 		PersonalRebundTransaction_DFB(ctx context.Context, in *PersonalRebundRequest, opts ...grpc.CallOption) (*PersonalRebundResponse, error)
 		PersonalRebundTransaction_XFB(ctx context.Context, in *PersonalRebundRequest, opts ...grpc.CallOption) (*PersonalRebundResponse, error)
 	}
@@ -162,6 +168,16 @@ func (m *defaultTransaction) RecoverReceiptOrderTransaction(ctx context.Context,
 	return client.RecoverReceiptOrderTransaction(ctx, in, opts...)
 }
 
+func (m *defaultTransaction) FrozenReceiptOrderTransaction(ctx context.Context, in *FrozenReceiptOrderRequest, opts ...grpc.CallOption) (*FrozenReceiptOrderResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.FrozenReceiptOrderTransaction(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) UnFrozenReceiptOrderTransaction(ctx context.Context, in *UnFrozenReceiptOrderRequest, opts ...grpc.CallOption) (*UnFrozenReceiptOrderResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.UnFrozenReceiptOrderTransaction(ctx, in, opts...)
+}
+
 func (m *defaultTransaction) PersonalRebundTransaction_DFB(ctx context.Context, in *PersonalRebundRequest, opts ...grpc.CallOption) (*PersonalRebundResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.PersonalRebundTransaction_DFB(ctx, in, opts...)
@@ -171,3 +187,4 @@ func (m *defaultTransaction) PersonalRebundTransaction_XFB(ctx context.Context, 
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.PersonalRebundTransaction_XFB(ctx, in, opts...)
 }
+

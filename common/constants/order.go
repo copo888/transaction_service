@@ -8,6 +8,7 @@ const (
 	PROCESSING   = "1"  /*订单状态:处理中*/
 	SUCCESS      = "20" /*订单状态:成功*/
 	FAIL         = "30" /*订单状态:失败*/
+	FROZEN       = "31" /*订单状态:凍結*/
 
 	CALL_BACK_STATUS_PROCESSING = "0" /*渠道回調狀態: 處理中*/
 	CALL_BACK_STATUS_SUCCESS    = "1" /*渠道回調狀態: 成功*/

@@ -77,6 +77,7 @@ func (OrderChannels) TableName() string {
 type OrderX struct {
 	Order
 	TransAt   JsonTime `json:"transAt, optional"`
+	FrozenAt  JsonTime `json:"frozenAt, optiona"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

@@ -165,7 +165,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	if err := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
 		OrderAction: types.OrderAction{
 			OrderNo:     order.OrderNo,
-			Action:      "MAKE_UP_LOCK_ORDER",
+			Action:      constants.ACTION_MAKE_UP_LOCK_ORDER,
 			UserAccount: "AAA00061", // TODO: JWT取得
 			Comment:     "",
 		},
@@ -177,7 +177,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	if err := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
 		OrderAction: types.OrderAction{
 			OrderNo:     newOrder.OrderNo,
-			Action:      "MAKE_UP_ORDER",
+			Action:      constants.ACTION_MAKE_UP_ORDER,
 			UserAccount: "AAA00061", // TODO: JWT取得
 			Comment:     comment,
 		},
@@ -193,6 +193,11 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 
 
 func (l *MakeUpReceiptOrderTransactionLogic) verifyMakeUpReceiptOrder(order types.Order, req *transactionclient.MakeUpReceiptOrderRequest) string {
+
+	// 收款單才能補單
+	if order.Type != constants.ORDER_TYPE_ZF && order.Type != constants.ORDER_TYPE_NC  {
+		return response.ORDER_STATUS_WRONG_CANNOT_FROZEN
+	}
 
 	// 檢查訂單狀態 (處理中 成功 失敗) 才能補單
 	if !(order.Status == "1" || order.Status == "20" || order.Status == "30") {

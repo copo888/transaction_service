@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
@@ -95,9 +96,9 @@ func (l *ConfirmPayOrderTransactionLogic) ConfirmPayOrderTransaction(in *transac
 	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
 		OrderAction: types.OrderAction{
 			OrderNo:     order.OrderNo,
-			Action:      "SUCCESS",
+			Action:      constants.ACTION_SUCCESS,
 			UserAccount: order.MerchantCode,
-			Comment:     "",
+			Comment:     in.Comment,
 		},
 	}).Error; err4 != nil {
 		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())

@@ -188,6 +188,12 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 }
 
 func (l *RecoverReceiptOrderTransactionLogic) verifyOrder(order types.Order, req *transactionclient.RecoverReceiptOrderRequest) string {
+
+	// 收款單才能追回
+	if order.Type != constants.ORDER_TYPE_ZF && order.Type != constants.ORDER_TYPE_NC  {
+		return response.ORDER_STATUS_WRONG_CANNOT_FROZEN
+	}
+
 	// 檢查訂單狀態 成功單才能追回
 	if order.Status != constants.SUCCESS {
 		return response.ORDER_STATUS_WRONG
