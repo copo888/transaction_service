@@ -95,7 +95,7 @@ func UpdateXFBalance_Debit(db *gorm.DB, updateBalance *types.UpdateBalance) (mer
 	}
 	selectBalance = "balance"
 	beforeBalance = merchantBalance.Balance
-	afterBalance = utils.FloatAdd(beforeBalance, updateBalance.TransferAmount)
+	afterBalance = utils.FloatAdd(beforeBalance, -updateBalance.TransferAmount)
 	merchantBalance.Balance = afterBalance
 
 	// 3. 變更 商戶餘額
@@ -134,6 +134,10 @@ func UpdateXFBalance_Debit(db *gorm.DB, updateBalance *types.UpdateBalance) (mer
 	return
 }
 
+/*
+	更新代付余额_下發余额(代付失败退回)
+
+*/
 func UpdateXFBalance_Deposit(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 	var beforeBalance float64
 	var afterBalance float64

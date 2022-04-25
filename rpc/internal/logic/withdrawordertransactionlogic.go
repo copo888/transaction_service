@@ -34,30 +34,30 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 
 	// 初始化订单
 	txOrder := &types.Order{
-		MerchantCode: in.MerchantCode,
-		MerchantOrderNo: "COPO_"+in.OrderNo,
-		OrderNo: in.OrderNo,
-		Type: constants.ORDER_TYPE_XF,
-		Status: constants.WAIT_PROCESS,
-		CreatedBy: in.UserAccount,
-		UpdatedBy: in.UserAccount,
-		BalanceType: "XFB",
-		ChannelCode: in.CurrencyCode,
-		TransferAmount: transferAmount,
-		OrderAmount: in.OrderAmount,
-		TransferHandlingFee: in.HandlingFee,
-		HandlingFee: in.HandlingFee,
-		MerchantBankAccount: in.MerchantBankeAccount,
-		MerchantBankNo: in.MerchantBankNo,
+		MerchantCode:         in.MerchantCode,
+		MerchantOrderNo:      "COPO_" + in.OrderNo,
+		OrderNo:              in.OrderNo,
+		Type:                 constants.ORDER_TYPE_XF,
+		Status:               constants.WAIT_PROCESS,
+		CreatedBy:            in.UserAccount,
+		UpdatedBy:            in.UserAccount,
+		BalanceType:          "XFB",
+		ChannelCode:          in.CurrencyCode,
+		TransferAmount:       transferAmount,
+		OrderAmount:          in.OrderAmount,
+		TransferHandlingFee:  in.HandlingFee,
+		HandlingFee:          in.HandlingFee,
+		MerchantBankAccount:  in.MerchantBankeAccount,
+		MerchantBankNo:       in.MerchantBankNo,
 		MerchantBankProvince: in.MerchantBankProvince,
-		MerchantBankCity: in.MerchantBankCity,
-		MerchantAccountName: in.MerchantAccountName,
-		IsMerchantCallback: constants.IS_MERCHANT_CALLBACK_NO,
-		IsLock: constants.IS_LOCK_NO,
-		CurrencyCode: in.CurrencyCode,
-		Source: in.Source,
-		PageUrl: in.PageUrl,
-		NotifyUrl: in.NotifyUrl,
+		MerchantBankCity:     in.MerchantBankCity,
+		MerchantAccountName:  in.MerchantAccountName,
+		IsMerchantCallback:   constants.IS_MERCHANT_CALLBACK_NO,
+		IsLock:               constants.IS_LOCK_NO,
+		CurrencyCode:         in.CurrencyCode,
+		Source:               in.Source,
+		PageUrl:              in.PageUrl,
+		NotifyUrl:            in.NotifyUrl,
 	}
 	if len(in.MerchantOrderNo) > 0 {
 		txOrder.MerchantOrderNo = in.MerchantOrderNo
@@ -82,7 +82,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 			updateBalance.TransferAmount = 0                           // 使用0元前往钱包扣款
 			txOrder.ErrorType = constants.ERROR6_BANK_ACCOUNT_IS_BLACK //交易账户为黑名单
 			txOrder.ErrorNote = constants.BANK_ACCOUNT_IS_BLACK        //失败原因：黑名单交易失败
-			txOrder.Status = constants.PROXY_PAY_FAIL                  //状态:失败
+			txOrder.Status = constants.FAIL                            //状态:失败
 			txOrder.Fee = 0                                            //写入本次手续费(未发送到渠道的交易，都设为0元)
 			txOrder.HandlingFee = 0
 			//transAt = types.JsonTime{}.New()
@@ -104,8 +104,8 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 
 	// 创建订单
 	if err3 := tx.Table("tx_orders").Create(&types.OrderX{
-		Order:   *txOrder,
-		}).Error; err3 != nil {
+		Order: *txOrder,
+	}).Error; err3 != nil {
 		logx.Errorf("新增下发提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err3.Error())
 		tx.Rollback()
 		return nil, err3

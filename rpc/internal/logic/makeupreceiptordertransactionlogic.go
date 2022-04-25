@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+
 	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
@@ -43,7 +44,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	if err := txDB.Table("tx_orders").Where("order_no = ?", req.OrderNo).Find(&order).Error; err != nil {
 		txDB.Rollback()
 		return &transactionclient.MakeUpReceiptOrderResponse{
-			Code: response.DATABASE_FAILURE,
+			Code:    response.DATABASE_FAILURE,
 			Message: "取得訂單失敗",
 		}, nil
 	}
@@ -52,7 +53,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	if errCode := l.verifyMakeUpReceiptOrder(order, req); errCode != "" {
 		txDB.Rollback()
 		return &transactionclient.MakeUpReceiptOrderResponse{
-			Code: errCode,
+			Code:    errCode,
 			Message: "驗證失敗: " + errCode,
 		}, nil
 	}
@@ -83,7 +84,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	if err != nil {
 		txDB.Rollback()
 		return &transactionclient.MakeUpReceiptOrderResponse{
-			Code: response.SYSTEM_ERROR,
+			Code:    response.SYSTEM_ERROR,
 			Message: "更新錢包失敗",
 		}, nil
 	}
@@ -119,7 +120,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	}).Error; err != nil {
 		txDB.Rollback()
 		return &transactionclient.MakeUpReceiptOrderResponse{
-			Code: response.SYSTEM_ERROR,
+			Code:    response.SYSTEM_ERROR,
 			Message: "新增訂單失敗",
 		}, nil
 	}
@@ -132,7 +133,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	}).Error; err != nil {
 		txDB.Rollback()
 		return &transactionclient.MakeUpReceiptOrderResponse{
-			Code: response.SYSTEM_ERROR,
+			Code:    response.SYSTEM_ERROR,
 			Message: "舊單鎖定失敗",
 		}, nil
 	}
@@ -191,11 +192,10 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	}, nil
 }
 
-
 func (l *MakeUpReceiptOrderTransactionLogic) verifyMakeUpReceiptOrder(order types.Order, req *transactionclient.MakeUpReceiptOrderRequest) string {
 
 	// 收款單才能補單
-	if order.Type != constants.ORDER_TYPE_ZF && order.Type != constants.ORDER_TYPE_NC  {
+	if order.Type != constants.ORDER_TYPE_ZF && order.Type != constants.ORDER_TYPE_NC {
 		return response.ORDER_STATUS_WRONG_CANNOT_FROZEN
 	}
 
