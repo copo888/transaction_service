@@ -8,7 +8,6 @@ import (
 	"github.com/copo888/transaction_service/common/errorz"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
-	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"gorm.io/gorm"
@@ -65,29 +64,15 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 		txOrder.TransAt = types.JsonTime{}.New()
 
 		txOrder.Status = constants.SUCCESS
-		txOrder.IsMerchantCallback = constants.IS_MERCHANT_CALLBACK_YES
 
 		// 編輯訂單
 		if err = db.Table("tx_orders").Updates(&txOrder).Error; err != nil {
 			return
 		}
+
 		return
 	}); err != nil {
 		return
-	}
-
-	// 計算利潤 (不抱錯) TODO: 異步??
-	if err4 := orderfeeprofitservice.CalculateOrderProfit(l.svcCtx.MyDB, types.CalculateProfit{
-		MerchantCode:        txOrder.MerchantCode,
-		OrderNo:             txOrder.OrderNo,
-		Type:                txOrder.Type,
-		CurrencyCode:        txOrder.CurrencyCode,
-		BalanceType:         txOrder.BalanceType,
-		ChannelCode:         txOrder.ChannelCode,
-		ChannelPayTypesCode: txOrder.ChannelPayTypesCode,
-		OrderAmount:         txOrder.OrderAmount,
-	}); err4 != nil {
-		logx.Error("計算利潤出錯:%s", err4.Error())
 	}
 
 	// 新單新增訂單歷程 (不抱錯)

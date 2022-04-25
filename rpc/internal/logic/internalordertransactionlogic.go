@@ -5,6 +5,7 @@ import (
 	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/model"
+	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"gorm.io/gorm"
@@ -71,7 +72,8 @@ func (l *InternalOrderTransactionLogic) InternalOrderTransaction(in *transaction
 		PayTypeNum: merchantOrderRateListView.PayTypeCode + merchantOrderRateListView.PayTypeCodeNum,
 		Fee: merchantOrderRateListView.MerFee,
 		HandlingFee: merchantOrderRateListView.MerHandlingFee,
-		IsMerchantCallback: constants.IS_MERCHANT_CALLBACK_NO,
+		IsMerchantCallback: constants.IS_MERCHANT_CALLBACK_NOT_NEED,
+		IsCalculateProfit: constants.IS_CALCULATE_PROFIT_NO,
 	}
 
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
@@ -83,6 +85,22 @@ func (l *InternalOrderTransactionLogic) InternalOrderTransaction(in *transaction
 			logx.Errorf("新增内充提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err.Error())
 			return
 		}
+
+		// 計算利潤
+		if err = orderfeeprofitservice.CalculateOrderProfit(db, types.CalculateProfit{
+			MerchantCode:        txOrder.MerchantCode,
+			OrderNo:             txOrder.OrderNo,
+			Type:                txOrder.Type,
+			CurrencyCode:        txOrder.CurrencyCode,
+			BalanceType:         txOrder.BalanceType,
+			ChannelCode:         txOrder.ChannelCode,
+			ChannelPayTypesCode: txOrder.ChannelPayTypesCode,
+			OrderAmount:         txOrder.OrderAmount,
+		}); err != nil {
+			logx.Error("計算利潤出錯:%s", err.Error())
+			return err
+		}
+
 
 		return nil
 	}); err != nil {

@@ -46,6 +46,7 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 		Status:               constants.WAIT_PROCESS,
 		Source:               constants.UI,
 		IsMerchantCallback:   constants.MERCHANT_CALL_BACK_DONT_USE,
+		IsCalculateProfit:    constants.IS_CALCULATE_PROFIT_NO,
 		MerchantBankAccount:  req.MerchantBankAccount,
 		MerchantBankNo:       req.MerchantBankNo,
 		MerchantBankName:     req.MerchantBankName,

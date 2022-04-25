@@ -2,12 +2,16 @@ package logic
 
 import (
 	"context"
+	"errors"
 	"github.com/copo888/transaction_service/common/constants"
+	"github.com/copo888/transaction_service/common/errorz"
+	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/model"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
+	"gorm.io/gorm"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -52,8 +56,9 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		MerchantBankProvince: in.MerchantBankProvince,
 		MerchantBankCity:     in.MerchantBankCity,
 		MerchantAccountName:  in.MerchantAccountName,
-		IsMerchantCallback:   constants.IS_MERCHANT_CALLBACK_NO,
+		IsMerchantCallback:   constants.IS_MERCHANT_CALLBACK_NOT_NEED,
 		IsLock:               constants.IS_LOCK_NO,
+		IsCalculateProfit:    constants.IS_CALCULATE_PROFIT_NO,
 		CurrencyCode:         in.CurrencyCode,
 		Source:               in.Source,
 		PageUrl:              in.PageUrl,
@@ -110,6 +115,22 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		tx.Rollback()
 		return nil, err3
 	}
+
+	//計算商戶利潤
+	calculateProfit := types.CalculateProfit{
+		MerchantCode:        txOrder.MerchantCode,
+		OrderNo:             txOrder.OrderNo,
+		Type:                txOrder.Type,
+		CurrencyCode:        txOrder.CurrencyCode,
+		BalanceType:         txOrder.BalanceType,
+		OrderAmount:         txOrder.ActualAmount,
+	}
+	if err4 := l.calculateOrderProfit(tx, calculateProfit); err4 != nil {
+		logx.Errorf("计算下发利润失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err4.Error())
+		tx.Rollback()
+		return nil, err4
+	}
+
 	if err4 := tx.Commit().Error; err4 != nil {
 		logx.Errorf("最终新增下发提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err4.Error())
 		tx.Rollback()
@@ -131,4 +152,55 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 	return &transactionclient.WithdrawOrderResponse{
 		OrderNo: txOrder.OrderNo,
 	}, nil
+}
+
+func (l *WithdrawOrderTransactionLogic) calculateOrderProfit(db *gorm.DB, calculateProfit types.CalculateProfit) (err error) {
+	var merchant *types.Merchant
+	var agentLayerCode string
+	var agentParentCode string
+
+	// 1. 不是算系統利潤時 要取當前計算商戶(或代理商戶)
+	if calculateProfit.MerchantCode != "00000000" {
+		if err = db.Table("mc_merchants").Where("code = ?", calculateProfit.MerchantCode).Take(&merchant).Error; err != nil {
+			return errorz.New(response.DATABASE_FAILURE, err.Error())
+		}
+		agentLayerCode = merchant.AgentLayerCode
+		agentParentCode = merchant.AgentParentCode
+	}
+
+	// 2. 設定初始資料
+	orderFeeProfit := types.OrderFeeProfit{
+		OrderNo:             calculateProfit.OrderNo,
+		MerchantCode:        calculateProfit.MerchantCode,
+		AgentLayerNo:        agentLayerCode,
+		AgentParentCode:     agentParentCode,
+		BalanceType:         calculateProfit.BalanceType,
+		Fee:                 0,
+		HandlingFee:         0,
+		TransferHandlingFee: 0,
+		ProfitAmount:        0,
+	}
+
+	// 3.设定商户费率
+	var merchantCurrency *types.MerchantCurrency
+	if err = db.Table("mc_merchant_currencies").
+		Where("merchant_code = ? AND currency_code = ?", calculateProfit.MerchantCode, calculateProfit.CurrencyCode).
+		Take(&merchantCurrency).Error;
+		errors.Is(err, gorm.ErrRecordNotFound) {
+		return errorz.New(response.RATE_NOT_CONFIGURED, err.Error())
+	} else if err != nil {
+		return errorz.New(response.DATABASE_FAILURE, err.Error())
+	}
+	orderFeeProfit.HandlingFee = merchantCurrency.WithdrawHandlingFee
+	//  交易手續費總額 = 訂單金額 + 手續費
+	orderFeeProfit.TransferHandlingFee =
+		utils.FloatAdd(calculateProfit.OrderAmount, orderFeeProfit.HandlingFee)
+
+	// 4. 除存费率
+	if err = db.Table("tx_orders_fee_profit").Create(&types.OrderFeeProfitX{
+		OrderFeeProfit: orderFeeProfit,
+	}).Error; err != nil {
+		return errorz.New(response.DATABASE_FAILURE, err.Error())
+	}
+	return nil
 }

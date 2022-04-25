@@ -78,16 +78,8 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 		}
 		// 判断渠道下发金额家总须等于订单的下发金额
 		if totalWithdrawAmount != txOrder.OrderAmount {
-			return  errorz.New(response.MERCHANT_WITHDRAW_AUDIT_ERROR)
+			return errorz.New(response.MERCHANT_WITHDRAW_AUDIT_ERROR)
 		}
-
-		// 更新下发利润
-		oldOrder := &types.Order{
-			OrderNo:             txOrder.OrderNo,
-			BalanceType:         txOrder.BalanceType,
-			TransferHandlingFee: txOrder.TransferHandlingFee,
-		}
-		l.CalculateSystemProfit(db, oldOrder, totalChannelHandlingFee)
 
 		// 儲存下發明細記錄
 		if err1 := db.Table("tx_order_channels").CreateInBatches(orderChannels, len(orderChannels)).Error; err1 != nil {
@@ -100,6 +92,17 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 		// 更新审核通过
 		if err2 := db.Table("tx_orders").Updates(txOrder).Error; err2 != nil {
 			return errorz.New(response.DATABASE_FAILURE, err2.Error())
+		}
+
+		// 更新下发利润
+		oldOrder := &types.Order{
+			OrderNo:             txOrder.OrderNo,
+			BalanceType:         txOrder.BalanceType,
+			TransferHandlingFee: txOrder.TransferHandlingFee,
+		}
+		if err = l.CalculateSystemProfit(db, oldOrder, totalChannelHandlingFee); err != nil {
+			logx.Errorf("审核通过，计算下发利润失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err.Error())
+			return err
 		}
 
 		return nil
@@ -133,7 +136,7 @@ func (l *WithdrawReviewSuccessTransactionLogic) intToFloat64(i int) float64 {
 	return res
 }
 
-func (l *WithdrawReviewSuccessTransactionLogic) CalculateSystemProfit(db *gorm.DB, order *types.Order, TransferHandlingFee float64) (err error){
+func (l *WithdrawReviewSuccessTransactionLogic) CalculateSystemProfit(db *gorm.DB, order *types.Order, TransferHandlingFee float64) (err error) {
 
 	systemFeeProfit := types.OrderFeeProfit{
 		OrderNo:             order.OrderNo,
@@ -153,5 +156,15 @@ func (l *WithdrawReviewSuccessTransactionLogic) CalculateSystemProfit(db *gorm.D
 		return errorz.New(response.DATABASE_FAILURE, err.Error())
 	}
 
+	if err = l.updateOrderByIsCalculateProfit(db, order.OrderNo); err != nil {
+		return errorz.New(response.DATABASE_FAILURE, err.Error())
+	}
+
 	return
+}
+
+func (l *WithdrawReviewSuccessTransactionLogic) updateOrderByIsCalculateProfit(db *gorm.DB, orderNo string) error {
+	return db.Table("tx_orders").
+		Where("order_no = ?", orderNo).
+		Updates(map[string]interface{}{"is_calculate_profit": constants.IS_CALCULATE_PROFIT_YES}).Error
 }
