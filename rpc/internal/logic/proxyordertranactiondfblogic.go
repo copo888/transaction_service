@@ -68,7 +68,9 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		PayTypeCodeNum:       rate.PayTypeCodeNum,
 		CreatedBy:            req.MerchantId,
 		MerchantCode:         req.MerchantId,
-		IsLock:               "0", //是否锁定状态 (0=否;1=是) 预设否,\
+		IsLock:               constants.IS_LOCK_NO, //是否锁定状态 (0=否;1=是) 预设否,\
+		PersonProcessStatus:  constants.PERSON_PROCESS_STATUS_NO_ROCESSING,
+		IsCalculateProfit:    constants.IS_CALCULATE_PROFIT_NO,
 		//API 要填的参数
 		NotifyUrl:          req.NotifyUrl,
 		IsMerchantCallback: isMerchantCallback,
@@ -143,6 +145,8 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		OrderAmount:         txOrder.OrderAmount,
 	}); err4 != nil {
 		logx.Error("計算利潤出錯:%s", err4.Error())
+	} else {
+		txOrder.IsCalculateProfit = constants.IS_CALCULATE_PROFIT_YES
 	}
 
 	// 新單新增訂單歷程 (不抱錯) TODO: 異步??

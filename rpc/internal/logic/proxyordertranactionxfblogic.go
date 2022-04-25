@@ -68,7 +68,9 @@ func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(in *transactionc
 		PayTypeCodeNum:       rate.PayTypeCodeNum,
 		CreatedBy:            req.MerchantId,
 		MerchantCode:         req.MerchantId,
-		IsLock:               "0", //是否锁定状态 (0=否;1=是) 预设否,\
+		IsLock:               constants.IS_LOCK_NO, //是否锁定状态 (0=否;1=是) 预设否,\
+		PersonProcessStatus:  constants.PERSON_PROCESS_STATUS_NO_ROCESSING,
+		IsCalculateProfit:    constants.IS_CALCULATE_PROFIT_NO,
 		//API 要填的参数
 		NotifyUrl:          req.NotifyUrl,
 		IsMerchantCallback: isMerchantCallback,
