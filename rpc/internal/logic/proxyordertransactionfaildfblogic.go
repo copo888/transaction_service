@@ -27,6 +27,10 @@ func NewProxyOrderTransactionFailDFBLogic(ctx context.Context, svcCtx *svc.Servi
 	}
 }
 
+/*
+	代付出款失敗(代付餘額)_還款
+	更新餘額、餘額異動紀錄、更新訂單(失敗單)、異動訂單紀錄
+*/
 func (l *ProxyOrderTransactionFailDFBLogic) ProxyOrderTransactionFail_DFB(in *transactionclient.ProxyPayFailRequest) (resp *transactionclient.ProxyPayFailResponse, err error) {
 
 	merchantBalanceRecord := types.MerchantBalanceRecord{}
@@ -55,16 +59,17 @@ func (l *ProxyOrderTransactionFailDFBLogic) ProxyOrderTransactionFail_DFB(in *tr
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
 		if merchantBalanceRecord, err = merchantbalanceservice.UpdateDFBalance_Deposit(db, *updateBalance); err != nil {
+			txOrder.RepaymentStatus = constants.REPAYMENT_FAIL
 			logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
 			return
 		} else {
 			logx.Infof("代付API提单失败 %s，代付錢包退款成功", merchantBalanceRecord.OrderNo)
+			txOrder.RepaymentStatus = constants.REPAYMENT_SUCCESS
 		}
 
 		if err = db.Table("tx_orders").Updates(txOrder).Error; err != nil {
 			return
 		}
-
 		return
 	}); err != nil {
 		return
@@ -75,7 +80,7 @@ func (l *ProxyOrderTransactionFailDFBLogic) ProxyOrderTransactionFail_DFB(in *tr
 			OrderNo:     txOrder.OrderNo,
 			Action:      constants.ACTION_DF_REFUND,
 			UserAccount: in.MerchantCode,
-			Comment:     "代付失败退款",
+			Comment:     "",
 		},
 	}).Error; err4 != nil {
 		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())

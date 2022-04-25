@@ -96,7 +96,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		updateBalance.TransferAmount = 0                           // 使用0元前往钱包扣款
 		txOrder.ErrorType = constants.ERROR6_BANK_ACCOUNT_IS_BLACK //交易账户为黑名单
 		txOrder.ErrorNote = constants.BANK_ACCOUNT_IS_BLACK        //失败原因：黑名单交易失败
-		txOrder.Status = constants.PROXY_PAY_FAIL                  //状态:失败
+		txOrder.Status = constants.FAIL                            //状态:失败
 		txOrder.Fee = 0                                            //写入本次手续费(未发送到渠道的交易，都设为0元)
 		txOrder.HandlingFee = 0
 		//transAt = types.JsonTime{}.New()

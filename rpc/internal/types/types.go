@@ -854,7 +854,8 @@ type Order struct {
 	TransferAmount          float64 `json:"transferAmount"`
 	Balance                 float64 `json:"balance"`
 	FrozenAmount            float64 `json:"frozenAmount"`
-	Status                  string  `json:"status"` //訂單狀態(0:待處理 1:處理中 20:成功 30:失敗 31:凍結)
+	Status                  string  `json:"status"`          //訂單狀態(0:待處理 1:處理中 20:成功 30:失敗 31:凍結)
+	RepaymentStatus         string  `json:"repaymentDtatus"` //还款状态：(0：不需还款、1:待还款、2：还款成功、3：还款失败)
 	IsLock                  string  `json:"isLock"`
 	Memo                    string  `json:"memo"`
 	ErrorType               string  `json:"errorType, optional"`
@@ -878,14 +879,14 @@ type Order struct {
 	ChannelBankNo           string  `json:"channelBankNo"`        //渠道銀行代碼
 	ChannelBankName         string  `json:"channelBankName"`      //渠道银行名称
 	ChannelAccountName      string  `json:"channelAccountName"`   //渠道账户姓名
-	OrderAmount             float64 `json:"orderAmount"` //订单金额
-	ActualAmount            float64 `json:"actualAmount"`//实际金额
+	OrderAmount             float64 `json:"orderAmount"`          //订单金额
+	ActualAmount            float64 `json:"actualAmount"`         //实际金额
 	TransferHandlingFee     float64 `json:"transferHandlingFee"`
 	MerchantOrderNo         string  `json:"merchantOrderNo"` //商戶訂單編號
 	ChannelOrderNo          string  `json:"channelOrderNo"`  //渠道订单编号
 	Source                  string  `json:"source"`          //1:平台 2:API
 	SourceOrderNo           string  `json:"sourceOrderNo"`   //來源訂單編號(From NC)
-	ReasonType              string  `json:"reasonType"`       //原因類型(1=修改金額/2=重複支付/3=其他)
+	ReasonType              string  `json:"reasonType"`      //原因類型(1=修改金額/2=重複支付/3=其他)
 	CallBackStatus          string  `json:"callBackStatus, optional"`
 	NotifyUrl               string  `json:"notifyUrl, optional"`
 	PageUrl                 string  `json:"pageUrl, optional"`
