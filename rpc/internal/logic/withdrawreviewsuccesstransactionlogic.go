@@ -88,7 +88,7 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 		// 更新交易時間
 		txOrder.TransAt = types.JsonTime{}.New()
 		txOrder.Status = constants.SUCCESS
-		txOrder.IsMerchantCallback = constants.IS_MERCHANT_CALLBACK_YES
+		txOrder.ReviewedBy = in.UserAccount
 		// 更新审核通过
 		if err2 := db.Table("tx_orders").Updates(txOrder).Error; err2 != nil {
 			return errorz.New(response.DATABASE_FAILURE, err2.Error())

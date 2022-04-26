@@ -895,6 +895,7 @@ type Order struct {
 	IsMerchantCallback      string  `json:"isMerchantCallback, optional"`  //是否已经回调商户(0：否、1:是、2:不需回调)(透过API需提供的资讯)
 	CreatedBy               string  `json:"createdBy, optional"`
 	UpdatedBy               string  `json:"updatedBy, optional"`
+	ReviewedBy              string  `json:"reviewedBy, optional"`
 }
 
 type InternalChargeOrder struct {

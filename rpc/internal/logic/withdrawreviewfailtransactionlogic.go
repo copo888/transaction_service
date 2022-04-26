@@ -62,7 +62,7 @@ func (l *WithdrawReviewFailTransactionLogic) WithdrawReviewFailTransaction(in *t
 		txOrder.TransAt = types.JsonTime{}.New()
 
 		txOrder.Status = constants.FAIL
-		txOrder.IsMerchantCallback = constants.IS_MERCHANT_CALLBACK_NO
+		txOrder.ReviewedBy = in.UserAccount
 
 		// 編輯訂單
 		if err = db.Table("tx_orders").Updates(&txOrder).Error; err != nil {
