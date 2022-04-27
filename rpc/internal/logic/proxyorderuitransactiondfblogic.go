@@ -110,7 +110,7 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 		// 创建订单
 		if err = db.Table("tx_orders").Create(&types.OrderX{
 			Order:   *txOrder,
-			TransAt: types.JsonTime{}.New()}).Error; err != nil {
+			}).Error; err != nil {
 			logx.Errorf("新增代付UI提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err.Error())
 			return
 		}

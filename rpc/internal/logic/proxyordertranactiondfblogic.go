@@ -123,7 +123,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		// 创建订单
 		if err = db.Table("tx_orders").Create(&types.OrderX{
 			Order:   *txOrder,
-			TransAt: types.JsonTime{}.New()}).Error; err != nil {
+			}).Error; err != nil {
 			logx.Errorf("新增代付API提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err.Error())
 			return
 		}
