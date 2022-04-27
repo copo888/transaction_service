@@ -34,13 +34,14 @@ func NewProxyOrderTransactionFailDFBLogic(ctx context.Context, svcCtx *svc.Servi
 func (l *ProxyOrderTransactionFailDFBLogic) ProxyOrderTransactionFail_DFB(in *transactionclient.ProxyPayFailRequest) (resp *transactionclient.ProxyPayFailResponse, err error) {
 
 	merchantBalanceRecord := types.MerchantBalanceRecord{}
-	var txOrder = &types.Order{}
+	var txOrder = &types.OrderX{}
 	var errQuery error
 	if txOrder, errQuery = model.QueryOrderByOrderNo(l.svcCtx.MyDB, in.OrderNo, ""); err != nil {
 		return nil, errQuery
 	}
 	//失败单
 	txOrder.Status = constants.FAIL
+	txOrder.TransAt = types.JsonTime{}.New()
 
 	updateBalance := &types.UpdateBalance{
 		MerchantCode:    txOrder.MerchantCode,

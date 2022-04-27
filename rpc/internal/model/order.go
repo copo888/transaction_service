@@ -48,8 +48,8 @@ func GenerateOrderNo(orderType string) string {
 	@param orderNo    : copo訂單號
     @param merOrderNo : 商戶訂單號
 */
-func QueryOrderByOrderNo(db *gorm.DB, orderNo string, merOrderNo string) (*types.Order, error) {
-	txOrder := &types.Order{}
+func QueryOrderByOrderNo(db *gorm.DB, orderNo string, merOrderNo string) (*types.OrderX, error) {
+	txOrder := &types.OrderX{}
 	if orderNo != "" || len(orderNo) > 0 {
 		if err := db.Table("tx_orders").Where("order_no = ?", orderNo).Find(&txOrder).Error; err != nil {
 			return nil, errorz.New(response.DATABASE_FAILURE, err.Error())
