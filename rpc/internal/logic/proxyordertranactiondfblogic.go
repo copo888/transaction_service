@@ -82,6 +82,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		MerchantCode:    txOrder.MerchantCode,
 		CurrencyCode:    txOrder.CurrencyCode,
 		OrderNo:         txOrder.OrderNo,
+		MerchantOrderNo: txOrder.MerchantOrderNo,
 		OrderType:       txOrder.Type,
 		PayTypeCode:     txOrder.PayTypeCode,
 		PayTypeCodeNum:  txOrder.PayTypeCodeNum,
@@ -123,8 +124,8 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 
 		// 创建订单
 		if err = db.Table("tx_orders").Create(&types.OrderX{
-			Order:   *txOrder,
-			}).Error; err != nil {
+			Order: *txOrder,
+		}).Error; err != nil {
 			logx.Errorf("新增代付API提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err.Error())
 			return
 		}
