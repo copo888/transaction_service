@@ -251,8 +251,10 @@ func UpdateDFBalance_Deposit(db *gorm.DB, updateBalance types.UpdateBalance) (me
 
 }
 
+
+
 /*
-	更新下發餘額(支轉代)_扣款(代付提單扣款)
+	UpdateBalanceForZF 支付異動錢包
 */
 func UpdateBalanceForZF(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 
@@ -308,7 +310,6 @@ func UpdateBalanceForZF(db *gorm.DB, updateBalance types.UpdateBalance) (merchan
 	return
 }
 
-// TODO 最後要刪除此方法
 // UpdateBalance TransferAmount需正負(收款传正值/扣款传負值), BalanceType:餘額類型 (DFB=代付餘額 XFB=下發餘額)
 func UpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 
