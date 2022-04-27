@@ -53,5 +53,8 @@ func (l *MerchantBalanceUpdateTranactionLogic) MerchantBalanceUpdateTranaction(r
 		}, err
 	}
 
-	return &transaction.MerchantBalanceUpdateResponse{}, nil
+	return &transaction.MerchantBalanceUpdateResponse{
+		Code:    response.API_SUCCESS,
+		Message: "操作成功",
+	}, nil
 }

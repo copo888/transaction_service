@@ -326,10 +326,7 @@ func UpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBala
 
 	// 2. 計算 (依照 BalanceType 決定異動哪種餘額)
 	var selectBalance string
-	if utils.FloatAdd(merchantBalance.Balance, updateBalance.TransferAmount) < 0 {
-		logx.Errorf("商户:%s，余额类型:%s，余额:%s，交易金额:%s", merchantBalance.MerchantCode, merchantBalance.BalanceType, fmt.Sprintf("%f", merchantBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount))
-		return merchantBalanceRecord, errorz.New(response.MERCHANT_INSUFFICIENT_DF_BALANCE)
-	}
+
 	selectBalance = "balance"
 	beforeBalance = merchantBalance.Balance
 	afterBalance = utils.FloatAdd(beforeBalance, updateBalance.TransferAmount)
