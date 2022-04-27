@@ -66,6 +66,7 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 		MerchantCode:    order.MerchantCode,
 		CurrencyCode:    order.CurrencyCode,
 		OrderNo:         newOrderNo,
+		MerchantOrderNo: order.MerchantOrderNo,
 		OrderType:       order.Type,
 		ChannelCode:     order.ChannelCode,
 		PayTypeCode:     order.PayTypeCode,

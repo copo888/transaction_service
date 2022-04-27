@@ -35,7 +35,6 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	var newOrder types.Order
 	var transferAmount float64
 	var newOrderNo string
-	var comment string
 
 	/****     交易開始      ****/
 	txDB := l.svcCtx.MyDB.Begin()
@@ -71,6 +70,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 		MerchantCode:    order.MerchantCode,
 		CurrencyCode:    order.CurrencyCode,
 		OrderNo:         newOrderNo,
+		MerchantOrderNo: order.MerchantOrderNo,
 		OrderType:       order.Type,
 		ChannelCode:     order.ChannelCode,
 		PayTypeCode:     order.PayTypeCode,
@@ -78,7 +78,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 		TransactionType: constants.TRANSACTION_TYPE_MAKE_UP,
 		BalanceType:     order.BalanceType,
 		TransferAmount:  transferAmount,
-		Comment:         comment,
+		Comment:         req.Comment,
 		CreatedBy:       "AAA00061", // TODO: JWT取得
 	})
 	if err != nil {
@@ -111,7 +111,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	newOrder.HandlingFee = order.HandlingFee
 	newOrder.Fee = order.Fee
 	newOrder.TransferHandlingFee = transferHandlingFee
-	newOrder.Memo = "原订单:" + order.OrderNo + " \n" + req.Comment
+	newOrder.Memo = req.Comment
 	newOrder.Source = constants.ORDER_SOURCE_BY_PLATFORM
 	newOrder.IsCalculateProfit = constants.IS_CALCULATE_PROFIT_YES
 
@@ -181,7 +181,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 			OrderNo:     newOrder.OrderNo,
 			Action:      constants.ACTION_MAKE_UP_ORDER,
 			UserAccount: "AAA00061", // TODO: JWT取得
-			Comment:     comment,
+			Comment:     req.Comment,
 		},
 	}).Error; err != nil {
 		logx.Error("紀錄訂單歷程出錯:%s", err.Error())
