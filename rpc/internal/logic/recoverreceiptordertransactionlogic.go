@@ -90,6 +90,7 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 	newOrder.Status = constants.SUCCESS
 	newOrder.SourceOrderNo = order.OrderNo
 	newOrder.ChannelOrderNo = ""
+	newOrder.MerchantOrderNo = order.MerchantOrderNo + "#R"
 	newOrder.OrderNo = newOrderNo
 	newOrder.OrderAmount = order.OrderAmount
 	newOrder.ActualAmount = -req.Amount

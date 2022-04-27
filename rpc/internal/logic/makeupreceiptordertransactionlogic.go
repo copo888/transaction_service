@@ -95,6 +95,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	newOrder.Status = constants.SUCCESS
 	newOrder.SourceOrderNo = order.OrderNo
 	newOrder.ChannelOrderNo = req.ChannelOrderNo
+	newOrder.MerchantOrderNo = order.MerchantOrderNo + "#M"
 	newOrder.OrderNo = newOrderNo
 	newOrder.OrderAmount = req.Amount
 	newOrder.ActualAmount = req.Amount
