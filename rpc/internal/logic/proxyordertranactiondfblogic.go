@@ -71,6 +71,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		IsLock:               constants.IS_LOCK_NO, //是否锁定状态 (0=否;1=是) 预设否,\
 		PersonProcessStatus:  constants.PERSON_PROCESS_STATUS_NO_ROCESSING,
 		IsCalculateProfit:    constants.IS_CALCULATE_PROFIT_NO,
+		RepaymentStatus:      constants.REPAYMENT_NOT,
 		//API 要填的参数
 		NotifyUrl:          req.NotifyUrl,
 		IsMerchantCallback: isMerchantCallback,
