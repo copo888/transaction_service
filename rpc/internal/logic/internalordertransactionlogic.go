@@ -42,10 +42,13 @@ func (l *InternalOrderTransactionLogic) InternalOrderTransaction(in *transaction
 	//初始化订单
 	txOrder := &types.Order{
 		OrderNo:      model.GenerateOrderNo("NC"),
-		Type:         constants.ORDER_TYPE_NC,
 		MerchantCode: internalOrderReq.MerchantCode,
-		Status: constants.PROCESSING,
-		Source: constants.UI,
+		Type:                constants.ORDER_TYPE_NC,
+		Status:              constants.PROCESSING,
+		Source:              constants.UI,
+		IsMerchantCallback:  constants.IS_MERCHANT_CALLBACK_NOT_NEED,
+		IsCalculateProfit:   constants.IS_CALCULATE_PROFIT_NO,
+		PersonProcessStatus: constants.PERSON_PROCESS_STATUS_NO_ROCESSING,
 		InternalChargeOrderPath: internalOrderReq.Imgurl,
 		BalanceType: "DFB",
 		OrderAmount: internalOrderReq.OrderAmount,
@@ -72,8 +75,6 @@ func (l *InternalOrderTransactionLogic) InternalOrderTransaction(in *transaction
 		PayTypeNum: merchantOrderRateListView.PayTypeCode + merchantOrderRateListView.PayTypeCodeNum,
 		Fee: merchantOrderRateListView.MerFee,
 		HandlingFee: merchantOrderRateListView.MerHandlingFee,
-		IsMerchantCallback: constants.IS_MERCHANT_CALLBACK_NOT_NEED,
-		IsCalculateProfit: constants.IS_CALCULATE_PROFIT_NO,
 	}
 
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {

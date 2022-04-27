@@ -47,6 +47,7 @@ func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(in *transa
 		Source:               constants.UI,
 		IsMerchantCallback:   constants.MERCHANT_CALL_BACK_DONT_USE,
 		IsCalculateProfit:    constants.IS_CALCULATE_PROFIT_NO,
+		PersonProcessStatus:  constants.PERSON_PROCESS_STATUS_NO_ROCESSING,
 		MerchantBankAccount:  req.MerchantBankAccount,
 		MerchantBankNo:       req.MerchantBankNo,
 		MerchantBankName:     req.MerchantBankName,
