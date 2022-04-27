@@ -32,6 +32,11 @@ func (s *TransactionServer) Watch(req *grpc_health_v1.HealthCheckRequest, w grpc
 	return nil
 }
 
+func (s *TransactionServer) MerchantBalanceUpdateTranaction(ctx context.Context, in *transaction.MerchantBalanceUpdateRequest) (*transaction.MerchantBalanceUpdateResponse, error) {
+	l := logic.NewMerchantBalanceUpdateTranactionLogic(ctx, s.svcCtx)
+	return l.MerchantBalanceUpdateTranaction(in)
+}
+
 func (s *TransactionServer) ProxyOrderTranaction_DFB(ctx context.Context, in *transaction.ProxyOrderRequest) (*transaction.ProxyOrderResponse, error) {
 	l := logic.NewProxyOrderTranactionDFBLogic(ctx, s.svcCtx)
 	return l.ProxyOrderTranaction_DFB(in)

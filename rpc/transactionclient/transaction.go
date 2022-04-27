@@ -26,6 +26,8 @@ type (
 	InternalReviewSuccessResponse = transaction.InternalReviewSuccessResponse
 	MakeUpReceiptOrderRequest     = transaction.MakeUpReceiptOrderRequest
 	MakeUpReceiptOrderResponse    = transaction.MakeUpReceiptOrderResponse
+	MerchantBalanceUpdateRequest  = transaction.MerchantBalanceUpdateRequest
+	MerchantBalanceUpdateResponse = transaction.MerchantBalanceUpdateResponse
 	MerchantOrderRateListView     = transaction.MerchantOrderRateListView
 	PayCallBackRequest            = transaction.PayCallBackRequest
 	PayCallBackResponse           = transaction.PayCallBackResponse
@@ -55,6 +57,7 @@ type (
 	WithdrawReviewSuccessResponse = transaction.WithdrawReviewSuccessResponse
 
 	Transaction interface {
+		MerchantBalanceUpdateTranaction(ctx context.Context, in *MerchantBalanceUpdateRequest, opts ...grpc.CallOption) (*MerchantBalanceUpdateResponse, error)
 		ProxyOrderTranaction_DFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error)
 		ProxyOrderTranaction_XFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error)
 		ProxyOrderTransactionFail_DFB(ctx context.Context, in *ProxyPayFailRequest, opts ...grpc.CallOption) (*ProxyPayFailResponse, error)
@@ -86,6 +89,11 @@ func NewTransaction(cli zrpc.Client) Transaction {
 	return &defaultTransaction{
 		cli: cli,
 	}
+}
+
+func (m *defaultTransaction) MerchantBalanceUpdateTranaction(ctx context.Context, in *MerchantBalanceUpdateRequest, opts ...grpc.CallOption) (*MerchantBalanceUpdateResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.MerchantBalanceUpdateTranaction(ctx, in, opts...)
 }
 
 func (m *defaultTransaction) ProxyOrderTranaction_DFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error) {
@@ -187,4 +195,3 @@ func (m *defaultTransaction) PersonalRebundTransaction_XFB(ctx context.Context, 
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.PersonalRebundTransaction_XFB(ctx, in, opts...)
 }
-
