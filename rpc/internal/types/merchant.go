@@ -148,6 +148,7 @@ type UpdateBalance struct {
 	MerchantCode    string
 	CurrencyCode    string
 	OrderNo         string
+	MerchantOrderNo string
 	OrderType       string
 	ChannelCode     string
 	PayTypeCode     string
