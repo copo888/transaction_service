@@ -107,7 +107,7 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 	newOrder.HandlingFee = order.HandlingFee
 	newOrder.Fee = order.Fee
 	newOrder.TransferHandlingFee = transferHandlingFee
-	newOrder.Memo = "原订单:" + order.OrderNo + " \n" + req.Comment
+	newOrder.Memo = "原始单号:" + order.OrderNo + " \n" + req.Comment
 	newOrder.Source = constants.ORDER_SOURCE_BY_PLATFORM
 	newOrder.IsCalculateProfit = constants.IS_CALCULATE_PROFIT_YES
 
@@ -124,7 +124,7 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 
 	// 舊單鎖定
 	order.IsLock = "1"
-	order.Memo = "追回:" + newOrderNo + " \n" + order.Memo
+	order.Memo = "追回单号:" + newOrderNo + " \n" + order.Memo
 	if err = txDB.Table("tx_orders").Updates(&types.OrderX{
 		Order: order,
 	}).Error; err != nil {

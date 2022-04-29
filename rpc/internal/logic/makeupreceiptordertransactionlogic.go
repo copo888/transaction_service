@@ -128,7 +128,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 
 	// 舊單鎖定
 	order.IsLock = "1"
-	order.Memo = "补单:" + newOrderNo + " \n" + order.Memo
+	order.Memo = "补单单号:" + newOrderNo + " \n" + order.Memo
 	if err = txDB.Table("tx_orders").Updates(&types.OrderX{
 		Order: order,
 	}).Error; err != nil {
