@@ -34,21 +34,12 @@ func (l *ProxyOrderToTestXFBLogic) ProxyOrderToTest_XFB(in *transactionclient.Pr
 	var err error
 	if txOrder, err = model.QueryOrderByOrderNo(l.svcCtx.MyDB, in.ProxyOrderNo, ""); err != nil {
 		return nil, errorz.New(response.DATABASE_FAILURE, err.Error())
-	}
-
-	if txOrder.IsTest == "1" {
-		return nil, errorz.New(response.DATABASE_FAILURE)
+	} else if txOrder == nil {
+		return nil, errorz.New(response.ORDER_NUMBER_NOT_EXIST)
 	}
 
 	//如果月結傭金"已結算/確認報表無誤按鈕" : 不扣款
 	txOrder.IsTest = "1"
-
-	// 更新订单
-	if txOrder != nil {
-		if errUpdate := l.svcCtx.MyDB.Table("tx_orders").Updates(txOrder).Error; errUpdate != nil {
-			logx.Error("代付订单更新状态错误: ", errUpdate.Error())
-		}
-	}
 
 	l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
@@ -76,6 +67,13 @@ func (l *ProxyOrderToTestXFBLogic) ProxyOrderToTest_XFB(in *transactionclient.Pr
 			logx.Infof("代付API提单 %s，錢包還款成功", merchantBalanceRecord.OrderNo)
 			txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance // 商戶錢包異動紀錄
 			txOrder.Balance = merchantBalanceRecord.AfterBalance
+		}
+
+		// 更新订单
+		if txOrder != nil {
+			if errUpdate := l.svcCtx.MyDB.Table("tx_orders").Updates(txOrder).Error; errUpdate != nil {
+				logx.Error("代付订单更新状态错误: ", errUpdate.Error())
+			}
 		}
 
 		return nil
