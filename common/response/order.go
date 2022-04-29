@@ -28,4 +28,5 @@ var (
 	ORDER_STATUS_WRONG                       = "1094012" //订单状态錯誤
 	ORIGINAL_ORDER_NOT_CALCULATED_COMMISSION = "1094013" //原訂單還未計算傭金,請稍後
 	ORDER_TYPE_IS_WRONG                      = "1094014" //订单类型错误
+	ORDER_ALREADY_IS_TEST                    = "1094015" //已為測試單
 )
