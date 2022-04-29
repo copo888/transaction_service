@@ -58,6 +58,7 @@ func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(in *transactionc
 		MerchantBankName:     req.BankName,
 		Fee:                  rate.Fee,
 		HandlingFee:          rate.HandlingFee,
+		TransferHandlingFee:  rate.HandlingFee,
 		MerchantAccountName:  req.DefrayName,
 		CurrencyCode:         req.Currency,
 		MerchantBankProvince: req.BankProvince,
