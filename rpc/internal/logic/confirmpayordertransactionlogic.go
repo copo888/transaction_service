@@ -34,12 +34,22 @@ func (l *ConfirmPayOrderTransactionLogic) ConfirmPayOrderTransaction(in *transac
 	/****     交易開始      ****/
 	txDB := l.svcCtx.MyDB.Begin()
 
+
+
 	if err := txDB.Table("tx_orders").
 		Where("order_no = ?", in.OrderNo).Take(&order).Error; err != nil {
 		txDB.Rollback()
 		return &transactionclient.ConfirmPayOrderResponse{
 			Code:    response.ORDER_NUMBER_NOT_EXIST,
 			Message: "商户订单号不存在 ",
+		}, nil
+	}
+
+	// 收款單才能補單
+	if order.Type != constants.ORDER_TYPE_ZF {
+		return &transactionclient.ConfirmPayOrderResponse{
+			Code:    response.ORDER_TYPE_IS_WRONG,
+			Message: "訂單類型錯誤 ",
 		}, nil
 	}
 

@@ -195,9 +195,9 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 
 func (l *MakeUpReceiptOrderTransactionLogic) verifyMakeUpReceiptOrder(order types.Order, req *transactionclient.MakeUpReceiptOrderRequest) string {
 
-	// 收款單才能補單
-	if order.Type != constants.ORDER_TYPE_ZF && order.Type != constants.ORDER_TYPE_NC {
-		return response.ORDER_STATUS_WRONG_CANNOT_FROZEN
+	// 支付單才能補單
+	if order.Type != constants.ORDER_TYPE_ZF {
+		return response.ORDER_TYPE_IS_WRONG
 	}
 
 	// 檢查訂單狀態 (處理中 成功 失敗) 才能補單

@@ -27,4 +27,5 @@ var (
 	ORDER_IS_STATUS_IS_LOCK                  = "1094011" //此订单狀態已鎖定
 	ORDER_STATUS_WRONG                       = "1094012" //订单状态錯誤
 	ORIGINAL_ORDER_NOT_CALCULATED_COMMISSION = "1094013" //原訂單還未計算傭金,請稍後
+	ORDER_TYPE_IS_WRONG                      = "1094014" //订单类型错误
 )
