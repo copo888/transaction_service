@@ -58,6 +58,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		MerchantBankName:     req.BankName,
 		Fee:                  rate.Fee,
 		HandlingFee:          rate.HandlingFee,
+		TransferHandlingFee:  rate.HandlingFee,
 		MerchantAccountName:  req.DefrayName,
 		CurrencyCode:         req.Currency,
 		MerchantBankProvince: req.BankProvince,
@@ -66,6 +67,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		ChannelPayTypesCode:  rate.ChannelPayTypesCode,
 		PayTypeCode:          rate.PayTypeCode,
 		PayTypeCodeNum:       rate.PayTypeCodeNum,
+		PayTypeNum:           rate.PayTypeCode + rate.PayTypeCodeNum,
 		CreatedBy:            req.MerchantId,
 		MerchantCode:         req.MerchantId,
 		IsLock:               constants.IS_LOCK_NO, //是否锁定状态 (0=否;1=是) 预设否,\
