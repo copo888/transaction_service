@@ -46,6 +46,7 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 			MerchantCode:    txOrder.MerchantCode,
 			CurrencyCode:    txOrder.CurrencyCode,
 			OrderNo:         txOrder.OrderNo,
+			MerchantOrderNo: txOrder.MerchantOrderNo,
 			OrderType:       txOrder.Type,
 			ChannelCode:     txOrder.ChannelCode,
 			PayTypeCode:     txOrder.PayTypeCode,

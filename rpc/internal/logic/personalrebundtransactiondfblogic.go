@@ -45,6 +45,7 @@ func (l *PersonalRebundTransactionDFBLogic) PersonalRebundTransaction_DFB(in *tr
 		MerchantCode:    txOrder.MerchantCode,
 		CurrencyCode:    txOrder.CurrencyCode,
 		OrderNo:         txOrder.OrderNo,
+		MerchantOrderNo: txOrder.MerchantOrderNo,
 		OrderType:       txOrder.Type,
 		PayTypeCode:     txOrder.PayTypeCode,
 		PayTypeCodeNum:  txOrder.PayTypeCodeNum,

@@ -47,6 +47,7 @@ func (l *WithdrawReviewFailTransactionLogic) WithdrawReviewFailTransaction(in *t
 			MerchantCode:    txOrder.MerchantCode,
 			CurrencyCode:    txOrder.CurrencyCode,
 			OrderNo:         txOrder.OrderNo,
+			MerchantOrderNo: txOrder.MerchantOrderNo,
 			OrderType:       txOrder.Type,
 			TransactionType: "1",
 			BalanceType:     txOrder.BalanceType,
