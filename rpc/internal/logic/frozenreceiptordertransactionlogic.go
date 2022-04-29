@@ -9,8 +9,6 @@ import (
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
-	"github.com/copo888/transaction_service/rpc/transaction"
-
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -28,7 +26,7 @@ func NewFrozenReceiptOrderTransactionLogic(ctx context.Context, svcCtx *svc.Serv
 	}
 }
 
-func (l *FrozenReceiptOrderTransactionLogic) FrozenReceiptOrderTransaction(req *transaction.FrozenReceiptOrderRequest) (*transaction.FrozenReceiptOrderResponse, error) {
+func (l *FrozenReceiptOrderTransactionLogic) FrozenReceiptOrderTransaction(req *transactionclient.FrozenReceiptOrderRequest) (*transactionclient.FrozenReceiptOrderResponse, error) {
 	var order types.Order
 
 	/****     交易開始      ****/
@@ -38,7 +36,7 @@ func (l *FrozenReceiptOrderTransactionLogic) FrozenReceiptOrderTransaction(req *
 	if err := txDB.Table("tx_orders").Where("order_no = ?", req.OrderNo).Find(&order).Error; err != nil {
 		txDB.Rollback()
 		return &transactionclient.FrozenReceiptOrderResponse{
-			Code: response.DATABASE_FAILURE,
+			Code:    response.DATABASE_FAILURE,
 			Message: "取得訂單失敗",
 		}, nil
 	}
@@ -47,7 +45,7 @@ func (l *FrozenReceiptOrderTransactionLogic) FrozenReceiptOrderTransaction(req *
 	if errCode := l.verify(order, req); errCode != "" {
 		txDB.Rollback()
 		return &transactionclient.FrozenReceiptOrderResponse{
-			Code: errCode,
+			Code:    errCode,
 			Message: "驗證失敗: " + errCode,
 		}, nil
 	}
@@ -69,7 +67,7 @@ func (l *FrozenReceiptOrderTransactionLogic) FrozenReceiptOrderTransaction(req *
 	}); err != nil {
 		txDB.Rollback()
 		return &transactionclient.FrozenReceiptOrderResponse{
-			Code: response.DATABASE_FAILURE,
+			Code:    response.DATABASE_FAILURE,
 			Message: "錢包異動失敗",
 		}, nil
 	}
@@ -80,12 +78,12 @@ func (l *FrozenReceiptOrderTransactionLogic) FrozenReceiptOrderTransaction(req *
 	order.Memo = req.Comment + " \n" + order.Memo
 
 	if err := txDB.Table("tx_orders").Updates(&types.OrderX{
-		Order: order,
+		Order:    order,
 		FrozenAt: types.JsonTime{}.New(),
 	}).Error; err != nil {
 		txDB.Rollback()
 		return &transactionclient.FrozenReceiptOrderResponse{
-			Code: response.DATABASE_FAILURE,
+			Code:    response.DATABASE_FAILURE,
 			Message: "編輯訂單失敗",
 		}, nil
 	}
@@ -100,7 +98,6 @@ func (l *FrozenReceiptOrderTransactionLogic) FrozenReceiptOrderTransaction(req *
 	}
 	/****     交易結束      ****/
 
-
 	// 新單新增訂單歷程 (不抱錯)
 	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
 		OrderAction: types.OrderAction{
@@ -113,8 +110,7 @@ func (l *FrozenReceiptOrderTransactionLogic) FrozenReceiptOrderTransaction(req *
 		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
 	}
 
-
-	return &transaction.FrozenReceiptOrderResponse{
+	return &transactionclient.FrozenReceiptOrderResponse{
 		Code:    response.API_SUCCESS,
 		Message: "操作成功",
 	}, nil
@@ -123,7 +119,7 @@ func (l *FrozenReceiptOrderTransactionLogic) FrozenReceiptOrderTransaction(req *
 func (l *FrozenReceiptOrderTransactionLogic) verify(order types.Order, req *transactionclient.FrozenReceiptOrderRequest) string {
 
 	// 收款單才能凍結
-	if order.Type != constants.ORDER_TYPE_ZF && order.Type != constants.ORDER_TYPE_NC  {
+	if order.Type != constants.ORDER_TYPE_ZF && order.Type != constants.ORDER_TYPE_NC {
 		return response.ORDER_STATUS_WRONG_CANNOT_FROZEN
 	}
 

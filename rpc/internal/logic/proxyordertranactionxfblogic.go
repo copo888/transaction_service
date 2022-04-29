@@ -70,6 +70,7 @@ func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(in *transactionc
 		CreatedBy:            req.MerchantId,
 		MerchantCode:         req.MerchantId,
 		IsLock:               constants.IS_LOCK_NO, //是否锁定状态 (0=否;1=是) 预设否,\
+		IsTest:               constants.IS_TEST_NO, //是否測試單
 		PersonProcessStatus:  constants.PERSON_PROCESS_STATUS_NO_ROCESSING,
 		IsCalculateProfit:    constants.IS_CALCULATE_PROFIT_NO,
 		RepaymentStatus:      constants.REPAYMENT_NOT,

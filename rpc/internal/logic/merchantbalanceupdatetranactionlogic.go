@@ -9,8 +9,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
-	"github.com/copo888/transaction_service/rpc/transaction"
-
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -28,7 +26,7 @@ func NewMerchantBalanceUpdateTranactionLogic(ctx context.Context, svcCtx *svc.Se
 	}
 }
 
-func (l *MerchantBalanceUpdateTranactionLogic) MerchantBalanceUpdateTranaction(req *transaction.MerchantBalanceUpdateRequest) (*transaction.MerchantBalanceUpdateResponse, error) {
+func (l *MerchantBalanceUpdateTranactionLogic) MerchantBalanceUpdateTranaction(req *transactionclient.MerchantBalanceUpdateRequest) (*transactionclient.MerchantBalanceUpdateResponse, error) {
 	updateBalance := types.UpdateBalance{
 		MerchantCode:    req.MerchantCode,
 		CurrencyCode:    req.CurrencyCode,
@@ -53,7 +51,7 @@ func (l *MerchantBalanceUpdateTranactionLogic) MerchantBalanceUpdateTranaction(r
 		}, err
 	}
 
-	return &transaction.MerchantBalanceUpdateResponse{
+	return &transactionclient.MerchantBalanceUpdateResponse{
 		Code:    response.API_SUCCESS,
 		Message: "操作成功",
 	}, nil

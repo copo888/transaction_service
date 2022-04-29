@@ -22,8 +22,11 @@ const (
 	IS_LOCK_NO  = "0" /*是否锁定状态: 否*/
 	IS_LOCK_YES = "1" /*是否锁定状态: 是*/
 
-	IS_MERCHANT_CALLBACK_YES = "1" /*是否已經回調商戶: 是*/
-	IS_MERCHANT_CALLBACK_NO  = "0" /*是否已經回調商戶: 否*/
+	IS_TEST_NO  = "0" /*是否锁定状态: 否*/
+	IS_TEST_YES = "1" /*是否锁定状态: 是*/
+
+	IS_MERCHANT_CALLBACK_YES      = "1" /*是否已經回調商戶: 是*/
+	IS_MERCHANT_CALLBACK_NO       = "0" /*是否已經回調商戶: 否*/
 	IS_MERCHANT_CALLBACK_NOT_NEED = "2" /*是否已經回調商戶: 不需*/
 
 	PERSON_PROCESS_STATUS_WAIT_PROCESS = "0"  /*人工处理状态: 待處理*/
@@ -34,7 +37,6 @@ const (
 
 	DF_BALANCE = "DFB"
 	XF_BALANCE = "XFB"
-
 
 	IS_CALCULATE_PROFIT_YES = "1" /*已記算傭金利潤: 是*/
 	IS_CALCULATE_PROFIT_NO  = "0" /*已記算傭金利潤: 否*/

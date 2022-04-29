@@ -858,6 +858,7 @@ type Order struct {
 	Status                  string  `json:"status"`          //訂單狀態(0:待處理 1:處理中 20:成功 30:失敗 31:凍結)
 	RepaymentStatus         string  `json:"repaymentDtatus"` //还款状态：(0：不需还款、1:待还款、2：还款成功、3：还款失败)
 	IsLock                  string  `json:"isLock"`
+	IsTest                  string  `json:"isTest"`
 	Memo                    string  `json:"memo"`
 	ErrorType               string  `json:"errorType, optional"`
 	ErrorNote               string  `json:"errorNote, optional"`
