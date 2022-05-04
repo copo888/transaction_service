@@ -7,9 +7,9 @@ option go_package = "./transaction";
 message MerchantBalanceUpdateRequest {
   string MerchantCode = 1;
   string CurrencyCode = 2;
-  string BalanceType  = 3;
-  string Comment      = 4;
-  double Amount       = 5;
+  string BalanceType = 3;
+  string Comment = 4;
+  double Amount = 5;
 }
 
 message MerchantBalanceUpdateResponse {
@@ -37,7 +37,7 @@ message ProxyOrderResponse {
 }
 
 message ProxyOrderTestRequest{
-  string ProxyOrderNo =1;
+  string ProxyOrderNo = 1;
 }
 
 message ProxyOrderTestResponse{
@@ -350,6 +350,26 @@ message PersonalRebundResponse {
   string orderNo = 1;
 }
 
+message RecalculateProfitRequest {
+  repeated CalculateProfit list = 1;
+}
+
+message CalculateProfit {
+  string MerchantCode = 1;
+  string OrderNo = 2;
+  string Type = 3;
+  string CurrencyCode = 4;
+  string BalanceType = 5;
+  string ChannelCode = 6;
+  string ChannelPayTypesCode = 7;
+  double OrderAmount = 8;
+}
+
+message RecalculateProfitResponse {
+  string Code = 1;
+  string Message = 2;
+}
+
 service Transaction {
 
   rpc MerchantBalanceUpdateTranaction(MerchantBalanceUpdateRequest) returns (MerchantBalanceUpdateResponse);
@@ -397,4 +417,6 @@ service Transaction {
   rpc PersonalRebundTransaction_DFB (PersonalRebundRequest) returns (PersonalRebundResponse);
 
   rpc PersonalRebundTransaction_XFB (PersonalRebundRequest) returns (PersonalRebundResponse);
+
+  rpc RecalculateProfitTransaction(RecalculateProfitRequest) returns (RecalculateProfitResponse);
 }

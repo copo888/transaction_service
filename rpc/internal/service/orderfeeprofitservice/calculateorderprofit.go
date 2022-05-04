@@ -16,13 +16,13 @@ func CalculateOrderProfit(db *gorm.DB, calculateProfit types.CalculateProfit) (e
 	return db.Transaction(func(db *gorm.DB) (err error) {
 		var orderFeeProfits []types.OrderFeeProfit
 		if err = calculateProfitLoop(db, &calculateProfit, &orderFeeProfits, true); err != nil {
-			logx.Errorf("計算利潤錯誤: %s ", err.Error())
+			logx.Errorf("計算利潤錯誤:%s, %#v", err.Error(), calculateProfit)
 			return err
 		}
 		logx.Infof("計算利潤: %#v ", orderFeeProfits)
 
 		if err = updateOrderByIsCalculateProfit(db, calculateProfit.OrderNo); err != nil {
-			logx.Errorf("計算利潤錯誤: %s ", err.Error())
+			logx.Errorf("計算利潤後修改訂單錯誤:%s, %#v", err.Error(), calculateProfit)
 			return err
 		}
 		return

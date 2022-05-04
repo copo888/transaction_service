@@ -13,6 +13,7 @@ import (
 )
 
 type (
+	CalculateProfit               = transaction.CalculateProfit
 	ChannelWithdraw               = transaction.ChannelWithdraw
 	ConfirmPayOrderRequest        = transaction.ConfirmPayOrderRequest
 	ConfirmPayOrderResponse       = transaction.ConfirmPayOrderResponse
@@ -46,6 +47,8 @@ type (
 	ProxyPayFailRequest           = transaction.ProxyPayFailRequest
 	ProxyPayFailResponse          = transaction.ProxyPayFailResponse
 	ProxyPayOrderRequest          = transaction.ProxyPayOrderRequest
+	RecalculateProfitRequest      = transaction.RecalculateProfitRequest
+	RecalculateProfitResponse     = transaction.RecalculateProfitResponse
 	RecoverReceiptOrderRequest    = transaction.RecoverReceiptOrderRequest
 	RecoverReceiptOrderResponse   = transaction.RecoverReceiptOrderResponse
 	UnFrozenReceiptOrderRequest   = transaction.UnFrozenReceiptOrderRequest
@@ -81,6 +84,7 @@ type (
 		UnFrozenReceiptOrderTransaction(ctx context.Context, in *UnFrozenReceiptOrderRequest, opts ...grpc.CallOption) (*UnFrozenReceiptOrderResponse, error)
 		PersonalRebundTransaction_DFB(ctx context.Context, in *PersonalRebundRequest, opts ...grpc.CallOption) (*PersonalRebundResponse, error)
 		PersonalRebundTransaction_XFB(ctx context.Context, in *PersonalRebundRequest, opts ...grpc.CallOption) (*PersonalRebundResponse, error)
+		RecalculateProfitTransaction(ctx context.Context, in *RecalculateProfitRequest, opts ...grpc.CallOption) (*RecalculateProfitResponse, error)
 	}
 
 	defaultTransaction struct {
@@ -207,4 +211,9 @@ func (m *defaultTransaction) PersonalRebundTransaction_DFB(ctx context.Context, 
 func (m *defaultTransaction) PersonalRebundTransaction_XFB(ctx context.Context, in *PersonalRebundRequest, opts ...grpc.CallOption) (*PersonalRebundResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.PersonalRebundTransaction_XFB(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) RecalculateProfitTransaction(ctx context.Context, in *RecalculateProfitRequest, opts ...grpc.CallOption) (*RecalculateProfitResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.RecalculateProfitTransaction(ctx, in, opts...)
 }
