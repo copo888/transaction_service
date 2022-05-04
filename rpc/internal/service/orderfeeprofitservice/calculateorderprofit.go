@@ -11,7 +11,36 @@ import (
 	"gorm.io/gorm"
 )
 
-// CalculateOrderProfit 計算利潤 (下發不可用) (回傳 商戶,代理,系統 費率利潤)
+// CalculateOrderProfitForSchedule 計算利潤 Schedule (ZF,DF 專用用) 補算時若tx_orders_fee_profit有值要刪除
+func CalculateOrderProfitForSchedule(db *gorm.DB, calculateProfit types.CalculateProfit) (err error) {
+	return db.Transaction(func(db *gorm.DB) (err error) {
+
+		var profitCount int64
+		if err = db.Table("tx_orders_fee_profit").Where("order_no = ?", calculateProfit.OrderNo).Count(&profitCount).Error; err != nil {
+			return errorz.New(response.DATABASE_FAILURE, err.Error())
+		}
+
+		if profitCount > 0 {
+			logx.Errorf("補算利潤單時,已有利潤資料 %d 筆,將刪除", profitCount)
+			db.Delete(&types.OrderFeeProfit{}, "order_no = ?", calculateProfit.OrderNo)
+		}
+
+		var orderFeeProfits []types.OrderFeeProfit
+		if err = calculateProfitLoop(db, &calculateProfit, &orderFeeProfits, true); err != nil {
+			logx.Errorf("計算利潤錯誤:%s, %#v", err.Error(), calculateProfit)
+			return err
+		}
+		logx.Infof("計算利潤: %#v ", orderFeeProfits)
+
+		if err = updateOrderByIsCalculateProfit(db, calculateProfit.OrderNo); err != nil {
+			logx.Errorf("計算利潤後修改訂單錯誤:%s, %#v", err.Error(), calculateProfit)
+			return err
+		}
+		return
+	})
+}
+
+// CalculateOrderProfit 計算利潤 (ZF,DF 專用用)
 func CalculateOrderProfit(db *gorm.DB, calculateProfit types.CalculateProfit) (err error) {
 	return db.Transaction(func(db *gorm.DB) (err error) {
 		var orderFeeProfits []types.OrderFeeProfit

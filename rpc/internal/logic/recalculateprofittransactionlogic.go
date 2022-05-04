@@ -32,13 +32,14 @@ func (l *RecalculateProfitTransactionLogic) RecalculateProfitTransaction(in *tra
 	for _, profit := range in.List {
 		var calculateProfit types.CalculateProfit
 		copier.Copy(&calculateProfit, &profit)
-		if err := orderfeeprofitservice.CalculateOrderProfit(l.svcCtx.MyDB, calculateProfit); err != nil {
+		l.svcCtx.MyDB.Table("tx_orders_fee_profit")
+		if err := orderfeeprofitservice.CalculateOrderProfitForSchedule(l.svcCtx.MyDB, calculateProfit); err != nil {
 			errNum += 1
 		} else {
 			okNum += 1
 		}
 	}
-	logx.Infof("補算利潤總筆數:%d, 成功數:%d, 失敗數:%d", len(in.List), okNum, errNum)
+	logx.Infof("(補算傭金利潤Transaction)總筆數:%d, 成功數:%d, 失敗數:%d", len(in.List), okNum, errNum)
 
 	return &transaction.RecalculateProfitResponse{
 		Code:    response.API_SUCCESS,

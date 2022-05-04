@@ -70,6 +70,11 @@ func (j JsonTime) New(ts ...time.Time) JsonTime {
 	return *jt
 }
 
+
+func (OrderFeeProfit) TableName() string {
+	return "tx_orders_fee_profit"
+}
+
 func (OrderChannels) TableName() string {
 	return "tx_order_channels"
 }
