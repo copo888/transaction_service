@@ -64,6 +64,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		Source:               in.Source,
 		PageUrl:              in.PageUrl,
 		NotifyUrl:            in.NotifyUrl,
+		Memo:                 in.Memo,
 	}
 	if len(in.MerchantOrderNo) > 0 {
 		txOrder.MerchantOrderNo = in.MerchantOrderNo
@@ -81,6 +82,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		BalanceType:     txOrder.BalanceType,
 		TransferAmount:  txOrder.TransferAmount,
 		CreatedBy:       in.UserAccount,
+		Comment:         txOrder.Memo,
 	}
 	if in.Source == constants.API {
 		isBlock, _ := model.NewBankBlockAccount(tx).CheckIsBlockAccount(txOrder.MerchantBankAccount)

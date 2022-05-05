@@ -10,8 +10,6 @@ import (
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
-	"github.com/copo888/transaction_service/rpc/transaction"
-
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -29,7 +27,7 @@ func NewPayOrderSwitchTestLogic(ctx context.Context, svcCtx *svc.ServiceContext)
 	}
 }
 
-func (l *PayOrderSwitchTestLogic) PayOrderSwitchTest(in *transaction.PayOrderSwitchTestRequest) (*transaction.PayOrderSwitchTestResponse, error) {
+func (l *PayOrderSwitchTestLogic) PayOrderSwitchTest(in *transactionclient.PayOrderSwitchTestRequest) (*transactionclient.PayOrderSwitchTestResponse, error) {
 	txOrder := &types.OrderX{}
 	var err error
 	var merchantBalanceRecord types.MerchantBalanceRecord
@@ -123,7 +121,7 @@ func (l *PayOrderSwitchTestLogic) PayOrderSwitchTest(in *transaction.PayOrderSwi
 	}
 
 
-	return &transaction.PayOrderSwitchTestResponse{
+	return &transactionclient.PayOrderSwitchTestResponse{
 		Code:    response.API_SUCCESS,
 		Message: "操作成功",
 	}, nil

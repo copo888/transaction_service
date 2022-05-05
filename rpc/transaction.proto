@@ -195,6 +195,7 @@ message WithdrawOrderRequest {
   string MerchantOrderNo = 14;
   string NotifyUrl = 15;
   string PageUrl = 16;
+  string Memo = 17;
 }
 message WithdrawOrderResponse {
   string OrderNo = 1;
