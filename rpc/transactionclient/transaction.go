@@ -68,6 +68,8 @@ type (
 		ProxyOrderTransactionFail_XFB(ctx context.Context, in *ProxyPayFailRequest, opts ...grpc.CallOption) (*ProxyPayFailResponse, error)
 		ProxyOrderToTest_DFB(ctx context.Context, in *ProxyOrderTestRequest, opts ...grpc.CallOption) (*ProxyOrderTestResponse, error)
 		ProxyOrderToTest_XFB(ctx context.Context, in *ProxyOrderTestRequest, opts ...grpc.CallOption) (*ProxyOrderTestResponse, error)
+		ProxyTestToNormal_DFB(ctx context.Context, in *ProxyOrderTestRequest, opts ...grpc.CallOption) (*ProxyOrderTestResponse, error)
+		ProxyTestToNormal_XFB(ctx context.Context, in *ProxyOrderTestRequest, opts ...grpc.CallOption) (*ProxyOrderTestResponse, error)
 		PayOrderTranaction(ctx context.Context, in *PayOrderRequest, opts ...grpc.CallOption) (*PayOrderResponse, error)
 		InternalOrderTransaction(ctx context.Context, in *InternalOrderRequest, opts ...grpc.CallOption) (*InternalOrderResponse, error)
 		WithdrawOrderTransaction(ctx context.Context, in *WithdrawOrderRequest, opts ...grpc.CallOption) (*WithdrawOrderResponse, error)
@@ -131,6 +133,16 @@ func (m *defaultTransaction) ProxyOrderToTest_DFB(ctx context.Context, in *Proxy
 func (m *defaultTransaction) ProxyOrderToTest_XFB(ctx context.Context, in *ProxyOrderTestRequest, opts ...grpc.CallOption) (*ProxyOrderTestResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.ProxyOrderToTest_XFB(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) ProxyTestToNormal_DFB(ctx context.Context, in *ProxyOrderTestRequest, opts ...grpc.CallOption) (*ProxyOrderTestResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.ProxyTestToNormal_DFB(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) ProxyTestToNormal_XFB(ctx context.Context, in *ProxyOrderTestRequest, opts ...grpc.CallOption) (*ProxyOrderTestResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.ProxyTestToNormal_XFB(ctx, in, opts...)
 }
 
 func (m *defaultTransaction) PayOrderTranaction(ctx context.Context, in *PayOrderRequest, opts ...grpc.CallOption) (*PayOrderResponse, error) {
