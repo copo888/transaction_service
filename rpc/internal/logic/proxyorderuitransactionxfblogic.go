@@ -49,6 +49,7 @@ func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(in *transa
 		IsCalculateProfit:    constants.IS_CALCULATE_PROFIT_NO,
 		PersonProcessStatus:  constants.PERSON_PROCESS_STATUS_NO_ROCESSING,
 		RepaymentStatus:      constants.REPAYMENT_NOT,
+		IsTest:               constants.IS_TEST_NO, //是否測試單
 		MerchantBankAccount:  req.MerchantBankAccount,
 		MerchantBankNo:       req.MerchantBankNo,
 		MerchantBankName:     req.MerchantBankName,

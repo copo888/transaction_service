@@ -48,6 +48,7 @@ func (l *InternalOrderTransactionLogic) InternalOrderTransaction(in *transaction
 		Source:              constants.UI,
 		IsMerchantCallback:  constants.IS_MERCHANT_CALLBACK_NOT_NEED,
 		IsCalculateProfit:   constants.IS_CALCULATE_PROFIT_NO,
+		IsTest:               constants.IS_TEST_NO, //是否測試單
 		PersonProcessStatus: constants.PERSON_PROCESS_STATUS_NO_ROCESSING,
 		InternalChargeOrderPath: internalOrderReq.Imgurl,
 		BalanceType: "DFB",

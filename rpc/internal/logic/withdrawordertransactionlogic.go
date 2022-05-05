@@ -46,6 +46,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		IsMerchantCallback:   constants.IS_MERCHANT_CALLBACK_NOT_NEED,
 		IsLock:               constants.IS_LOCK_NO,
 		IsCalculateProfit:    constants.IS_CALCULATE_PROFIT_NO,
+		IsTest:               constants.IS_TEST_NO, //是否測試單
 		PersonProcessStatus:  constants.PERSON_PROCESS_STATUS_NO_ROCESSING,
 		CreatedBy:            in.UserAccount,
 		UpdatedBy:            in.UserAccount,
