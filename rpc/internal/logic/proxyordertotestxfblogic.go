@@ -57,6 +57,7 @@ func (l *ProxyOrderToTestXFBLogic) ProxyOrderToTest_XFB(in *transactionclient.Pr
 			TransferAmount:  txOrder.TransferAmount,
 			TransactionType: "4", //異動類型 (1=收款 ; 2=解凍;  3=沖正 4=還款;  5=補單; 11=出款 ; 12=凍結 ; 13=追回; 20=調整)
 			BalanceType:     constants.XF_BALANCE,
+			Comment:         "代付轉測試單",
 			CreatedBy:       txOrder.MerchantCode,
 		}
 
