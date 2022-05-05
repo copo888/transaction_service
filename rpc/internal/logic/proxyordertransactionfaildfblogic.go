@@ -60,7 +60,7 @@ func (l *ProxyOrderTransactionFailDFBLogic) ProxyOrderTransactionFail_DFB(in *tr
 	//调整异动钱包，并更新订单
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
-		if merchantBalanceRecord, err = merchantbalanceservice.UpdateDFBalance_Deposit(db, *updateBalance); err != nil {
+		if merchantBalanceRecord, err = merchantbalanceservice.UpdateDFBalance_Deposit(db, updateBalance); err != nil {
 			txOrder.RepaymentStatus = constants.REPAYMENT_FAIL
 			logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
 			return

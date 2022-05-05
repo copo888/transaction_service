@@ -15,21 +15,21 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-type ProxyOrderToTestDFBLogic struct {
+type ProxyTestToNormalXFBLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 	logx.Logger
 }
 
-func NewProxyOrderToTestDFBLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ProxyOrderToTestDFBLogic {
-	return &ProxyOrderToTestDFBLogic{
+func NewProxyTestToNormalXFBLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ProxyTestToNormalXFBLogic {
+	return &ProxyTestToNormalXFBLogic{
 		ctx:    ctx,
 		svcCtx: svcCtx,
 		Logger: logx.WithContext(ctx),
 	}
 }
 
-func (l *ProxyOrderToTestDFBLogic) ProxyOrderToTest_DFB(in *transactionclient.ProxyOrderTestRequest) (*transactionclient.ProxyOrderTestResponse, error) {
+func (l *ProxyTestToNormalXFBLogic) ProxyTestToNormal_XFB(in *transactionclient.ProxyOrderTestRequest) (*transactionclient.ProxyOrderTestResponse, error) {
 	txOrder := &types.OrderX{}
 	var err error
 	if txOrder, err = model.QueryOrderByOrderNo(l.svcCtx.MyDB, in.ProxyOrderNo, ""); err != nil {
@@ -38,8 +38,8 @@ func (l *ProxyOrderToTestDFBLogic) ProxyOrderToTest_DFB(in *transactionclient.Pr
 		return nil, errorz.New(response.ORDER_NUMBER_NOT_EXIST)
 	}
 
-	//如果月結傭金"已結算/確認報表無誤按鈕" : 不扣款
-	txOrder.IsTest = "1"
+	//改非測試單
+	txOrder.IsTest = "0"
 
 	l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
@@ -55,16 +55,16 @@ func (l *ProxyOrderToTestDFBLogic) ProxyOrderToTest_DFB(in *transactionclient.Pr
 			PayTypeCode:     txOrder.PayTypeCode,
 			PayTypeCodeNum:  txOrder.PayTypeCodeNum,
 			TransferAmount:  txOrder.TransferAmount,
-			TransactionType: constants.TRANSACTION_TYPE_REFUND, //異動類型 (1=收款 ; 2=解凍;  3=沖正 4=還款;  5=補單; 11=出款 ; 12=凍結 ; 13=追回; 20=調整)
-			BalanceType:     constants.DF_BALANCE,
+			TransactionType: constants.TRANSACTION_TYPE_PAYMENT, //異動類型 (1=收款 ; 2=解凍;  3=沖正 4=還款;  5=補單; 11=出款 ; 12=凍結 ; 13=追回; 20=調整)
+			BalanceType:     constants.XF_BALANCE,
 			CreatedBy:       txOrder.MerchantCode,
 		}
 
-		if merchantBalanceRecord, err = merchantbalanceservice.UpdateDFBalance_Deposit(db, updateBalance); err != nil {
+		if merchantBalanceRecord, err = merchantbalanceservice.UpdateXFBalance_Debit(db, updateBalance); err != nil {
 			logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
 			return errorz.New(response.SYSTEM_ERROR, err.Error())
 		} else {
-			logx.Infof("代付API提单 %s，錢包還款成功", merchantBalanceRecord.OrderNo)
+			logx.Infof("代付API提单 %s，錢包出款成功", merchantBalanceRecord.OrderNo)
 			txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance // 商戶錢包異動紀錄
 			txOrder.Balance = merchantBalanceRecord.AfterBalance
 		}

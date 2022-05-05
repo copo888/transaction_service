@@ -386,6 +386,10 @@ service Transaction {
 
   rpc ProxyOrderToTest_XFB(ProxyOrderTestRequest) returns (ProxyOrderTestResponse);
 
+  rpc ProxyTestToNormal_DFB(ProxyOrderTestRequest) returns (ProxyOrderTestResponse);
+
+  rpc ProxyTestToNormal_XFB(ProxyOrderTestRequest) returns (ProxyOrderTestResponse);
+
   rpc PayOrderTranaction(PayOrderRequest) returns (PayOrderResponse);
 
   rpc InternalOrderTransaction(InternalOrderRequest) returns (InternalOrderResponse);

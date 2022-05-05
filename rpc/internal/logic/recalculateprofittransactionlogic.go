@@ -6,7 +6,7 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
-	"github.com/copo888/transaction_service/rpc/transaction"
+	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"github.com/jinzhu/copier"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -26,7 +26,7 @@ func NewRecalculateProfitTransactionLogic(ctx context.Context, svcCtx *svc.Servi
 	}
 }
 
-func (l *RecalculateProfitTransactionLogic) RecalculateProfitTransaction(in *transaction.RecalculateProfitRequest) (*transaction.RecalculateProfitResponse, error) {
+func (l *RecalculateProfitTransactionLogic) RecalculateProfitTransaction(in *transactionclient.RecalculateProfitRequest) (*transactionclient.RecalculateProfitResponse, error) {
 	errNum := 0
 	okNum := 0
 	for _, profit := range in.List {
@@ -41,7 +41,7 @@ func (l *RecalculateProfitTransactionLogic) RecalculateProfitTransaction(in *tra
 	}
 	logx.Infof("(補算傭金利潤Transaction)總筆數:%d, 成功數:%d, 失敗數:%d", len(in.List), okNum, errNum)
 
-	return &transaction.RecalculateProfitResponse{
+	return &transactionclient.RecalculateProfitResponse{
 		Code:    response.API_SUCCESS,
 		Message: "操作成功",
 	}, nil

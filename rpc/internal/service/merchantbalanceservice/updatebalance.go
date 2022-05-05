@@ -199,7 +199,7 @@ func UpdateXFBalance_Deposit(db *gorm.DB, updateBalance types.UpdateBalance) (me
 	更新代付余额_代付余额(代付失败退回)
 
 */
-func UpdateDFBalance_Deposit(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
+func UpdateDFBalance_Deposit(db *gorm.DB, updateBalance *types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 	var beforeBalance float64
 	var afterBalance float64
 
@@ -254,8 +254,6 @@ func UpdateDFBalance_Deposit(db *gorm.DB, updateBalance types.UpdateBalance) (me
 	return
 
 }
-
-
 
 /*
 	UpdateBalanceForZF 支付異動錢包
