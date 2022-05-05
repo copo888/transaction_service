@@ -36,6 +36,15 @@ message ProxyOrderResponse {
   string ProxyOrderNo = 1;
 }
 
+message PayOrderSwitchTestRequest {
+  string OrderNo = 1;
+}
+
+message PayOrderSwitchTestResponse {
+  string Code = 1;
+  string Message = 2;
+}
+
 message ProxyOrderTestRequest{
   string ProxyOrderNo = 1;
 }
@@ -381,6 +390,8 @@ service Transaction {
   rpc ProxyOrderTransactionFail_DFB(ProxyPayFailRequest) returns (ProxyPayFailResponse);
 
   rpc ProxyOrderTransactionFail_XFB(ProxyPayFailRequest) returns (ProxyPayFailResponse);
+
+  rpc PayOrderSwitchTest(PayOrderSwitchTestRequest) returns (PayOrderSwitchTestResponse);
 
   rpc ProxyOrderToTest_DFB(ProxyOrderTestRequest) returns (ProxyOrderTestResponse);
 

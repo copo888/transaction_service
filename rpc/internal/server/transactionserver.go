@@ -8,7 +8,6 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/logic"
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/transaction"
-	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
@@ -33,132 +32,137 @@ func (s *TransactionServer) Watch(req *grpc_health_v1.HealthCheckRequest, w grpc
 	return nil
 }
 
-func (s *TransactionServer) MerchantBalanceUpdateTranaction(ctx context.Context, in *transactionclient.MerchantBalanceUpdateRequest) (*transactionclient.MerchantBalanceUpdateResponse, error) {
+func (s *TransactionServer) MerchantBalanceUpdateTranaction(ctx context.Context, in *transaction.MerchantBalanceUpdateRequest) (*transaction.MerchantBalanceUpdateResponse, error) {
 	l := logic.NewMerchantBalanceUpdateTranactionLogic(ctx, s.svcCtx)
 	return l.MerchantBalanceUpdateTranaction(in)
 }
 
-func (s *TransactionServer) ProxyOrderTranaction_DFB(ctx context.Context, in *transactionclient.ProxyOrderRequest) (*transactionclient.ProxyOrderResponse, error) {
+func (s *TransactionServer) ProxyOrderTranaction_DFB(ctx context.Context, in *transaction.ProxyOrderRequest) (*transaction.ProxyOrderResponse, error) {
 	l := logic.NewProxyOrderTranactionDFBLogic(ctx, s.svcCtx)
 	return l.ProxyOrderTranaction_DFB(in)
 }
 
-func (s *TransactionServer) ProxyOrderTranaction_XFB(ctx context.Context, in *transactionclient.ProxyOrderRequest) (*transactionclient.ProxyOrderResponse, error) {
+func (s *TransactionServer) ProxyOrderTranaction_XFB(ctx context.Context, in *transaction.ProxyOrderRequest) (*transaction.ProxyOrderResponse, error) {
 	l := logic.NewProxyOrderTranactionXFBLogic(ctx, s.svcCtx)
 	return l.ProxyOrderTranaction_XFB(in)
 }
 
-func (s *TransactionServer) ProxyOrderTransactionFail_DFB(ctx context.Context, in *transactionclient.ProxyPayFailRequest) (*transactionclient.ProxyPayFailResponse, error) {
+func (s *TransactionServer) ProxyOrderTransactionFail_DFB(ctx context.Context, in *transaction.ProxyPayFailRequest) (*transaction.ProxyPayFailResponse, error) {
 	l := logic.NewProxyOrderTransactionFailDFBLogic(ctx, s.svcCtx)
 	return l.ProxyOrderTransactionFail_DFB(in)
 }
 
-func (s *TransactionServer) ProxyOrderTransactionFail_XFB(ctx context.Context, in *transactionclient.ProxyPayFailRequest) (*transactionclient.ProxyPayFailResponse, error) {
+func (s *TransactionServer) ProxyOrderTransactionFail_XFB(ctx context.Context, in *transaction.ProxyPayFailRequest) (*transaction.ProxyPayFailResponse, error) {
 	l := logic.NewProxyOrderTransactionFailXFBLogic(ctx, s.svcCtx)
 	return l.ProxyOrderTransactionFail_XFB(in)
 }
 
-func (s *TransactionServer) ProxyOrderToTest_DFB(ctx context.Context, in *transactionclient.ProxyOrderTestRequest) (*transactionclient.ProxyOrderTestResponse, error) {
+func (s *TransactionServer) PayOrderSwitchTest(ctx context.Context, in *transaction.PayOrderSwitchTestRequest) (*transaction.PayOrderSwitchTestResponse, error) {
+	l := logic.NewPayOrderSwitchTestLogic(ctx, s.svcCtx)
+	return l.PayOrderSwitchTest(in)
+}
+
+func (s *TransactionServer) ProxyOrderToTest_DFB(ctx context.Context, in *transaction.ProxyOrderTestRequest) (*transaction.ProxyOrderTestResponse, error) {
 	l := logic.NewProxyOrderToTestDFBLogic(ctx, s.svcCtx)
 	return l.ProxyOrderToTest_DFB(in)
 }
 
-func (s *TransactionServer) ProxyOrderToTest_XFB(ctx context.Context, in *transactionclient.ProxyOrderTestRequest) (*transactionclient.ProxyOrderTestResponse, error) {
+func (s *TransactionServer) ProxyOrderToTest_XFB(ctx context.Context, in *transaction.ProxyOrderTestRequest) (*transaction.ProxyOrderTestResponse, error) {
 	l := logic.NewProxyOrderToTestXFBLogic(ctx, s.svcCtx)
 	return l.ProxyOrderToTest_XFB(in)
 }
 
-func (s *TransactionServer) ProxyTestToNormal_DFB(ctx context.Context, in *transactionclient.ProxyOrderTestRequest) (*transactionclient.ProxyOrderTestResponse, error) {
+func (s *TransactionServer) ProxyTestToNormal_DFB(ctx context.Context, in *transaction.ProxyOrderTestRequest) (*transaction.ProxyOrderTestResponse, error) {
 	l := logic.NewProxyTestToNormalDFBLogic(ctx, s.svcCtx)
 	return l.ProxyTestToNormal_DFB(in)
 }
 
-func (s *TransactionServer) ProxyTestToNormal_XFB(ctx context.Context, in *transactionclient.ProxyOrderTestRequest) (*transactionclient.ProxyOrderTestResponse, error) {
+func (s *TransactionServer) ProxyTestToNormal_XFB(ctx context.Context, in *transaction.ProxyOrderTestRequest) (*transaction.ProxyOrderTestResponse, error) {
 	l := logic.NewProxyTestToNormalXFBLogic(ctx, s.svcCtx)
 	return l.ProxyTestToNormal_XFB(in)
 }
 
-func (s *TransactionServer) PayOrderTranaction(ctx context.Context, in *transactionclient.PayOrderRequest) (*transactionclient.PayOrderResponse, error) {
+func (s *TransactionServer) PayOrderTranaction(ctx context.Context, in *transaction.PayOrderRequest) (*transaction.PayOrderResponse, error) {
 	l := logic.NewPayOrderTranactionLogic(ctx, s.svcCtx)
 	return l.PayOrderTranaction(in)
 }
 
-func (s *TransactionServer) InternalOrderTransaction(ctx context.Context, in *transactionclient.InternalOrderRequest) (*transactionclient.InternalOrderResponse, error) {
+func (s *TransactionServer) InternalOrderTransaction(ctx context.Context, in *transaction.InternalOrderRequest) (*transaction.InternalOrderResponse, error) {
 	l := logic.NewInternalOrderTransactionLogic(ctx, s.svcCtx)
 	return l.InternalOrderTransaction(in)
 }
 
-func (s *TransactionServer) WithdrawOrderTransaction(ctx context.Context, in *transactionclient.WithdrawOrderRequest) (*transactionclient.WithdrawOrderResponse, error) {
+func (s *TransactionServer) WithdrawOrderTransaction(ctx context.Context, in *transaction.WithdrawOrderRequest) (*transaction.WithdrawOrderResponse, error) {
 	l := logic.NewWithdrawOrderTransactionLogic(ctx, s.svcCtx)
 	return l.WithdrawOrderTransaction(in)
 }
 
-func (s *TransactionServer) PayCallBackTranaction(ctx context.Context, in *transactionclient.PayCallBackRequest) (*transactionclient.PayCallBackResponse, error) {
+func (s *TransactionServer) PayCallBackTranaction(ctx context.Context, in *transaction.PayCallBackRequest) (*transaction.PayCallBackResponse, error) {
 	l := logic.NewPayCallBackTranactionLogic(ctx, s.svcCtx)
 	return l.PayCallBackTranaction(in)
 }
 
-func (s *TransactionServer) InternalReviewSuccessTransaction(ctx context.Context, in *transactionclient.InternalReviewSuccessRequest) (*transactionclient.InternalReviewSuccessResponse, error) {
+func (s *TransactionServer) InternalReviewSuccessTransaction(ctx context.Context, in *transaction.InternalReviewSuccessRequest) (*transaction.InternalReviewSuccessResponse, error) {
 	l := logic.NewInternalReviewSuccessTransactionLogic(ctx, s.svcCtx)
 	return l.InternalReviewSuccessTransaction(in)
 }
 
-func (s *TransactionServer) WithdrawReviewFailTransaction(ctx context.Context, in *transactionclient.WithdrawReviewFailRequest) (*transactionclient.WithdrawReviewFailResponse, error) {
+func (s *TransactionServer) WithdrawReviewFailTransaction(ctx context.Context, in *transaction.WithdrawReviewFailRequest) (*transaction.WithdrawReviewFailResponse, error) {
 	l := logic.NewWithdrawReviewFailTransactionLogic(ctx, s.svcCtx)
 	return l.WithdrawReviewFailTransaction(in)
 }
 
-func (s *TransactionServer) WithdrawReviewSuccessTransaction(ctx context.Context, in *transactionclient.WithdrawReviewSuccessRequest) (*transactionclient.WithdrawReviewSuccessResponse, error) {
+func (s *TransactionServer) WithdrawReviewSuccessTransaction(ctx context.Context, in *transaction.WithdrawReviewSuccessRequest) (*transaction.WithdrawReviewSuccessResponse, error) {
 	l := logic.NewWithdrawReviewSuccessTransactionLogic(ctx, s.svcCtx)
 	return l.WithdrawReviewSuccessTransaction(in)
 }
 
-func (s *TransactionServer) ProxyOrderUITransaction_DFB(ctx context.Context, in *transactionclient.ProxyOrderUIRequest) (*transactionclient.ProxyOrderUIResponse, error) {
+func (s *TransactionServer) ProxyOrderUITransaction_DFB(ctx context.Context, in *transaction.ProxyOrderUIRequest) (*transaction.ProxyOrderUIResponse, error) {
 	l := logic.NewProxyOrderUITransactionDFBLogic(ctx, s.svcCtx)
 	return l.ProxyOrderUITransaction_DFB(in)
 }
 
-func (s *TransactionServer) ProxyOrderUITransaction_XFB(ctx context.Context, in *transactionclient.ProxyOrderUIRequest) (*transactionclient.ProxyOrderUIResponse, error) {
+func (s *TransactionServer) ProxyOrderUITransaction_XFB(ctx context.Context, in *transaction.ProxyOrderUIRequest) (*transaction.ProxyOrderUIResponse, error) {
 	l := logic.NewProxyOrderUITransactionXFBLogic(ctx, s.svcCtx)
 	return l.ProxyOrderUITransaction_XFB(in)
 }
 
-func (s *TransactionServer) MakeUpReceiptOrderTransaction(ctx context.Context, in *transactionclient.MakeUpReceiptOrderRequest) (*transactionclient.MakeUpReceiptOrderResponse, error) {
+func (s *TransactionServer) MakeUpReceiptOrderTransaction(ctx context.Context, in *transaction.MakeUpReceiptOrderRequest) (*transaction.MakeUpReceiptOrderResponse, error) {
 	l := logic.NewMakeUpReceiptOrderTransactionLogic(ctx, s.svcCtx)
 	return l.MakeUpReceiptOrderTransaction(in)
 }
 
-func (s *TransactionServer) ConfirmPayOrderTransaction(ctx context.Context, in *transactionclient.ConfirmPayOrderRequest) (*transactionclient.ConfirmPayOrderResponse, error) {
+func (s *TransactionServer) ConfirmPayOrderTransaction(ctx context.Context, in *transaction.ConfirmPayOrderRequest) (*transaction.ConfirmPayOrderResponse, error) {
 	l := logic.NewConfirmPayOrderTransactionLogic(ctx, s.svcCtx)
 	return l.ConfirmPayOrderTransaction(in)
 }
 
-func (s *TransactionServer) RecoverReceiptOrderTransaction(ctx context.Context, in *transactionclient.RecoverReceiptOrderRequest) (*transactionclient.RecoverReceiptOrderResponse, error) {
+func (s *TransactionServer) RecoverReceiptOrderTransaction(ctx context.Context, in *transaction.RecoverReceiptOrderRequest) (*transaction.RecoverReceiptOrderResponse, error) {
 	l := logic.NewRecoverReceiptOrderTransactionLogic(ctx, s.svcCtx)
 	return l.RecoverReceiptOrderTransaction(in)
 }
 
-func (s *TransactionServer) FrozenReceiptOrderTransaction(ctx context.Context, in *transactionclient.FrozenReceiptOrderRequest) (*transactionclient.FrozenReceiptOrderResponse, error) {
+func (s *TransactionServer) FrozenReceiptOrderTransaction(ctx context.Context, in *transaction.FrozenReceiptOrderRequest) (*transaction.FrozenReceiptOrderResponse, error) {
 	l := logic.NewFrozenReceiptOrderTransactionLogic(ctx, s.svcCtx)
 	return l.FrozenReceiptOrderTransaction(in)
 }
 
-func (s *TransactionServer) UnFrozenReceiptOrderTransaction(ctx context.Context, in *transactionclient.UnFrozenReceiptOrderRequest) (*transactionclient.UnFrozenReceiptOrderResponse, error) {
+func (s *TransactionServer) UnFrozenReceiptOrderTransaction(ctx context.Context, in *transaction.UnFrozenReceiptOrderRequest) (*transaction.UnFrozenReceiptOrderResponse, error) {
 	l := logic.NewUnFrozenReceiptOrderTransactionLogic(ctx, s.svcCtx)
 	return l.UnFrozenReceiptOrderTransaction(in)
 }
 
-func (s *TransactionServer) PersonalRebundTransaction_DFB(ctx context.Context, in *transactionclient.PersonalRebundRequest) (*transactionclient.PersonalRebundResponse, error) {
+func (s *TransactionServer) PersonalRebundTransaction_DFB(ctx context.Context, in *transaction.PersonalRebundRequest) (*transaction.PersonalRebundResponse, error) {
 	l := logic.NewPersonalRebundTransactionDFBLogic(ctx, s.svcCtx)
 	return l.PersonalRebundTransaction_DFB(in)
 }
 
-func (s *TransactionServer) PersonalRebundTransaction_XFB(ctx context.Context, in *transactionclient.PersonalRebundRequest) (*transactionclient.PersonalRebundResponse, error) {
+func (s *TransactionServer) PersonalRebundTransaction_XFB(ctx context.Context, in *transaction.PersonalRebundRequest) (*transaction.PersonalRebundResponse, error) {
 	l := logic.NewPersonalRebundTransactionXFBLogic(ctx, s.svcCtx)
 	return l.PersonalRebundTransaction_XFB(in)
 }
 
-func (s *TransactionServer) RecalculateProfitTransaction(ctx context.Context, in *transactionclient.RecalculateProfitRequest) (*transactionclient.RecalculateProfitResponse, error) {
+func (s *TransactionServer) RecalculateProfitTransaction(ctx context.Context, in *transaction.RecalculateProfitRequest) (*transaction.RecalculateProfitResponse, error) {
 	l := logic.NewRecalculateProfitTransactionLogic(ctx, s.svcCtx)
 	return l.RecalculateProfitTransaction(in)
 }

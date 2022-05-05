@@ -53,5 +53,6 @@ const (
 	ACTION_REVIEW_SUCCESS     = "REVIEW_SUCCESS"    //审核成功
 	ACTION_SUCCESS            = "SUCCESS"           //成功
 	ACTION_DF_REFUND          = "DF_REFUND"         //代付还款
-
+	ACTION_TRANSFER_TEST      = "TRANSFER_TEST"     //轉測試單
+	ACTION_TRANSFER_NORMAL    = "TRANSFER_NORMAL"   //轉正式單
 )

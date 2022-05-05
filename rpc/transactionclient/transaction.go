@@ -35,6 +35,8 @@ type (
 	PayOrder                      = transaction.PayOrder
 	PayOrderRequest               = transaction.PayOrderRequest
 	PayOrderResponse              = transaction.PayOrderResponse
+	PayOrderSwitchTestRequest     = transaction.PayOrderSwitchTestRequest
+	PayOrderSwitchTestResponse    = transaction.PayOrderSwitchTestResponse
 	PersonalRebundRequest         = transaction.PersonalRebundRequest
 	PersonalRebundResponse        = transaction.PersonalRebundResponse
 	ProxyOrderRequest             = transaction.ProxyOrderRequest
@@ -66,6 +68,7 @@ type (
 		ProxyOrderTranaction_XFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error)
 		ProxyOrderTransactionFail_DFB(ctx context.Context, in *ProxyPayFailRequest, opts ...grpc.CallOption) (*ProxyPayFailResponse, error)
 		ProxyOrderTransactionFail_XFB(ctx context.Context, in *ProxyPayFailRequest, opts ...grpc.CallOption) (*ProxyPayFailResponse, error)
+		PayOrderSwitchTest(ctx context.Context, in *PayOrderSwitchTestRequest, opts ...grpc.CallOption) (*PayOrderSwitchTestResponse, error)
 		ProxyOrderToTest_DFB(ctx context.Context, in *ProxyOrderTestRequest, opts ...grpc.CallOption) (*ProxyOrderTestResponse, error)
 		ProxyOrderToTest_XFB(ctx context.Context, in *ProxyOrderTestRequest, opts ...grpc.CallOption) (*ProxyOrderTestResponse, error)
 		ProxyTestToNormal_DFB(ctx context.Context, in *ProxyOrderTestRequest, opts ...grpc.CallOption) (*ProxyOrderTestResponse, error)
@@ -123,6 +126,11 @@ func (m *defaultTransaction) ProxyOrderTransactionFail_DFB(ctx context.Context, 
 func (m *defaultTransaction) ProxyOrderTransactionFail_XFB(ctx context.Context, in *ProxyPayFailRequest, opts ...grpc.CallOption) (*ProxyPayFailResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.ProxyOrderTransactionFail_XFB(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) PayOrderSwitchTest(ctx context.Context, in *PayOrderSwitchTestRequest, opts ...grpc.CallOption) (*PayOrderSwitchTestResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.PayOrderSwitchTest(ctx, in, opts...)
 }
 
 func (m *defaultTransaction) ProxyOrderToTest_DFB(ctx context.Context, in *ProxyOrderTestRequest, opts ...grpc.CallOption) (*ProxyOrderTestResponse, error) {
