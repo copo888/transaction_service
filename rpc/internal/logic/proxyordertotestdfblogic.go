@@ -80,5 +80,17 @@ func (l *ProxyOrderToTestDFBLogic) ProxyOrderToTest_DFB(in *transactionclient.Pr
 		return nil
 	})
 
+	// 新單新增訂單歷程 (不抱錯) TODO: 異步??
+	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
+		OrderAction: types.OrderAction{
+			OrderNo:     txOrder.OrderNo,
+			Action:      "TRANSFER_TEST",
+			UserAccount: txOrder.MerchantCode,
+			Comment:     "",
+		},
+	}).Error; err4 != nil {
+		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
+	}
+
 	return &transactionclient.ProxyOrderTestResponse{}, nil
 }
