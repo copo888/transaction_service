@@ -80,5 +80,17 @@ func (l *ProxyTestToNormalXFBLogic) ProxyTestToNormal_XFB(in *transactionclient.
 		return nil
 	})
 
+	// 更新訂單訂單歷程 (不抱錯)
+	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
+		OrderAction: types.OrderAction{
+			OrderNo:     txOrder.OrderNo,
+			Action:      "TRANSFER_NORMAL",
+			UserAccount: txOrder.MerchantCode,
+			Comment:     "",
+		},
+	}).Error; err4 != nil {
+		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
+	}
+
 	return &transactionclient.ProxyOrderTestResponse{}, nil
 }
