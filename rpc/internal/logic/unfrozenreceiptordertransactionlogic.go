@@ -55,6 +55,7 @@ func (l *UnFrozenReceiptOrderTransactionLogic) UnFrozenReceiptOrderTransaction(r
 		MerchantCode:    order.MerchantCode,
 		CurrencyCode:    order.CurrencyCode,
 		OrderNo:         order.OrderNo,
+		MerchantOrderNo: order.MerchantOrderNo,
 		OrderType:       order.Type,
 		ChannelCode:     order.ChannelCode,
 		PayTypeCode:     order.PayTypeCode,

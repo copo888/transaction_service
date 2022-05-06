@@ -46,6 +46,7 @@ func UpdateFrozenAmount(db *gorm.DB, updateFrozenAmount types.UpdateFrozenAmount
 		MerchantCode:      merchantBalance.MerchantCode,
 		CurrencyCode:      merchantBalance.CurrencyCode,
 		OrderNo:           updateFrozenAmount.OrderNo,
+		MerchantOrderNo:   updateFrozenAmount.MerchantOrderNo,
 		OrderType:         updateFrozenAmount.OrderType,
 		ChannelCode:       updateFrozenAmount.ChannelCode,
 		PayTypeCode:       updateFrozenAmount.PayTypeCode,
