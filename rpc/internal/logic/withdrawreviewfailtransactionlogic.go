@@ -133,7 +133,6 @@ func (l WithdrawReviewFailTransactionLogic) UpdateBalance(db *gorm.DB, updateBal
 		OrderType:         updateBalance.OrderType,
 		ChannelCode:       updateBalance.ChannelCode,
 		PayTypeCode:       updateBalance.PayTypeCode,
-		PayTypeCodeNum:    updateBalance.PayTypeCodeNum,
 		TransactionType:   updateBalance.TransactionType,
 		BalanceType:       updateBalance.BalanceType,
 		BeforeBalance:     beforeBalance,
