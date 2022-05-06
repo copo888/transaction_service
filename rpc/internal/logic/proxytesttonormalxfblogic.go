@@ -58,6 +58,7 @@ func (l *ProxyTestToNormalXFBLogic) ProxyTestToNormal_XFB(in *transactionclient.
 			BalanceType:     constants.XF_BALANCE,
 			Comment:         "代付轉正式單",
 			CreatedBy:       txOrder.MerchantCode,
+			ChannelCode:     txOrder.ChannelCode,
 		}
 
 		if merchantBalanceRecord, err = merchantbalanceservice.UpdateXFBalance_Debit(db, updateBalance); err != nil {

@@ -77,6 +77,7 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 		TransactionType: "11", //異動類型 (1=收款; 2=解凍; 3=沖正; 11=出款 ; 12=凍結)
 		BalanceType:     constants.DF_BALANCE,
 		CreatedBy:       txOrder.MerchantCode,
+		ChannelCode:     txOrder.ChannelCode,
 	}
 
 	//交易金额 = 订单金额 + 商户手续费

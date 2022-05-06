@@ -54,6 +54,7 @@ func (l *ProxyOrderTransactionFailDFBLogic) ProxyOrderTransactionFail_DFB(in *tr
 		TransactionType: "4", //異動類型 (1=收款; 2=解凍; 3=沖正;4=出款退回,11=出款 ; 12=凍結)
 		BalanceType:     constants.DF_BALANCE,
 		CreatedBy:       txOrder.MerchantCode,
+		ChannelCode:     txOrder.ChannelCode,
 	}
 
 	//调整异动钱包，并更新订单

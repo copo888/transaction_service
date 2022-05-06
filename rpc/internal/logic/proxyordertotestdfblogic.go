@@ -58,6 +58,7 @@ func (l *ProxyOrderToTestDFBLogic) ProxyOrderToTest_DFB(in *transactionclient.Pr
 			BalanceType:     constants.DF_BALANCE,
 			Comment:         "代付轉測試單",
 			CreatedBy:       txOrder.MerchantCode,
+			ChannelCode:     txOrder.ChannelCode,
 		}
 
 		if merchantBalanceRecord, err = merchantbalanceservice.UpdateDFBalance_Deposit(db, updateBalance); err != nil {
