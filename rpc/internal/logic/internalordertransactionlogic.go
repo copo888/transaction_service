@@ -41,6 +41,7 @@ func (l *InternalOrderTransactionLogic) InternalOrderTransaction(in *transaction
 
 	//初始化订单
 	txOrder := &types.Order{
+<<<<<<< HEAD
 		OrderNo:      model.GenerateOrderNo("NC"),
 		MerchantCode: internalOrderReq.MerchantCode,
 		Type:                constants.ORDER_TYPE_NC,
@@ -50,36 +51,44 @@ func (l *InternalOrderTransactionLogic) InternalOrderTransaction(in *transaction
 		IsCalculateProfit:   constants.IS_CALCULATE_PROFIT_NO,
 		IsTest:               constants.IS_TEST_NO, //是否測試單
 		PersonProcessStatus: constants.PERSON_PROCESS_STATUS_NO_ROCESSING,
+=======
+		OrderNo:                 model.GenerateOrderNo("NC"),
+		MerchantCode:            internalOrderReq.MerchantCode,
+		Type:                    constants.ORDER_TYPE_NC,
+		Status:                  constants.PROCESSING,
+		Source:                  constants.UI,
+		IsMerchantCallback:      constants.IS_MERCHANT_CALLBACK_NOT_NEED,
+		IsCalculateProfit:       constants.IS_CALCULATE_PROFIT_NO,
+		PersonProcessStatus:     constants.PERSON_PROCESS_STATUS_NO_ROCESSING,
+>>>>>>> transaction_Ken
 		InternalChargeOrderPath: internalOrderReq.Imgurl,
-		BalanceType: "DFB",
-		OrderAmount: internalOrderReq.OrderAmount,
-		TransferHandlingFee: transferHandling,
-		TransferAmount: transferAmount,
-		CreatedBy: internalOrderReq.UserAccount,
-		UpdatedBy: internalOrderReq.UserAccount,
-		IsLock: "0", //是否锁定状态 (0=否;1=是) 预设否
-		CurrencyCode: internalOrderReq.CurrencyCode,
-		MerchantAccountName: internalOrderReq.MerchantAccountName,
-		MerchantBankAccount: internalOrderReq.MerchantBankAccount,
-		MerchantBankCity: internalOrderReq.MerchantBankCity,
-		MerchantBankProvince: internalOrderReq.MerchantBankProvince,
-		MerchantBankNo: internalOrderReq.MerchantBankNo,
-		MerchantBankName: internalOrderReq.MerchantBankName,
-		ChannelBankName: internalOrderReq.ChannelBankName,
-		ChannelAccountName: internalOrderReq.ChannelAccountName,
-		ChannelBankAccount: internalOrderReq.ChannelBankAccount,
-		ChannelBankNo: internalOrderReq.ChannelBankNo,
-		ChannelCode: merchantOrderRateListView.ChannelCode,
-		ChannelPayTypesCode: merchantOrderRateListView.ChannelPayTypesCode,
-		PayTypeCode: merchantOrderRateListView.PayTypeCode,
-		PayTypeCodeNum: merchantOrderRateListView.PayTypeCodeNum,
-		PayTypeNum: merchantOrderRateListView.PayTypeCode + merchantOrderRateListView.PayTypeCodeNum,
-		Fee: merchantOrderRateListView.MerFee,
-		HandlingFee: merchantOrderRateListView.MerHandlingFee,
+		BalanceType:             "DFB",
+		OrderAmount:             internalOrderReq.OrderAmount,
+		TransferHandlingFee:     transferHandling,
+		TransferAmount:          transferAmount,
+		CreatedBy:               internalOrderReq.UserAccount,
+		UpdatedBy:               internalOrderReq.UserAccount,
+		IsLock:                  "0", //是否锁定状态 (0=否;1=是) 预设否
+		CurrencyCode:            internalOrderReq.CurrencyCode,
+		MerchantAccountName:     internalOrderReq.MerchantAccountName,
+		MerchantBankAccount:     internalOrderReq.MerchantBankAccount,
+		MerchantBankCity:        internalOrderReq.MerchantBankCity,
+		MerchantBankProvince:    internalOrderReq.MerchantBankProvince,
+		MerchantBankNo:          internalOrderReq.MerchantBankNo,
+		MerchantBankName:        internalOrderReq.MerchantBankName,
+		ChannelBankName:         internalOrderReq.ChannelBankName,
+		ChannelAccountName:      internalOrderReq.ChannelAccountName,
+		ChannelBankAccount:      internalOrderReq.ChannelBankAccount,
+		ChannelBankNo:           internalOrderReq.ChannelBankNo,
+		ChannelCode:             merchantOrderRateListView.ChannelCode,
+		ChannelPayTypesCode:     merchantOrderRateListView.ChannelPayTypesCode,
+		PayTypeCode:             merchantOrderRateListView.PayTypeCode,
+		Fee:                     merchantOrderRateListView.MerFee,
+		HandlingFee:             merchantOrderRateListView.MerHandlingFee,
 	}
 
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
-		txOrder.MerchantOrderNo = "COPO_"+txOrder.OrderNo
+		txOrder.MerchantOrderNo = "COPO_" + txOrder.OrderNo
 
 		if err = db.Table("tx_orders").Create(&types.OrderX{
 			Order: *txOrder,
@@ -102,7 +111,6 @@ func (l *InternalOrderTransactionLogic) InternalOrderTransaction(in *transaction
 			logx.Error("計算利潤出錯:%s", err.Error())
 			return err
 		}
-
 
 		return nil
 	}); err != nil {

@@ -53,7 +53,6 @@ func (l *ProxyOrderToTestXFBLogic) ProxyOrderToTest_XFB(in *transactionclient.Pr
 			MerchantOrderNo: txOrder.MerchantOrderNo,
 			OrderType:       txOrder.Type,
 			PayTypeCode:     txOrder.PayTypeCode,
-			PayTypeCodeNum:  txOrder.PayTypeCodeNum,
 			TransferAmount:  txOrder.TransferAmount,
 			TransactionType: "4", //異動類型 (1=收款 ; 2=解凍;  3=沖正 4=還款;  5=補單; 11=出款 ; 12=凍結 ; 13=追回; 20=調整)
 			BalanceType:     constants.XF_BALANCE,

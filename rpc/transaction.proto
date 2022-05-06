@@ -80,17 +80,16 @@ message CorrespondMerChnRate{
   string ChannelPayTypesCode = 2;
   string ChannelCode = 3;
   string PayTypeCode = 4;
-  string PayTypeCodeNum = 5;
-  string Designation = 6;
-  string DesignationNo = 7;
-  double Fee = 8;
-  double HandlingFee = 9;
-  double ChFee = 10;
-  double ChHandlingFee = 11;
-  double SingleMinCharge = 12;
-  double SingleMaxCharge = 13;
-  string CurrencyCode = 14;
-  string ApiUrl = 15;
+  string Designation = 5;
+  string DesignationNo = 6;
+  double Fee = 7;
+  double HandlingFee = 8;
+  double ChFee = 9;
+  double ChHandlingFee = 10;
+  double SingleMinCharge = 11;
+  double SingleMaxCharge = 12;
+  string CurrencyCode = 13;
+  string ApiUrl = 14;
 }
 
 message PayOrderRequest {
@@ -159,23 +158,22 @@ message InternalOrder {
 message MerchantOrderRateListView {
   string ChannelPayTypesCode = 1;
   string PayTypeCode = 2;
-  string PayTypeCodeNum = 3;
-  double MerHandlingFee = 4;
-  double MerFee = 5;
-  string Designation = 6;
-  string DesignationNo = 7;
-  string ChannelCode = 8;
-  string CurrencyCode = 9;
-  double MaxInternalCharge = 10;
-  double SingleMinCharge = 11;
-  double SingleMaxCharge = 12;
-  string MerchantCode = 13;
-  string MerchnrateStatus = 14;
-  string ChnStatus = 15;
-  string ChnIsProxy = 16;
-  string CptStatus = 17;
-  double CptFee = 18;
-  double CptHandlingFee = 19;
+  double MerHandlingFee = 3;
+  double MerFee = 4;
+  string Designation = 5;
+  string DesignationNo = 6;
+  string ChannelCode = 7;
+  string CurrencyCode = 8;
+  double MaxInternalCharge = 9;
+  double SingleMinCharge = 10;
+  double SingleMaxCharge = 11;
+  string MerchantCode = 12;
+  string MerchnrateStatus = 13;
+  string ChnStatus = 14;
+  string ChnIsProxy = 15;
+  string CptStatus = 16;
+  double CptFee = 17;
+  double CptHandlingFee = 18;
 }
 
 message WithdrawOrderRequest {

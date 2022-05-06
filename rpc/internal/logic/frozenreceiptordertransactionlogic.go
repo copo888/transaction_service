@@ -58,7 +58,6 @@ func (l *FrozenReceiptOrderTransactionLogic) FrozenReceiptOrderTransaction(req *
 		OrderType:       order.Type,
 		ChannelCode:     order.ChannelCode,
 		PayTypeCode:     order.PayTypeCode,
-		PayTypeCodeNum:  order.PayTypeCodeNum,
 		TransactionType: constants.TRANSACTION_TYPE_FREEZE,
 		BalanceType:     order.BalanceType,
 		FrozenAmount:    req.FrozenAmount,

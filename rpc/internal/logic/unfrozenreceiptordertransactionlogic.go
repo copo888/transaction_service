@@ -58,7 +58,6 @@ func (l *UnFrozenReceiptOrderTransactionLogic) UnFrozenReceiptOrderTransaction(r
 		OrderType:       order.Type,
 		ChannelCode:     order.ChannelCode,
 		PayTypeCode:     order.PayTypeCode,
-		PayTypeCodeNum:  order.PayTypeCodeNum,
 		TransactionType: constants.TRANSACTION_TYPE_UNFREEZE,
 		BalanceType:     order.BalanceType,
 		FrozenAmount:    -order.FrozenAmount,

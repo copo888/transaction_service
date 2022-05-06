@@ -62,8 +62,6 @@ func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(in *transa
 		Fee:                  rate.MerFee,
 		HandlingFee:          rate.MerHandlingFee,
 		PayTypeCode:          rate.PayTypeCode,
-		PayTypeCodeNum:       rate.PayTypeCodeNum,
-		PayTypeNum:           rate.PayTypeCode + rate.PayTypeCodeNum,
 		IsLock:               "0",
 	}
 
@@ -75,7 +73,6 @@ func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(in *transa
 		MerchantOrderNo: txOrder.MerchantOrderNo,
 		OrderType:       txOrder.Type,
 		PayTypeCode:     txOrder.PayTypeCode,
-		PayTypeCodeNum:  txOrder.PayTypeCodeNum,
 		TransferAmount:  txOrder.TransferAmount,
 		TransactionType: "11", //異動類型 (1=收款; 2=解凍; 3=沖正; 11=出款 ; 12=凍結)
 		BalanceType:     constants.XF_BALANCE,
@@ -111,7 +108,7 @@ func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(in *transa
 
 		// 创建订单
 		if err = db.Table("tx_orders").Create(&types.OrderX{
-			Order:   *txOrder,
+			Order: *txOrder,
 		}).Error; err != nil {
 			logx.Errorf("新增代付UI提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err.Error())
 			return
