@@ -54,8 +54,6 @@ func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transactionclient.PayOr
 		ChannelCode:         correspondMerChnRate.ChannelCode,
 		ChannelPayTypesCode: correspondMerChnRate.ChannelPayTypesCode,
 		PayTypeCode:         correspondMerChnRate.PayTypeCode,
-		PayTypeCodeNum:      correspondMerChnRate.PayTypeCodeNum,
-		PayTypeNum:          correspondMerChnRate.PayTypeCode + correspondMerChnRate.PayTypeCodeNum,
 		CurrencyCode:        correspondMerChnRate.CurrencyCode,
 		MerchantBankNo:      payOrderReq.BankCode,
 		MerchantBankName:    payOrderReq.UserId,
@@ -91,8 +89,8 @@ func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transactionclient.PayOr
 	}).Error; err != nil {
 		txDB.Rollback()
 		return &transactionclient.PayOrderResponse{
-			Code: response.DATABASE_FAILURE,
-			Message: "数据库错误 tx_orders Create",
+			Code:       response.DATABASE_FAILURE,
+			Message:    "数据库错误 tx_orders Create",
 			PayOrderNo: order.OrderNo,
 		}, nil
 	}
@@ -101,8 +99,8 @@ func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transactionclient.PayOr
 		txDB.Rollback()
 		logx.Errorf("支付提单失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
 		return &transactionclient.PayOrderResponse{
-			Code: response.DATABASE_FAILURE,
-			Message: "Commit 数据库错误",
+			Code:       response.DATABASE_FAILURE,
+			Message:    "Commit 数据库错误",
 			PayOrderNo: order.OrderNo,
 		}, nil
 	}
@@ -121,8 +119,8 @@ func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transactionclient.PayOr
 	}
 
 	return &transactionclient.PayOrderResponse{
-		Code:    response.API_SUCCESS,
-		Message: "操作成功",
+		Code:       response.API_SUCCESS,
+		Message:    "操作成功",
 		PayOrderNo: order.OrderNo,
 	}, nil
 }

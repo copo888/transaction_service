@@ -50,7 +50,6 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 			OrderType:       txOrder.Type,
 			ChannelCode:     txOrder.ChannelCode,
 			PayTypeCode:     txOrder.PayTypeCode,
-			PayTypeCodeNum:  txOrder.PayTypeCodeNum,
 			TransactionType: "1",
 			BalanceType:     txOrder.BalanceType,
 			TransferAmount:  txOrder.TransferAmount,

@@ -45,7 +45,6 @@ func (l *ProxyOrderTransactionFailXFBLogic) ProxyOrderTransactionFail_XFB(in *tr
 		MerchantOrderNo: txOrder.MerchantOrderNo,
 		OrderType:       txOrder.Type,
 		PayTypeCode:     txOrder.PayTypeCode,
-		PayTypeCodeNum:  txOrder.PayTypeCodeNum,
 		TransferAmount:  txOrder.TransferAmount,
 		TransactionType: "4", //異動類型 (1=收款; 2=解凍; 3=沖正;4=出款退回,11=出款 ; 12=凍結)
 		BalanceType:     constants.XF_BALANCE,

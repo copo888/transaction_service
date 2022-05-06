@@ -34,8 +34,6 @@ func (l *ConfirmPayOrderTransactionLogic) ConfirmPayOrderTransaction(in *transac
 	/****     交易開始      ****/
 	txDB := l.svcCtx.MyDB.Begin()
 
-
-
 	if err := txDB.Table("tx_orders").
 		Where("order_no = ?", in.OrderNo).Take(&order).Error; err != nil {
 		txDB.Rollback()
@@ -143,7 +141,6 @@ func (l *ConfirmPayOrderTransactionLogic) updateOrderAndBalance(db *gorm.DB, req
 		OrderType:       order.Type,
 		ChannelCode:     order.ChannelCode,
 		PayTypeCode:     order.PayTypeCode,
-		PayTypeCodeNum:  order.PayTypeCodeNum,
 		TransactionType: "1",
 		BalanceType:     order.BalanceType,
 		TransferAmount:  order.TransferAmount,

@@ -70,7 +70,6 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 		OrderType:       order.Type,
 		ChannelCode:     order.ChannelCode,
 		PayTypeCode:     order.PayTypeCode,
-		PayTypeCodeNum:  order.PayTypeCodeNum,
 		TransactionType: constants.TRANSACTION_TYPE_RECOVER,
 		BalanceType:     order.BalanceType,
 		TransferAmount:  transferAmount,
@@ -192,7 +191,7 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 func (l *RecoverReceiptOrderTransactionLogic) verifyOrder(order types.Order, req *transactionclient.RecoverReceiptOrderRequest) string {
 
 	// 支付單才能追回
-	if order.Type != constants.ORDER_TYPE_ZF  {
+	if order.Type != constants.ORDER_TYPE_ZF {
 		return response.ORDER_TYPE_IS_WRONG
 	}
 

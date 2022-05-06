@@ -66,8 +66,6 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		Source:               constants.API,
 		ChannelPayTypesCode:  rate.ChannelPayTypesCode,
 		PayTypeCode:          rate.PayTypeCode,
-		PayTypeCodeNum:       rate.PayTypeCodeNum,
-		PayTypeNum:           rate.PayTypeCode + rate.PayTypeCodeNum,
 		CreatedBy:            req.MerchantId,
 		MerchantCode:         req.MerchantId,
 		IsLock:               constants.IS_LOCK_NO, //是否锁定状态 (0=否;1=是) 预设否,\
@@ -88,7 +86,6 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		MerchantOrderNo: txOrder.MerchantOrderNo,
 		OrderType:       txOrder.Type,
 		PayTypeCode:     txOrder.PayTypeCode,
-		PayTypeCodeNum:  txOrder.PayTypeCodeNum,
 		TransferAmount:  txOrder.TransferAmount,
 		TransactionType: "11", //異動類型 (1=收款; 2=解凍; 3=沖正; 11=出款 ; 12=凍結)
 		BalanceType:     constants.DF_BALANCE,

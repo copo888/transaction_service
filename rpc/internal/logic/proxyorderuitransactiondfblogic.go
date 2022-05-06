@@ -61,8 +61,6 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 		Fee:                  rate.MerFee,
 		HandlingFee:          rate.MerHandlingFee,
 		PayTypeCode:          rate.PayTypeCode,
-		PayTypeCodeNum:       rate.PayTypeCodeNum,
-		PayTypeNum:           rate.PayTypeCode + rate.PayTypeCodeNum,
 		IsLock:               "0",
 	}
 
@@ -74,7 +72,6 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 		MerchantOrderNo: txOrder.MerchantOrderNo,
 		OrderType:       txOrder.Type,
 		PayTypeCode:     txOrder.PayTypeCode,
-		PayTypeCodeNum:  txOrder.PayTypeCodeNum,
 		TransferAmount:  txOrder.TransferAmount,
 		TransactionType: "11", //異動類型 (1=收款; 2=解凍; 3=沖正; 11=出款 ; 12=凍結)
 		BalanceType:     constants.DF_BALANCE,
@@ -86,7 +83,7 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 	updateBalance.TransferAmount = txOrder.TransferAmount //扣款依然傳正值
 
 	// 判断单笔最大最小金额
-	if  txOrder.OrderAmount < rate.SingleMinCharge {
+	if txOrder.OrderAmount < rate.SingleMinCharge {
 		//金额超过上限
 		logx.Errorf("錯誤:代付金額未達下限")
 		return nil, errorz.New(response.ORDER_AMOUNT_LIMIT_MAX)
@@ -95,7 +92,6 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 		logx.Errorf("錯誤:代付金額超過上限")
 		return nil, errorz.New(response.ORDER_AMOUNT_LIMIT_MIN)
 	}
-
 
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
@@ -111,8 +107,8 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 
 		// 创建订单
 		if err = db.Table("tx_orders").Create(&types.OrderX{
-			Order:   *txOrder,
-			}).Error; err != nil {
+			Order: *txOrder,
+		}).Error; err != nil {
 			logx.Errorf("新增代付UI提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err.Error())
 			return
 		}

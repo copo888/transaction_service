@@ -865,8 +865,6 @@ type Order struct {
 	ChannelCode             string  `json:"channelCode"`
 	ChannelPayTypesCode     string  `json:"channelPayTypesCode"`
 	PayTypeCode             string  `json:"payTypeCode"`
-	PayTypeCodeNum          string  `json:"payTypeCodeNum"`
-	PayTypeNum              string  `json:"payTypeNum"`
 	Fee                     float64 `json:"fee"`
 	HandlingFee             float64 `json:"handlingFee"`
 	InternalChargeOrderPath string  `json:"internalChargeOrderPath"`
@@ -1157,7 +1155,6 @@ type ReceiptRecord struct {
 	ChannelCode         string      `json:"channelCode"`
 	Type                string      `json:"type"`
 	PayTypeCode         string      `json:"payTypeCode"`
-	PayTypeCodeNum      string      `json:"payTypeCodeNum"`
 	OrderAmount         float64     `json:"orderAmount"`
 	TransferAmount      float64     `json:"transferAmount"`
 	TransferHandlingFee float64     `json:"transferHandlingFee"`
