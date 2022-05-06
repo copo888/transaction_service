@@ -41,17 +41,6 @@ func (l *InternalOrderTransactionLogic) InternalOrderTransaction(in *transaction
 
 	//初始化订单
 	txOrder := &types.Order{
-<<<<<<< HEAD
-		OrderNo:      model.GenerateOrderNo("NC"),
-		MerchantCode: internalOrderReq.MerchantCode,
-		Type:                constants.ORDER_TYPE_NC,
-		Status:              constants.PROCESSING,
-		Source:              constants.UI,
-		IsMerchantCallback:  constants.IS_MERCHANT_CALLBACK_NOT_NEED,
-		IsCalculateProfit:   constants.IS_CALCULATE_PROFIT_NO,
-		IsTest:               constants.IS_TEST_NO, //是否測試單
-		PersonProcessStatus: constants.PERSON_PROCESS_STATUS_NO_ROCESSING,
-=======
 		OrderNo:                 model.GenerateOrderNo("NC"),
 		MerchantCode:            internalOrderReq.MerchantCode,
 		Type:                    constants.ORDER_TYPE_NC,
@@ -59,8 +48,8 @@ func (l *InternalOrderTransactionLogic) InternalOrderTransaction(in *transaction
 		Source:                  constants.UI,
 		IsMerchantCallback:      constants.IS_MERCHANT_CALLBACK_NOT_NEED,
 		IsCalculateProfit:       constants.IS_CALCULATE_PROFIT_NO,
+		IsTest:                  constants.IS_TEST_NO, //是否測試單
 		PersonProcessStatus:     constants.PERSON_PROCESS_STATUS_NO_ROCESSING,
->>>>>>> transaction_Ken
 		InternalChargeOrderPath: internalOrderReq.Imgurl,
 		BalanceType:             "DFB",
 		OrderAmount:             internalOrderReq.OrderAmount,

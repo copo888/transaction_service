@@ -58,7 +58,6 @@ func (l *PayOrderSwitchTestLogic) PayOrderSwitchTest(in *transactionclient.PayOr
 		OrderType:       txOrder.Type,
 		ChannelCode:     txOrder.ChannelCode,
 		PayTypeCode:     txOrder.PayTypeCode,
-		PayTypeCodeNum:  txOrder.PayTypeCodeNum,
 		BalanceType:     txOrder.BalanceType,
 		CreatedBy:       "AAA00061", // TODO: JWT取得
 	}
@@ -78,8 +77,7 @@ func (l *PayOrderSwitchTestLogic) PayOrderSwitchTest(in *transactionclient.PayOr
 		updateBalance.Comment = "支付转測試單"
 		action = constants.ACTION_TRANSFER_TEST
 	}
-	if merchantBalanceRecord, err = merchantbalanceservice.UpdateBalanceForZF(txDB, updateBalance);
-	err != nil {
+	if merchantBalanceRecord, err = merchantbalanceservice.UpdateBalanceForZF(txDB, updateBalance); err != nil {
 		txDB.Rollback()
 		return &transactionclient.PayOrderSwitchTestResponse{
 			Code:    response.SYSTEM_ERROR,
@@ -119,7 +117,6 @@ func (l *PayOrderSwitchTestLogic) PayOrderSwitchTest(in *transactionclient.PayOr
 	}).Error; err != nil {
 		logx.Error("紀錄訂單歷程出錯:%s", err.Error())
 	}
-
 
 	return &transactionclient.PayOrderSwitchTestResponse{
 		Code:    response.API_SUCCESS,
