@@ -136,7 +136,6 @@ func (l *InternalReviewSuccessTransactionLogic) UpdateBalance(db *gorm.DB, updat
 		OrderType:         updateBalance.OrderType,
 		ChannelCode:       updateBalance.ChannelCode,
 		PayTypeCode:       updateBalance.PayTypeCode,
-		PayTypeCodeNum:    updateBalance.PayTypeCodeNum,
 		TransactionType:   updateBalance.TransactionType,
 		BalanceType:       updateBalance.BalanceType,
 		BeforeBalance:     beforeBalance,
