@@ -50,7 +50,6 @@ func UpdateFrozenAmount(db *gorm.DB, updateFrozenAmount types.UpdateFrozenAmount
 		OrderType:         updateFrozenAmount.OrderType,
 		ChannelCode:       updateFrozenAmount.ChannelCode,
 		PayTypeCode:       updateFrozenAmount.PayTypeCode,
-		PayTypeCodeNum:    updateFrozenAmount.PayTypeCodeNum,
 		TransactionType:   updateFrozenAmount.TransactionType,
 		BalanceType:       updateFrozenAmount.BalanceType,
 		BeforeBalance:     beforeBalance,

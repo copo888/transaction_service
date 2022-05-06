@@ -776,7 +776,6 @@ type MerchantBalanceRecord struct {
 	OrderType         string      `json:"orderType"`
 	ChannelCode       string      `json:"channelCode"`
 	PayTypeCode       string      `json:"payTypeCode"`
-	PayTypeCodeNum    string      `json:"payTypeCodeNum"`
 	TransactionType   string      `json:"transactionType"`
 	BalanceType       string      `json:"balanceType, optional"`
 	BeforeBalance     float64     `json:"beforeBalance"`
