@@ -53,6 +53,7 @@ func (l *PersonalRebundTransactionDFBLogic) PersonalRebundTransaction_DFB(in *tr
 		BalanceType:     constants.DF_BALANCE,
 		CreatedBy:       in.UserAccount,
 		Comment:         in.Memo,
+		ChannelCode:     txOrder.ChannelCode,
 	}
 	var jTime types.JsonTime
 	//调整异动钱包，并更新订单

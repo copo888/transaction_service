@@ -53,6 +53,7 @@ func (l *PersonalRebundTransactionXFBLogic) PersonalRebundTransaction_XFB(in *tr
 		BalanceType:     constants.XF_BALANCE,
 		CreatedBy:       in.UserAccount,
 		Comment:         in.Memo,
+		ChannelCode:     txOrder.ChannelCode,
 	}
 	var jTime types.JsonTime
 	//调整异动钱包，并更新订单
