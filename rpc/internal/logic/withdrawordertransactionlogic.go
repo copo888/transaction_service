@@ -51,7 +51,6 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		CreatedBy:            in.UserAccount,
 		UpdatedBy:            in.UserAccount,
 		BalanceType:          "XFB",
-		ChannelCode:          in.CurrencyCode,
 		TransferAmount:       transferAmount,
 		OrderAmount:          in.OrderAmount,
 		TransferHandlingFee:  in.HandlingFee,
