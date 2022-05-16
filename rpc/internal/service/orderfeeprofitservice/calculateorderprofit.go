@@ -77,6 +77,8 @@ func CalculateOrderProfitForIsCommission(db *gorm.DB, calculateProfit types.Calc
 }
 
 // calculateProfitLoop 計算利潤迴圈
+// 先計算自身利潤 > 再算上層代理(如果有) > 再算系統利潤(MerchantCode = 00000000)
+// orderFeeProfits陣列 會按照順序放每層商戶 上一筆 - 當前筆 = 傭金(利潤)
 func calculateProfitLoop(db *gorm.DB, calculateProfit *types.CalculateProfit, orderFeeProfits *[]types.OrderFeeProfit, isCalculateCommission bool) (err error) {
 
 	var merchant *types.Merchant

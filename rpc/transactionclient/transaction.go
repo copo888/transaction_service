@@ -13,54 +13,58 @@ import (
 )
 
 type (
-	CalculateProfit               = transaction.CalculateProfit
-	ChannelWithdraw               = transaction.ChannelWithdraw
-	ConfirmPayOrderRequest        = transaction.ConfirmPayOrderRequest
-	ConfirmPayOrderResponse       = transaction.ConfirmPayOrderResponse
-	CorrespondMerChnRate          = transaction.CorrespondMerChnRate
-	FrozenReceiptOrderRequest     = transaction.FrozenReceiptOrderRequest
-	FrozenReceiptOrderResponse    = transaction.FrozenReceiptOrderResponse
-	InternalOrder                 = transaction.InternalOrder
-	InternalOrderRequest          = transaction.InternalOrderRequest
-	InternalOrderResponse         = transaction.InternalOrderResponse
-	InternalReviewSuccessRequest  = transaction.InternalReviewSuccessRequest
-	InternalReviewSuccessResponse = transaction.InternalReviewSuccessResponse
-	MakeUpReceiptOrderRequest     = transaction.MakeUpReceiptOrderRequest
-	MakeUpReceiptOrderResponse    = transaction.MakeUpReceiptOrderResponse
-	MerchantBalanceUpdateRequest  = transaction.MerchantBalanceUpdateRequest
-	MerchantBalanceUpdateResponse = transaction.MerchantBalanceUpdateResponse
-	MerchantOrderRateListView     = transaction.MerchantOrderRateListView
-	PayCallBackRequest            = transaction.PayCallBackRequest
-	PayCallBackResponse           = transaction.PayCallBackResponse
-	PayOrder                      = transaction.PayOrder
-	PayOrderRequest               = transaction.PayOrderRequest
-	PayOrderResponse              = transaction.PayOrderResponse
-	PayOrderSwitchTestRequest     = transaction.PayOrderSwitchTestRequest
-	PayOrderSwitchTestResponse    = transaction.PayOrderSwitchTestResponse
-	PersonalRebundRequest         = transaction.PersonalRebundRequest
-	PersonalRebundResponse        = transaction.PersonalRebundResponse
-	ProxyOrderRequest             = transaction.ProxyOrderRequest
-	ProxyOrderResponse            = transaction.ProxyOrderResponse
-	ProxyOrderTestRequest         = transaction.ProxyOrderTestRequest
-	ProxyOrderTestResponse        = transaction.ProxyOrderTestResponse
-	ProxyOrderUI                  = transaction.ProxyOrderUI
-	ProxyOrderUIRequest           = transaction.ProxyOrderUIRequest
-	ProxyOrderUIResponse          = transaction.ProxyOrderUIResponse
-	ProxyPayFailRequest           = transaction.ProxyPayFailRequest
-	ProxyPayFailResponse          = transaction.ProxyPayFailResponse
-	ProxyPayOrderRequest          = transaction.ProxyPayOrderRequest
-	RecalculateProfitRequest      = transaction.RecalculateProfitRequest
-	RecalculateProfitResponse     = transaction.RecalculateProfitResponse
-	RecoverReceiptOrderRequest    = transaction.RecoverReceiptOrderRequest
-	RecoverReceiptOrderResponse   = transaction.RecoverReceiptOrderResponse
-	UnFrozenReceiptOrderRequest   = transaction.UnFrozenReceiptOrderRequest
-	UnFrozenReceiptOrderResponse  = transaction.UnFrozenReceiptOrderResponse
-	WithdrawOrderRequest          = transaction.WithdrawOrderRequest
-	WithdrawOrderResponse         = transaction.WithdrawOrderResponse
-	WithdrawReviewFailRequest     = transaction.WithdrawReviewFailRequest
-	WithdrawReviewFailResponse    = transaction.WithdrawReviewFailResponse
-	WithdrawReviewSuccessRequest  = transaction.WithdrawReviewSuccessRequest
-	WithdrawReviewSuccessResponse = transaction.WithdrawReviewSuccessResponse
+	CalculateCommissionMonthAllRequest       = transaction.CalculateCommissionMonthAllRequest
+	CalculateCommissionMonthAllResponse      = transaction.CalculateCommissionMonthAllResponse
+	CalculateProfit                          = transaction.CalculateProfit
+	ChannelWithdraw                          = transaction.ChannelWithdraw
+	ConfirmPayOrderRequest                   = transaction.ConfirmPayOrderRequest
+	ConfirmPayOrderResponse                  = transaction.ConfirmPayOrderResponse
+	CorrespondMerChnRate                     = transaction.CorrespondMerChnRate
+	FrozenReceiptOrderRequest                = transaction.FrozenReceiptOrderRequest
+	FrozenReceiptOrderResponse               = transaction.FrozenReceiptOrderResponse
+	InternalOrder                            = transaction.InternalOrder
+	InternalOrderRequest                     = transaction.InternalOrderRequest
+	InternalOrderResponse                    = transaction.InternalOrderResponse
+	InternalReviewSuccessRequest             = transaction.InternalReviewSuccessRequest
+	InternalReviewSuccessResponse            = transaction.InternalReviewSuccessResponse
+	MakeUpReceiptOrderRequest                = transaction.MakeUpReceiptOrderRequest
+	MakeUpReceiptOrderResponse               = transaction.MakeUpReceiptOrderResponse
+	MerchantBalanceUpdateRequest             = transaction.MerchantBalanceUpdateRequest
+	MerchantBalanceUpdateResponse            = transaction.MerchantBalanceUpdateResponse
+	MerchantOrderRateListView                = transaction.MerchantOrderRateListView
+	PayCallBackRequest                       = transaction.PayCallBackRequest
+	PayCallBackResponse                      = transaction.PayCallBackResponse
+	PayOrder                                 = transaction.PayOrder
+	PayOrderRequest                          = transaction.PayOrderRequest
+	PayOrderResponse                         = transaction.PayOrderResponse
+	PayOrderSwitchTestRequest                = transaction.PayOrderSwitchTestRequest
+	PayOrderSwitchTestResponse               = transaction.PayOrderSwitchTestResponse
+	PersonalRebundRequest                    = transaction.PersonalRebundRequest
+	PersonalRebundResponse                   = transaction.PersonalRebundResponse
+	ProxyOrderRequest                        = transaction.ProxyOrderRequest
+	ProxyOrderResponse                       = transaction.ProxyOrderResponse
+	ProxyOrderTestRequest                    = transaction.ProxyOrderTestRequest
+	ProxyOrderTestResponse                   = transaction.ProxyOrderTestResponse
+	ProxyOrderUI                             = transaction.ProxyOrderUI
+	ProxyOrderUIRequest                      = transaction.ProxyOrderUIRequest
+	ProxyOrderUIResponse                     = transaction.ProxyOrderUIResponse
+	ProxyPayFailRequest                      = transaction.ProxyPayFailRequest
+	ProxyPayFailResponse                     = transaction.ProxyPayFailResponse
+	ProxyPayOrderRequest                     = transaction.ProxyPayOrderRequest
+	RecalculateCommissionMonthReportRequest  = transaction.RecalculateCommissionMonthReportRequest
+	RecalculateCommissionMonthReportResponse = transaction.RecalculateCommissionMonthReportResponse
+	RecalculateProfitRequest                 = transaction.RecalculateProfitRequest
+	RecalculateProfitResponse                = transaction.RecalculateProfitResponse
+	RecoverReceiptOrderRequest               = transaction.RecoverReceiptOrderRequest
+	RecoverReceiptOrderResponse              = transaction.RecoverReceiptOrderResponse
+	UnFrozenReceiptOrderRequest              = transaction.UnFrozenReceiptOrderRequest
+	UnFrozenReceiptOrderResponse             = transaction.UnFrozenReceiptOrderResponse
+	WithdrawOrderRequest                     = transaction.WithdrawOrderRequest
+	WithdrawOrderResponse                    = transaction.WithdrawOrderResponse
+	WithdrawReviewFailRequest                = transaction.WithdrawReviewFailRequest
+	WithdrawReviewFailResponse               = transaction.WithdrawReviewFailResponse
+	WithdrawReviewSuccessRequest             = transaction.WithdrawReviewSuccessRequest
+	WithdrawReviewSuccessResponse            = transaction.WithdrawReviewSuccessResponse
 
 	Transaction interface {
 		MerchantBalanceUpdateTranaction(ctx context.Context, in *MerchantBalanceUpdateRequest, opts ...grpc.CallOption) (*MerchantBalanceUpdateResponse, error)
@@ -90,6 +94,8 @@ type (
 		PersonalRebundTransaction_DFB(ctx context.Context, in *PersonalRebundRequest, opts ...grpc.CallOption) (*PersonalRebundResponse, error)
 		PersonalRebundTransaction_XFB(ctx context.Context, in *PersonalRebundRequest, opts ...grpc.CallOption) (*PersonalRebundResponse, error)
 		RecalculateProfitTransaction(ctx context.Context, in *RecalculateProfitRequest, opts ...grpc.CallOption) (*RecalculateProfitResponse, error)
+		CalculateCommissionMonthAllReport(ctx context.Context, in *CalculateCommissionMonthAllRequest, opts ...grpc.CallOption) (*CalculateCommissionMonthAllResponse, error)
+		RecalculateCommissionMonthReport(ctx context.Context, in *RecalculateCommissionMonthReportRequest, opts ...grpc.CallOption) (*RecalculateCommissionMonthReportResponse, error)
 	}
 
 	defaultTransaction struct {
@@ -236,4 +242,14 @@ func (m *defaultTransaction) PersonalRebundTransaction_XFB(ctx context.Context, 
 func (m *defaultTransaction) RecalculateProfitTransaction(ctx context.Context, in *RecalculateProfitRequest, opts ...grpc.CallOption) (*RecalculateProfitResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.RecalculateProfitTransaction(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) CalculateCommissionMonthAllReport(ctx context.Context, in *CalculateCommissionMonthAllRequest, opts ...grpc.CallOption) (*CalculateCommissionMonthAllResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.CalculateCommissionMonthAllReport(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) RecalculateCommissionMonthReport(ctx context.Context, in *RecalculateCommissionMonthReportRequest, opts ...grpc.CallOption) (*RecalculateCommissionMonthReportResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.RecalculateCommissionMonthReport(ctx, in, opts...)
 }

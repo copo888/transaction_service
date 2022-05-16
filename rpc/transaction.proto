@@ -378,6 +378,25 @@ message RecalculateProfitResponse {
   string Message = 2;
 }
 
+message CalculateCommissionMonthAllRequest {
+  string Month = 1;
+}
+
+message CalculateCommissionMonthAllResponse {
+  string Code = 1;
+  string Message = 2;
+}
+
+message RecalculateCommissionMonthReportRequest {
+  string ID = 1;
+}
+
+message RecalculateCommissionMonthReportResponse {
+  string Code = 1;
+  string Message = 2;
+}
+
+
 service Transaction {
 
   rpc MerchantBalanceUpdateTranaction(MerchantBalanceUpdateRequest) returns (MerchantBalanceUpdateResponse);
@@ -433,4 +452,8 @@ service Transaction {
   rpc PersonalRebundTransaction_XFB (PersonalRebundRequest) returns (PersonalRebundResponse);
 
   rpc RecalculateProfitTransaction(RecalculateProfitRequest) returns (RecalculateProfitResponse);
+
+  rpc CalculateCommissionMonthAllReport(CalculateCommissionMonthAllRequest) returns (CalculateCommissionMonthAllResponse);
+
+  rpc RecalculateCommissionMonthReport(RecalculateCommissionMonthReportRequest) returns (RecalculateCommissionMonthReportResponse);
 }
