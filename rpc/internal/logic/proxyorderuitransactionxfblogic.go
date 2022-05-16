@@ -61,6 +61,7 @@ func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(in *transa
 		ChannelPayTypesCode:  rate.ChannelPayTypesCode,
 		Fee:                  rate.MerFee,
 		HandlingFee:          rate.MerHandlingFee,
+		TransferHandlingFee:  rate.MerHandlingFee,
 		PayTypeCode:          rate.PayTypeCode,
 		IsLock:               "0",
 	}
