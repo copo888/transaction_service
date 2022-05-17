@@ -61,8 +61,13 @@ func (l *RecalculateCommissionMonthReportLogic) RecalculateCommissionMonthReport
 	startAt := commissionService.BeginningOfMonth(y, m).Format("2006-01-02 15:04:05")
 	endAt := commissionService.EndOfMonth(y, m).Format("2006-01-02 15:04:05")
 
-	// 計算報表詳情
 	if err := l.svcCtx.MyDB.Transaction(func(txdb *gorm.DB) (err error) {
+		// 刪除舊的報表鄉情
+		if err3 := txdb.Table("cm_commission_month_report_details").Where("commission_month_report_id = ?", in.ID).
+			Delete(types.CommissionMonthReportDetail{}).Error; err3 != nil {
+				return err3
+		}
+		// 重新計算
 		return commissionService.CalculateMonthReport(txdb, report, startAt, endAt)
 	}); err != nil {
 		return &transactionclient.RecalculateCommissionMonthReportResponse{
