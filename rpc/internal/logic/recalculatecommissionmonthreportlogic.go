@@ -45,7 +45,7 @@ func (l *RecalculateCommissionMonthReportLogic) RecalculateCommissionMonthReport
 	if report.Status == "1" {
 		// 已審核報表不可再重新計算
 		return &transactionclient.RecalculateCommissionMonthReportResponse{
-			Code:    response.ORDER_STATUS_WRONG,
+			Code:    response.MERCHANT_COMMISSION_AUDIT,
 			Message: "報表狀態錯誤",
 		}, nil
 	}

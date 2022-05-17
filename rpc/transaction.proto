@@ -388,7 +388,7 @@ message CalculateCommissionMonthAllResponse {
 }
 
 message RecalculateCommissionMonthReportRequest {
-  string ID = 1;
+  int64 ID = 1;
 }
 
 message RecalculateCommissionMonthReportResponse {

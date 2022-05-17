@@ -35,8 +35,8 @@ type CommissionMonthReportDetailX struct {
 type CommissionMonthReportDetail struct {
 	CommissionMonthReportId int64   `json:"commission_month_report_id"`
 	MerchantCode            string  `json:"merchantCode"`
-	AgentLayerNo            string  `json:"agentLayerNo"`
 	PayTypeCode             string  `json:"payTypeCode"`
+	OrderType               string  `json:"orderType"`
 	MerchantFee             float64 `json:"merchantFee"`
 	AgentFee                float64 `json:"agentFee"`
 	DiffFee                 float64 `json:"diffFee"`

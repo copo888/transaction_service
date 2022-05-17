@@ -34,19 +34,19 @@ func CalculateMonthAllReport(db *gorm.DB, month string) error {
 	if err != nil {
 		return errorz.New(response.DATABASE_FAILURE)
 	}
-	logx.Info("開始計算 %s 月份傭金 總共有 %d 筆 Transaction start", month, len(reports))
+	logx.Infof("開始計算 %s 月份傭金 總共有 %d 筆 Transaction start", month, len(reports))
 	if errTx := db.Transaction(func(txdb *gorm.DB) (err error) {
 		// 迴圈計算 單筆代理傭金報表
-		for i := range reports {
-			reports[i].Month = month
-			reports[i].Status = "0"
+		for _, report := range reports {
+			report.Month = month
+			report.Status = "0"
 			// 保存
-			if err = db.Table("cm_commission_month_reports").Create(&reports[i]).Error; err != nil {
-				logx.Errorf("建立傭金報表失敗: %#v, error: %s", reports[i], err.Error())
+			if err = txdb.Table("cm_commission_month_reports").Create(&report).Error; err != nil {
+				logx.Errorf("建立傭金報表失敗: %#v, error: %s", report, err.Error())
 				return errorz.New(response.DATABASE_FAILURE)
 			}
 			// 計算報表詳情
-			if err:= CalculateMonthReport(txdb, reports[i], startAt, endAt); err != nil {
+			if err:= CalculateMonthReport(txdb, report, startAt, endAt); err != nil {
 				return err
 			}
 		}
@@ -54,7 +54,7 @@ func CalculateMonthAllReport(db *gorm.DB, month string) error {
 	}); errTx != nil {
 		return errTx
 	}
-	logx.Info("完成計算 %s 月份傭金 Transaction end", month)
+	logx.Infof("完成計算 %s 月份傭金 Transaction end", month)
 
 	return nil
 }
@@ -67,7 +67,7 @@ func createMonthReport(db *gorm.DB, month string, report *types.CommissionMonthR
 func getAllMonthReports(db *gorm.DB, startAt, endAt string) ([]types.CommissionMonthReportX, error) {
 	var commissionMonthReports []types.CommissionMonthReportX
 
-	selectX := "select p.agent_layer_no, " +
+	selectX := "p.agent_layer_no, " +
 		"p.merchant_code, " +
 		"o.currency_code "
 
@@ -76,6 +76,7 @@ func getAllMonthReports(db *gorm.DB, startAt, endAt string) ([]types.CommissionM
 		Joins("JOIN tx_orders_fee_profit p on p.merchant_code = m.agent_parent_code and p.order_no = m.order_no").
 		Joins("JOIN tx_orders o on o.order_no = m.order_no").
 		Where("o.trans_at >= ? and o.trans_at < ? ", startAt, endAt).
+		Where("(o.status = 20 || o.status = 31) ").
 		Distinct().Find(&commissionMonthReports).Error
 
 	return commissionMonthReports, err
