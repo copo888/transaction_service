@@ -138,6 +138,12 @@ type MerchantBalanceRecordX struct {
 	UpdatedAt time.Time
 }
 
+type MerchantCommissionRecordX struct {
+	MerchantCommissionRecord
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
 type MerchantFrozenRecordX struct {
 	MerchantFrozenRecord
 	CreatedAt time.Time
@@ -174,6 +180,16 @@ type UpdateFrozenAmount struct {
 	FrozenAmount    float64
 	Comment         string
 	CreatedBy       string
+}
+
+type UpdateCommissionAmount struct {
+	MerchantCode            string
+	CurrencyCode            string
+	CommissionMonthReportId int64
+	TransactionType         string
+	TransferAmount          float64
+	Comment                 string
+	CreatedBy               string
 }
 
 type CorrespondMerChnRate struct {

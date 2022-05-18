@@ -11,4 +11,7 @@ const (
 	TRANSACTION_TYPE_RECOVER  = "13" /*錢包紀錄_異動類型: 追回*/
 	TRANSACTION_TYPE_DEDUCT   = "14" /*錢包紀錄_異動類型: 扣回*/
 	TRANSACTION_TYPE_ADJUST   = "20" /*錢包紀錄_異動類型: 調整*/
+
+	COMMISSION_TRANSACTION_TYPE_MONTHLY    = "1"   /*佣金紀錄_異動類型: 月結佣金*/
+	COMMISSION_TRANSACTION_TYPE_WITHDRAWAL = "11"  /*佣金紀錄_異動類型: 佣金提領*/
 )

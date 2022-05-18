@@ -37,6 +37,7 @@ const (
 
 	DF_BALANCE = "DFB"
 	XF_BALANCE = "XFB"
+	YJ_BALANCE = "YJB"
 
 	IS_CALCULATE_PROFIT_YES = "1" /*已記算傭金利潤: 是*/
 	IS_CALCULATE_PROFIT_NO  = "0" /*已記算傭金利潤: 否*/

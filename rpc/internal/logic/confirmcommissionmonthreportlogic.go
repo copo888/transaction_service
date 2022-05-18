@@ -2,7 +2,9 @@ package logic
 
 import (
 	"context"
+	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/response"
+	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 
@@ -28,7 +30,6 @@ func NewConfirmCommissionMonthReportLogic(ctx context.Context, svcCtx *svc.Servi
 
 func (l *ConfirmCommissionMonthReportLogic) ConfirmCommissionMonthReport(in *transaction.ConfirmCommissionMonthReportRequest) (*transaction.ConfirmCommissionMonthReportResponse, error) {
 	var report types.CommissionMonthReportX
-
 
 	/****     交易開始      ****/
 	txDB := l.svcCtx.MyDB.Begin()
@@ -64,8 +65,27 @@ func (l *ConfirmCommissionMonthReportLogic) ConfirmCommissionMonthReport(in *tra
 		}, nil
 	}
 
-	//  TODO: 異動商戶佣金錢包
-
+	transferAmount := 0.0
+	if report.ChangeCommission > 0 {
+		transferAmount = report.ChangeCommission
+	} else {
+		transferAmount = report.TotalCommission
+	}
+	if _, err := merchantbalanceservice.UpdateCommissionAmount(txDB, types.UpdateCommissionAmount{
+		MerchantCode:            report.MerchantCode,
+		CurrencyCode:            report.CurrencyCode,
+		CommissionMonthReportId: report.ID,
+		TransactionType:         constants.COMMISSION_TRANSACTION_TYPE_MONTHLY,
+		TransferAmount:          transferAmount,
+		Comment:                 "佣金月結:" + report.Month,
+		CreatedBy:               in.ConfirmBy,
+	}); err != nil {
+		txDB.Rollback()
+		return &transactionclient.ConfirmCommissionMonthReportResponse{
+			Code:    response.SYSTEM_ERROR,
+			Message: "更新錢包失敗",
+		}, nil
+	}
 
 	if err := txDB.Commit().Error; err != nil {
 		txDB.Rollback()
@@ -76,7 +96,6 @@ func (l *ConfirmCommissionMonthReportLogic) ConfirmCommissionMonthReport(in *tra
 		}, nil
 	}
 	/****     交易結束      ****/
-	
 
 	return &transaction.ConfirmCommissionMonthReportResponse{
 		Code:    response.API_SUCCESS,

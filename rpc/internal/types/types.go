@@ -788,6 +788,21 @@ type MerchantBalanceRecord struct {
 	ChannelData       ChannelData `json:"channelData, optional" gorm:"foreignKey:Code;references:ChannelCode"`
 }
 
+type MerchantCommissionRecord struct {
+	ID                      int64   `json:"id, optional"`
+	MerchantBalanceId       int64   `json:"merchantBalanceId"`
+	MerchantCode            string  `json:"merchantCode, optional"`
+	CurrencyCode            string  `json:"currencyCode, optional"`
+	CommissionMonthReportId int64  `json:"commissionMonthReportId"`
+	TransactionType         string  `json:"transactionType"`
+	BeforeCommission        float64 `json:"before_commission"`
+	TransferAmount          float64 `json:"transferAmount"`
+	AfterCommission         float64 `json:"after_commission"`
+	Comment                 string  `json:"comment"`
+	CreatedBy               string  `json:"createdBy"`
+	CreatedAt               string  `json:"createdAt"`
+}
+
 type MerchantBalanceRecordQueryAllRequest struct {
 	MerchantBalanceId int64  `json:"merchantBalanceId, optional"`
 	MerchantCode      string `json:"merchantCode, optional"`
