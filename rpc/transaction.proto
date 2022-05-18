@@ -396,6 +396,15 @@ message RecalculateCommissionMonthReportResponse {
   string Message = 2;
 }
 
+message ConfirmCommissionMonthReportRequest {
+  int64 ID = 1;
+  string ConfirmBy = 2;
+}
+
+message   ConfirmCommissionMonthReportResponse {
+  string Code = 1;
+  string Message = 2;
+}
 
 service Transaction {
 
@@ -456,4 +465,6 @@ service Transaction {
   rpc CalculateCommissionMonthAllReport(CalculateCommissionMonthAllRequest) returns (CalculateCommissionMonthAllResponse);
 
   rpc RecalculateCommissionMonthReport(RecalculateCommissionMonthReportRequest) returns (RecalculateCommissionMonthReportResponse);
+
+  rpc ConfirmCommissionMonthReport(ConfirmCommissionMonthReportRequest) returns (ConfirmCommissionMonthReportResponse);
 }

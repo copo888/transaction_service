@@ -176,3 +176,8 @@ func (s *TransactionServer) RecalculateCommissionMonthReport(ctx context.Context
 	l := logic.NewRecalculateCommissionMonthReportLogic(ctx, s.svcCtx)
 	return l.RecalculateCommissionMonthReport(in)
 }
+
+func (s *TransactionServer) ConfirmCommissionMonthReport(ctx context.Context, in *transaction.ConfirmCommissionMonthReportRequest) (*transaction.ConfirmCommissionMonthReportResponse, error) {
+	l := logic.NewConfirmCommissionMonthReportLogic(ctx, s.svcCtx)
+	return l.ConfirmCommissionMonthReport(in)
+}

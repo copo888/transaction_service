@@ -17,6 +17,8 @@ type (
 	CalculateCommissionMonthAllResponse      = transaction.CalculateCommissionMonthAllResponse
 	CalculateProfit                          = transaction.CalculateProfit
 	ChannelWithdraw                          = transaction.ChannelWithdraw
+	ConfirmCommissionMonthReportRequest      = transaction.ConfirmCommissionMonthReportRequest
+	ConfirmCommissionMonthReportResponse     = transaction.ConfirmCommissionMonthReportResponse
 	ConfirmPayOrderRequest                   = transaction.ConfirmPayOrderRequest
 	ConfirmPayOrderResponse                  = transaction.ConfirmPayOrderResponse
 	CorrespondMerChnRate                     = transaction.CorrespondMerChnRate
@@ -96,6 +98,7 @@ type (
 		RecalculateProfitTransaction(ctx context.Context, in *RecalculateProfitRequest, opts ...grpc.CallOption) (*RecalculateProfitResponse, error)
 		CalculateCommissionMonthAllReport(ctx context.Context, in *CalculateCommissionMonthAllRequest, opts ...grpc.CallOption) (*CalculateCommissionMonthAllResponse, error)
 		RecalculateCommissionMonthReport(ctx context.Context, in *RecalculateCommissionMonthReportRequest, opts ...grpc.CallOption) (*RecalculateCommissionMonthReportResponse, error)
+		ConfirmCommissionMonthReport(ctx context.Context, in *ConfirmCommissionMonthReportRequest, opts ...grpc.CallOption) (*ConfirmCommissionMonthReportResponse, error)
 	}
 
 	defaultTransaction struct {
@@ -252,4 +255,9 @@ func (m *defaultTransaction) CalculateCommissionMonthAllReport(ctx context.Conte
 func (m *defaultTransaction) RecalculateCommissionMonthReport(ctx context.Context, in *RecalculateCommissionMonthReportRequest, opts ...grpc.CallOption) (*RecalculateCommissionMonthReportResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.RecalculateCommissionMonthReport(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) ConfirmCommissionMonthReport(ctx context.Context, in *ConfirmCommissionMonthReportRequest, opts ...grpc.CallOption) (*ConfirmCommissionMonthReportResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.ConfirmCommissionMonthReport(ctx, in, opts...)
 }
