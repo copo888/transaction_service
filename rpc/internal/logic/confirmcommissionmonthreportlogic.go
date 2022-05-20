@@ -9,8 +9,6 @@ import (
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
-	"github.com/copo888/transaction_service/rpc/transaction"
-
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -28,7 +26,7 @@ func NewConfirmCommissionMonthReportLogic(ctx context.Context, svcCtx *svc.Servi
 	}
 }
 
-func (l *ConfirmCommissionMonthReportLogic) ConfirmCommissionMonthReport(in *transaction.ConfirmCommissionMonthReportRequest) (*transaction.ConfirmCommissionMonthReportResponse, error) {
+func (l *ConfirmCommissionMonthReportLogic) ConfirmCommissionMonthReport(in *transactionclient.ConfirmCommissionMonthReportRequest) (*transactionclient.ConfirmCommissionMonthReportResponse, error) {
 	var report types.CommissionMonthReportX
 
 	/****     交易開始      ****/
@@ -97,7 +95,7 @@ func (l *ConfirmCommissionMonthReportLogic) ConfirmCommissionMonthReport(in *tra
 	}
 	/****     交易結束      ****/
 
-	return &transaction.ConfirmCommissionMonthReportResponse{
+	return &transactionclient.ConfirmCommissionMonthReportResponse{
 		Code:    response.API_SUCCESS,
 		Message: "操作成功",
 	}, nil

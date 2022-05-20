@@ -78,7 +78,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 		BalanceType:     order.BalanceType,
 		TransferAmount:  transferAmount,
 		Comment:         req.Comment,
-		CreatedBy:       "AAA00061", // TODO: JWT取得
+		CreatedBy:       req.UserAccount,
 	})
 	if err != nil {
 		txDB.Rollback()
@@ -167,7 +167,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 		OrderAction: types.OrderAction{
 			OrderNo:     order.OrderNo,
 			Action:      constants.ACTION_MAKE_UP_LOCK_ORDER,
-			UserAccount: "AAA00061", // TODO: JWT取得
+			UserAccount: req.UserAccount,
 			Comment:     "",
 		},
 	}).Error; err != nil {
@@ -179,7 +179,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 		OrderAction: types.OrderAction{
 			OrderNo:     newOrder.OrderNo,
 			Action:      constants.ACTION_MAKE_UP_ORDER,
-			UserAccount: "AAA00061", // TODO: JWT取得
+			UserAccount: req.UserAccount,
 			Comment:     req.Comment,
 		},
 	}).Error; err != nil {

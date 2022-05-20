@@ -59,7 +59,7 @@ func (l *PayOrderSwitchTestLogic) PayOrderSwitchTest(in *transactionclient.PayOr
 		ChannelCode:     txOrder.ChannelCode,
 		PayTypeCode:     txOrder.PayTypeCode,
 		BalanceType:     txOrder.BalanceType,
-		CreatedBy:       "AAA00061", // TODO: JWT取得
+		CreatedBy:       in.UserAccount,
 	}
 
 	if txOrder.IsTest == constants.IS_TEST_YES {
@@ -111,7 +111,7 @@ func (l *PayOrderSwitchTestLogic) PayOrderSwitchTest(in *transactionclient.PayOr
 		OrderAction: types.OrderAction{
 			OrderNo:     txOrder.OrderNo,
 			Action:      action,
-			UserAccount: "AAA00061", // TODO: JWT取得
+			UserAccount: in.UserAccount,
 			Comment:     "",
 		},
 	}).Error; err != nil {

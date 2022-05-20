@@ -38,7 +38,7 @@ func (l *MerchantBalanceUpdateTranactionLogic) MerchantBalanceUpdateTranaction(r
 		TransactionType: "20", //異動類型 (20=調整)
 		BalanceType:     req.BalanceType,
 		Comment:         req.Comment,
-		CreatedBy:       "TEST", // TODO: JWT
+		CreatedBy:       req.UserAccount,
 	}
 
 	if err := l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {

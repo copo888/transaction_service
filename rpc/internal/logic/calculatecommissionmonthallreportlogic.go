@@ -7,8 +7,6 @@ import (
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
-	"github.com/copo888/transaction_service/rpc/transaction"
-
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -26,7 +24,7 @@ func NewCalculateCommissionMonthAllReportLogic(ctx context.Context, svcCtx *svc.
 	}
 }
 
-func (l *CalculateCommissionMonthAllReportLogic) CalculateCommissionMonthAllReport(in *transaction.CalculateCommissionMonthAllRequest) (*transaction.CalculateCommissionMonthAllResponse, error) {
+func (l *CalculateCommissionMonthAllReportLogic) CalculateCommissionMonthAllReport(in *transactionclient.CalculateCommissionMonthAllRequest) (*transactionclient.CalculateCommissionMonthAllResponse, error) {
 
 	err := commissionService.CalculateMonthAllReport(l.svcCtx.MyDB, in.Month)
 	if err != nil {
@@ -36,7 +34,7 @@ func (l *CalculateCommissionMonthAllReportLogic) CalculateCommissionMonthAllRepo
 		}, nil
 	}
 
-	return &transaction.CalculateCommissionMonthAllResponse{
+	return &transactionclient.CalculateCommissionMonthAllResponse{
 		Code:    response.API_SUCCESS,
 		Message: "操作成功",
 	}, nil

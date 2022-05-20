@@ -63,7 +63,7 @@ func (l *FrozenReceiptOrderTransactionLogic) FrozenReceiptOrderTransaction(req *
 		BalanceType:     order.BalanceType,
 		FrozenAmount:    req.FrozenAmount,
 		Comment:         req.Comment,
-		CreatedBy:       "AAA00061", // TODO: JWT取得
+		CreatedBy:       req.UserAccount,
 	}); err != nil {
 		txDB.Rollback()
 		return &transactionclient.FrozenReceiptOrderResponse{

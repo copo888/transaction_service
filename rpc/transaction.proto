@@ -10,6 +10,7 @@ message MerchantBalanceUpdateRequest {
   string BalanceType = 3;
   string Comment = 4;
   double Amount = 5;
+  string UserAccount = 6;
 }
 
 message MerchantBalanceUpdateResponse {
@@ -38,6 +39,7 @@ message ProxyOrderResponse {
 
 message PayOrderSwitchTestRequest {
   string OrderNo = 1;
+  string UserAccount = 2;
 }
 
 message PayOrderSwitchTestResponse {
@@ -287,6 +289,7 @@ message MakeUpReceiptOrderRequest {
   string ReasonType = 3;
   double Amount = 4;
   string Comment = 5;
+  string UserAccount = 6;
 }
 
 message MakeUpReceiptOrderResponse {
@@ -320,6 +323,7 @@ message RecoverReceiptOrderRequest {
   double Amount = 2;
   bool   isCalculateCommission = 3;
   string Comment = 4;
+  string UserAccount = 6;
 }
 
 message RecoverReceiptOrderResponse {
@@ -331,6 +335,7 @@ message FrozenReceiptOrderRequest {
   string OrderNo = 1;
   double FrozenAmount = 2;
   string Comment = 3;
+  string UserAccount = 4;
 }
 
 message FrozenReceiptOrderResponse {
@@ -340,6 +345,7 @@ message FrozenReceiptOrderResponse {
 
 message UnFrozenReceiptOrderRequest {
   string OrderNo = 1;
+  string UserAccount = 2;
 }
 
 message UnFrozenReceiptOrderResponse {

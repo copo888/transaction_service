@@ -11,8 +11,6 @@ import (
 	"strings"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
-	"github.com/copo888/transaction_service/rpc/transaction"
-
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -30,7 +28,7 @@ func NewRecalculateCommissionMonthReportLogic(ctx context.Context, svcCtx *svc.S
 	}
 }
 
-func (l *RecalculateCommissionMonthReportLogic) RecalculateCommissionMonthReport(in *transaction.RecalculateCommissionMonthReportRequest) (*transaction.RecalculateCommissionMonthReportResponse, error) {
+func (l *RecalculateCommissionMonthReportLogic) RecalculateCommissionMonthReport(in *transactionclient.RecalculateCommissionMonthReportRequest) (*transactionclient.RecalculateCommissionMonthReportResponse, error) {
 	// todo: add your logic here and delete this line
 	var report types.CommissionMonthReportX
 
@@ -76,7 +74,7 @@ func (l *RecalculateCommissionMonthReportLogic) RecalculateCommissionMonthReport
 		}, nil
 	}
 
-	return &transaction.RecalculateCommissionMonthReportResponse{
+	return &transactionclient.RecalculateCommissionMonthReportResponse{
 		Code:    response.API_SUCCESS,
 		Message: "操作成功",
 	}, nil

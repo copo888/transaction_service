@@ -74,7 +74,7 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 		BalanceType:     order.BalanceType,
 		TransferAmount:  transferAmount,
 		Comment:         req.Comment,
-		CreatedBy:       "AAA00061", // TODO: JWT取得
+		CreatedBy:       req.UserAccount,
 	})
 	if err != nil {
 		txDB.Rollback()
@@ -163,7 +163,7 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 		OrderAction: types.OrderAction{
 			OrderNo:     order.OrderNo,
 			Action:      "MAKE_UP_LOCK_ORDER",
-			UserAccount: "AAA00061", // TODO: JWT取得
+			UserAccount: req.UserAccount,
 			Comment:     "",
 		},
 	}).Error; err != nil {
@@ -175,7 +175,7 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 		OrderAction: types.OrderAction{
 			OrderNo:     newOrder.OrderNo,
 			Action:      "MAKE_UP_ORDER",
-			UserAccount: "AAA00061", // TODO: JWT取得
+			UserAccount: req.UserAccount,
 			Comment:     req.Comment,
 		},
 	}).Error; err != nil {
