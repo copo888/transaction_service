@@ -15,6 +15,7 @@ func CalculateMonthReport(db *gorm.DB, report types.CommissionMonthReportX, star
 	payCommission := 0.0
 	internalChargeTotalAmount := 0.0
 	internalChargeCommission := 0.0
+	proxyPayTotalAmount := 0.0
 	proxyPayTotalNumber := 0.0
 	proxyPayCommission := 0.0
 	totalCommission := 0.0
@@ -68,6 +69,7 @@ func CalculateMonthReport(db *gorm.DB, report types.CommissionMonthReportX, star
 
 	// 保存 並 計算代付總額
 	for _, detail := range dfDetails {
+		proxyPayTotalAmount += detail.TotalAmount
 		proxyPayTotalNumber += detail.TotalNumber
 		proxyPayCommission += detail.TotalCommission
 		totalCommission += detail.TotalCommission
@@ -84,6 +86,7 @@ func CalculateMonthReport(db *gorm.DB, report types.CommissionMonthReportX, star
 	report.PayCommission = payCommission
 	report.InternalChargeTotalAmount = internalChargeTotalAmount
 	report.InternalChargeCommission = internalChargeCommission
+	report.ProxyPayTotalAmount = proxyPayTotalAmount
 	report.ProxyPayTotalNumber = proxyPayTotalNumber
 	report.ProxyPayCommission = proxyPayCommission
 	report.TotalCommission = totalCommission
