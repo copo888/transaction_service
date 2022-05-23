@@ -103,7 +103,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	newOrder.Balance = merchantBalanceRecord.AfterBalance
 	newOrder.IsLock = constants.IS_LOCK_NO
 	newOrder.CallBackStatus = constants.CALL_BACK_STATUS_PROCESSING
-	newOrder.IsMerchantCallback = constants.IS_MERCHANT_CALLBACK_NO
+	newOrder.IsMerchantCallback = constants.MERCHANT_CALL_BACK_YES
 	newOrder.ReasonType = req.ReasonType
 	newOrder.PersonProcessStatus = constants.PERSON_PROCESS_STATUS_NO_ROCESSING
 	newOrder.InternalChargeOrderPath = ""
