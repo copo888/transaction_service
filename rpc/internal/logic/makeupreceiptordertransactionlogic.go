@@ -138,12 +138,16 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 		}, nil
 	}
 
-	// 補單計算利潤方式與正常單不同 要放在交易
-	if err = orderfeeprofitservice.CalculateSubOrderProfit(l.svcCtx.MyDB, types.CalculateSubOrderProfit{
-		OldOrderNo:            order.OrderNo,
-		NewOrderNo:            newOrderNo,
-		OrderAmount:           req.Amount,
-		IsCalculateCommission: true,
+	// 計算利潤
+	if err = orderfeeprofitservice.CalculateOrderProfit(txDB, types.CalculateProfit{
+		MerchantCode:        newOrder.MerchantCode,
+		OrderNo:             newOrder.OrderNo,
+		Type:                newOrder.Type,
+		CurrencyCode:        newOrder.CurrencyCode,
+		BalanceType:         newOrder.BalanceType,
+		ChannelCode:         newOrder.ChannelCode,
+		ChannelPayTypesCode: newOrder.ChannelPayTypesCode,
+		OrderAmount:         newOrder.ActualAmount,
 	}); err != nil {
 		txDB.Rollback()
 		return &transactionclient.MakeUpReceiptOrderResponse{
@@ -208,8 +212,8 @@ func (l *MakeUpReceiptOrderTransactionLogic) verifyMakeUpReceiptOrder(order type
 		return response.ORDER_IS_STATUS_IS_LOCK
 	}
 
-	// 訂單還未計算傭金,請稍後
-	if order.IsCalculateProfit != constants.IS_CALCULATE_PROFIT_YES {
+	// 成功單還未計算傭金,請稍後
+	if order.Status == "20" && order.IsCalculateProfit != constants.IS_CALCULATE_PROFIT_YES {
 		return response.ORIGINAL_ORDER_NOT_CALCULATED_COMMISSION
 	}
 
