@@ -149,7 +149,7 @@ func (l *PayCallBackTranactionLogic) updateOrderAndBalance(db *gorm.DB, req *tra
 			OrderType:       order.Type,
 			ChannelCode:     order.ChannelCode,
 			PayTypeCode:     order.PayTypeCode,
-			TransactionType: constants.TRANSACTION_TYPE_INTERNAL_CHARGE,
+			TransactionType: constants.TRANSACTION_TYPE_PAY,
 			BalanceType:     order.BalanceType,
 			TransferAmount:  order.TransferAmount,
 			Comment:         order.Memo,
