@@ -57,9 +57,9 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 
 	newOrderNo := model.GenerateOrderNo(order.Type)
 	// 計算交易手續費 (金額 / 100 * 費率 + 手續費)
-	transferHandlingFee := utils.FloatAdd(utils.FloatMul(utils.FloatDiv(req.Amount, 100), order.Fee), order.HandlingFee)
+	transferHandlingFee := -utils.FloatAdd(utils.FloatMul(utils.FloatDiv(req.Amount, 100), order.Fee), order.HandlingFee)
 	// 計算實際交易金額 = 訂單金額 + 手續費
-	transferAmount = -req.Amount + transferHandlingFee
+	transferAmount = -req.Amount - transferHandlingFee
 
 	// 變更 商戶餘額並記錄
 	merchantBalanceRecord, err := merchantbalanceservice.UpdateBalanceForZF(txDB, types.UpdateBalance{
@@ -138,7 +138,7 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 	if err = orderfeeprofitservice.CalculateSubOrderProfit(txDB, types.CalculateSubOrderProfit{
 		OldOrderNo:            order.OrderNo,
 		NewOrderNo:            newOrderNo,
-		OrderAmount:           req.Amount,
+		OrderAmount:           -req.Amount,
 		IsCalculateCommission: req.IsCalculateCommission,
 	}); err != nil {
 		txDB.Rollback()
