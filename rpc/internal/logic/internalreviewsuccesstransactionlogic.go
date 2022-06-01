@@ -62,6 +62,7 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 		txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance
 		txOrder.Balance = merchantBalanceRecord.AfterBalance
 		txOrder.TransAt = types.JsonTime{}.New()
+		txOrder.ActualAmount = txOrder.OrderAmount
 
 		txOrder.Status = constants.SUCCESS
 
