@@ -77,6 +77,7 @@ func getAllMonthReports(db *gorm.DB, startAt, endAt string) ([]types.CommissionM
 		Joins("JOIN tx_orders o on o.order_no = m.order_no").
 		Where("o.trans_at >= ? and o.trans_at < ? ", startAt, endAt).
 		Where("(o.status = 20 || o.status = 31) ").
+		Where("o.is_test != 1 ").
 		Distinct().Find(&commissionMonthReports).Error
 
 	return commissionMonthReports, err

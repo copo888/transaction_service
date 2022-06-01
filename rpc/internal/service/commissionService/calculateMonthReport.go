@@ -137,6 +137,7 @@ func calculateMonthReportDetails(db *gorm.DB, report types.CommissionMonthReport
 							Where("o.type = ? ", orderType).
 							Where("p.profit_amount != 0 ").
 							Where("(o.status = 20 || o.status = 31) ").
+							Where("o.is_test != 1 ").
 							Group("merchant_code, currency_code, pay_type_code, merchant_fee, agent_fee").
 							Find(&reportDetails).Error
 
