@@ -65,7 +65,7 @@ func (l *PayOrderSwitchTestLogic) PayOrderSwitchTest(in *transactionclient.PayOr
 	if txOrder.IsTest == constants.IS_TEST_YES {
 		// 測試單轉正式單
 		txOrder.IsTest = constants.IS_TEST_NO
-		updateBalance.TransactionType = constants.TRANSACTION_TYPE_RECEIPT
+		updateBalance.TransactionType = constants.TRANSACTION_TYPE_INTERNAL_CHARGE
 		updateBalance.TransferAmount = txOrder.TransferAmount
 		updateBalance.Comment = "支付转正式单"
 		action = constants.ACTION_TRANSFER_NORMAL
