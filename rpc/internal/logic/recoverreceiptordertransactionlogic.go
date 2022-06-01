@@ -205,6 +205,11 @@ func (l *RecoverReceiptOrderTransactionLogic) verifyOrder(order types.Order, req
 		return response.ORDER_IS_STATUS_IS_LOCK
 	}
 
+	// 追回單不可再追回
+	if order.ReasonType == constants.ORDER_REASON_TYPE_RECOVER {
+		return response.ORDER_STATUS_WRONG
+	}
+
 	// 訂單還未計算傭金,請稍後
 	if order.IsCalculateProfit != constants.IS_CALCULATE_PROFIT_YES {
 		return response.ORIGINAL_ORDER_NOT_CALCULATED_COMMISSION
