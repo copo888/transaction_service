@@ -65,16 +65,18 @@ func (l *PayOrderSwitchTestLogic) PayOrderSwitchTest(in *transactionclient.PayOr
 	if txOrder.IsTest == constants.IS_TEST_YES {
 		// 測試單轉正式單
 		txOrder.IsTest = constants.IS_TEST_NO
-		updateBalance.TransactionType = constants.TRANSACTION_TYPE_RECEIPT
+		txOrder.Memo = "支付订单转正式单\n" + txOrder.Memo
+		updateBalance.TransactionType = constants.TRANSACTION_TYPE_PAY
 		updateBalance.TransferAmount = txOrder.TransferAmount
-		updateBalance.Comment = "支付转正式单"
+		updateBalance.Comment = "支付订单转正式单"
 		action = constants.ACTION_TRANSFER_NORMAL
 	} else {
 		// 正式單轉測試單
 		txOrder.IsTest = constants.IS_TEST_YES
+		txOrder.Memo = "支付订单轉測試單\n" + txOrder.Memo
 		updateBalance.TransactionType = constants.TRANSACTION_TYPE_DEDUCT
 		updateBalance.TransferAmount = -txOrder.TransferAmount
-		updateBalance.Comment = "支付转測試單"
+		updateBalance.Comment = "支付订单轉測試單"
 		action = constants.ACTION_TRANSFER_TEST
 	}
 	if merchantBalanceRecord, err = merchantbalanceservice.UpdateBalanceForZF(txDB, updateBalance); err != nil {
@@ -87,6 +89,7 @@ func (l *PayOrderSwitchTestLogic) PayOrderSwitchTest(in *transactionclient.PayOr
 
 	txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance
 	txOrder.Balance = merchantBalanceRecord.AfterBalance
+
 
 	if err = txDB.Table("tx_orders").Updates(txOrder).Error; err != nil {
 		txDB.Rollback()

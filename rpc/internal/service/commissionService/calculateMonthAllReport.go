@@ -84,8 +84,8 @@ func getAllMonthReports(db *gorm.DB, startAt, endAt string) ([]types.CommissionM
 
 // BeginningOfMonth 取得月開始時間
 func BeginningOfMonth(year, month int) time.Time {
-	location := time.FixedZone("UTC-7", -7*50*50)
-	return time.Date(year, time.Month(month), 1, 0, 0, 0, 0, location)
+	// UTC +8 要扣回
+	return time.Date(year, time.Month(month), 1, -8, 0, 0, 0, time.UTC)
 }
 
 // EndOfMonth 取得月結束時間 (下個月1號)

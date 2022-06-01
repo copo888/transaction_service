@@ -68,7 +68,7 @@ func FloatMul(s float64, p float64, precisions ...int32) float64 {
 	if len(precisions) > 0 {
 		precision = precisions[0]
 	} else {
-		precision = 4
+		precision = 3
 	}
 
 	res, _ := f1.Mul(f2).Truncate(precision).Float64()
@@ -86,7 +86,7 @@ func FloatDiv(s float64, p float64, precisions ...int32) float64 {
 	if len(precisions) > 0 {
 		precision = precisions[0]
 	} else {
-		precision = 4
+		precision = 3
 	}
 	res, _ := f1.Div(f2).Truncate(precision).Float64()
 
@@ -103,7 +103,7 @@ func FloatSub(s float64, p float64, precisions ...int32) float64 {
 	if len(precisions) > 0 {
 		precision = precisions[0]
 	} else {
-		precision = 4
+		precision = 3
 	}
 	res, _ := f1.Sub(f2).Truncate(precision).Float64()
 
@@ -120,7 +120,7 @@ func FloatAdd(s float64, p float64, precisions ...int32) float64 {
 	if len(precisions) > 0 {
 		precision = precisions[0]
 	} else {
-		precision = 4
+		precision = 3
 	}
 	res, _ := f1.Add(f2).Truncate(precision).Float64()
 

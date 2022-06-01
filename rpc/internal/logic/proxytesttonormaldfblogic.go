@@ -54,7 +54,7 @@ func (l *ProxyTestToNormalDFBLogic) ProxyTestToNormal_DFB(in *transactionclient.
 			OrderType:       txOrder.Type,
 			PayTypeCode:     txOrder.PayTypeCode,
 			TransferAmount:  txOrder.TransferAmount,
-			TransactionType: constants.TRANSACTION_TYPE_PAYMENT, //異動類型 (1=收款 ; 2=解凍;  3=沖正 4=還款;  5=補單; 11=出款 ; 12=凍結 ; 13=追回; 20=調整)
+			TransactionType: constants.TRANSACTION_TYPE_PROXY_PAY, //異動類型 (1=收款 ; 2=解凍;  3=沖正 4=還款;  5=補單; 11=出款 ; 12=凍結 ; 13=追回; 20=調整)
 			BalanceType:     constants.DF_BALANCE,
 			Comment:         "代付轉正式單",
 			CreatedBy:       txOrder.MerchantCode,
