@@ -29,7 +29,7 @@ func (l *CalculateCommissionMonthAllReportLogic) CalculateCommissionMonthAllRepo
 	err := commissionService.CalculateMonthAllReport(l.svcCtx.MyDB, in.Month)
 	if err != nil {
 		return &transactionclient.CalculateCommissionMonthAllResponse{
-			Code:    response.DATABASE_FAILURE,
+			Code:    response.SYSTEM_ERROR,
 			Message: err.Error(),
 		}, nil
 	}

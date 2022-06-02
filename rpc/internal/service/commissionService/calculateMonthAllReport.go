@@ -17,12 +17,12 @@ func CalculateMonthAllReport(db *gorm.DB, month string) error {
 
 	// 檢查月份格式
 	if len(monthArray) != 2 {
-		// todo: 時間格是錯誤
+		return errorz.New(response.DATABASE_FAILURE)
 	}
 	y, err1 := strconv.Atoi(monthArray[0])
 	m, err2 := strconv.Atoi(monthArray[1])
 	if err1 != nil || err2 != nil {
-		// todo: 時間格是錯誤
+		return errorz.New(response.DATABASE_FAILURE)
 	}
 
 	// 取得此月份起訖時間
