@@ -78,7 +78,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		OrderNo:         txOrder.OrderNo,
 		MerchantOrderNo: txOrder.MerchantOrderNo,
 		OrderType:       txOrder.Type,
-		TransactionType: "11",
+		TransactionType: "15",
 		BalanceType:     txOrder.BalanceType,
 		TransferAmount:  txOrder.TransferAmount,
 		CreatedBy:       in.UserAccount,
