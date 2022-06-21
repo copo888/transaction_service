@@ -196,6 +196,7 @@ message WithdrawOrderRequest {
   string NotifyUrl = 15;
   string PageUrl = 16;
   string Memo = 17;
+  string ChangeType = 18;
 }
 message WithdrawOrderResponse {
   string OrderNo = 1;

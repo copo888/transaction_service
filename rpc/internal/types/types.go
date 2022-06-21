@@ -910,6 +910,7 @@ type Order struct {
 	CreatedBy               string  `json:"createdBy, optional"`
 	UpdatedBy               string  `json:"updatedBy, optional"`
 	ReviewedBy              string  `json:"reviewedBy, optional"`
+	ChangeType              string  `json:"change_type, optional"`
 }
 
 type InternalChargeOrder struct {

@@ -65,6 +65,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		PageUrl:              in.PageUrl,
 		NotifyUrl:            in.NotifyUrl,
 		Memo:                 in.Memo,
+		ChangeType: 		  in.ChangeType,
 	}
 	if len(in.MerchantOrderNo) > 0 {
 		txOrder.MerchantOrderNo = in.MerchantOrderNo
