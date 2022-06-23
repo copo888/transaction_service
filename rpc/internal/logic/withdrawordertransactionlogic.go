@@ -11,6 +11,8 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"gorm.io/gorm"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
@@ -32,6 +34,12 @@ func NewWithdrawOrderTransactionLogic(ctx context.Context, svcCtx *svc.ServiceCo
 }
 
 func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transactionclient.WithdrawOrderRequest) (*transactionclient.WithdrawOrderResponse, error) {
+	span := trace.SpanFromContext(l.ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "withdraw-order",
+		Value: attribute.StringValue(in.String()),
+	})
 	db := l.svcCtx.MyDB
 
 	transferAmount := utils.FloatAdd(in.OrderAmount, in.HandlingFee)
@@ -39,7 +47,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 	if len(in.MerchantOrderNo) > 0 {
 		merchantOrderNo = in.MerchantOrderNo
 	}
-	logx.Infof("下发单交易初始化： %v", in)
+	logx.Infof("下发单交易初始化： %v, %v, %v", in.String())
 	// 初始化订单
 	txOrder := &types.Order{
 		MerchantCode:         in.MerchantCode,
