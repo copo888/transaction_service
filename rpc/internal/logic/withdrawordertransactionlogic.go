@@ -35,11 +35,14 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 	db := l.svcCtx.MyDB
 
 	transferAmount := utils.FloatAdd(in.OrderAmount, in.HandlingFee)
-
+	merchantOrderNo := "COPO_" + in.OrderNo
+	if len(in.MerchantOrderNo) > 0 {
+		merchantOrderNo = in.MerchantOrderNo
+	}
 	// 初始化订单
 	txOrder := &types.Order{
 		MerchantCode:         in.MerchantCode,
-		MerchantOrderNo:      "COPO_" + in.OrderNo,
+		MerchantOrderNo:      merchantOrderNo,
 		OrderNo:              in.OrderNo,
 		Type:                 constants.ORDER_TYPE_XF,
 		Status:               constants.WAIT_PROCESS,
@@ -59,6 +62,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		MerchantBankNo:       in.MerchantBankNo,
 		MerchantBankProvince: in.MerchantBankProvince,
 		MerchantBankCity:     in.MerchantBankCity,
+		MerchantBankName:     in.MerchantBankName,
 		MerchantAccountName:  in.MerchantAccountName,
 		CurrencyCode:         in.CurrencyCode,
 		Source:               in.Source,
