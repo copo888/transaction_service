@@ -19,6 +19,8 @@ steps:
       script:
         - cd /root/transaction_service
         - git checkout -- .
+        - git checkout dev
+        - git checkout -- .
         - git pull
         - go mod tidy
         - docker-compose -f docker-compose.yml down
