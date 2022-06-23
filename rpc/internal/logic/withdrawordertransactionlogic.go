@@ -39,6 +39,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 	if len(in.MerchantOrderNo) > 0 {
 		merchantOrderNo = in.MerchantOrderNo
 	}
+	logx.Infof("下发单交易初始化： %v", in)
 	// 初始化订单
 	txOrder := &types.Order{
 		MerchantCode:         in.MerchantCode,
