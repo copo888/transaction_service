@@ -29,10 +29,10 @@ steps:
         - docker-compose -f docker-compose.yml up -d
     when:
       branch:
-        - master
+        - dev
       event:
         - push
 trigger:
   branch:
-    - master
+    - dev
 
