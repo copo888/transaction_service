@@ -48,6 +48,13 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		merchantOrderNo = in.MerchantOrderNo
 	}
 	logx.Infof("下发单交易初始化： %v, %v, %v", in.String())
+	// 依商户是否给回调网址，决定是否回调商户flag
+	var isMerchantCallback string //0：否、1:是、2:不需回调
+	if len(in.NotifyUrl) > 0{
+		isMerchantCallback = constants.MERCHANT_CALL_BACK_NO
+	} else {
+		isMerchantCallback = constants.MERCHANT_CALL_BACK_DONT_USE
+	}
 	// 初始化订单
 	txOrder := &types.Order{
 		MerchantCode:         in.MerchantCode,
@@ -55,7 +62,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		OrderNo:              in.OrderNo,
 		Type:                 constants.ORDER_TYPE_XF,
 		Status:               constants.WAIT_PROCESS,
-		IsMerchantCallback:   constants.IS_MERCHANT_CALLBACK_NOT_NEED,
+		IsMerchantCallback:   isMerchantCallback,
 		IsLock:               constants.IS_LOCK_NO,
 		IsCalculateProfit:    constants.IS_CALCULATE_PROFIT_NO,
 		IsTest:               constants.IS_TEST_NO, //是否測試單
