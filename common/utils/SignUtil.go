@@ -14,6 +14,7 @@ import (
 	"time"
 )
 
+//测试
 func GetSign(source string) string {
 	data := []byte(source)
 	result := fmt.Sprintf("%x", md5.Sum(data))
