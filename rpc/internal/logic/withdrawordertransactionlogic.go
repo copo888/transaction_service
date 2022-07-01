@@ -125,7 +125,11 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err1.Error(), updateBalance)
 		//TODO  IF 更新钱包错误是response.DATABASE_FAILURE THEN return SYSTEM_ERROR
 		tx.Rollback()
-		return nil, err1
+		return &transactionclient.WithdrawOrderResponse{
+			Code: response.SYSTEM_ERROR,
+			Message: "钱包异动失败",
+			OrderNo: txOrder.OrderNo,
+		}, nil
 	} else {
 		logx.Infof("下发提单 %s，錢包扣款成功", merchantBalanceRecord.OrderNo)
 		txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance // 商戶錢包異動紀錄
@@ -138,10 +142,14 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 	}).Error; err3 != nil {
 		logx.Errorf("新增下发提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err3.Error())
 		tx.Rollback()
-		return nil, err3
+		return &transactionclient.WithdrawOrderResponse{
+			Code: response.DATABASE_FAILURE,
+			Message: "数据库错误 tx_orders Create",
+			OrderNo: txOrder.OrderNo,
+		}, nil
 	}
 
-	//計算商戶利潤
+	//計算商戶利潤（不报错）
 	calculateProfit := types.CalculateProfit{
 		MerchantCode:        txOrder.MerchantCode,
 		OrderNo:             txOrder.OrderNo,
@@ -150,16 +158,13 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		BalanceType:         txOrder.BalanceType,
 		OrderAmount:         txOrder.ActualAmount,
 	}
-	if err4 := l.calculateOrderProfit(tx, calculateProfit); err4 != nil {
+	if err4 := l.calculateOrderProfit(l.svcCtx.MyDB, calculateProfit); err4 != nil {
 		logx.Errorf("计算下发利润失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err4.Error())
-		tx.Rollback()
-		return nil, err4
 	}
 
 	if err4 := tx.Commit().Error; err4 != nil {
 		logx.Errorf("最终新增下发提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err4.Error())
 		tx.Rollback()
-		return nil, err4
 	}
 
 	// 新單新增訂單歷程 (不抱錯) TODO: 異步??

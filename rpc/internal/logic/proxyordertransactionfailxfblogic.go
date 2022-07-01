@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"github.com/copo888/transaction_service/common/constants"
+	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/rpc/internal/model"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
@@ -31,8 +32,11 @@ func (l *ProxyOrderTransactionFailXFBLogic) ProxyOrderTransactionFail_XFB(in *tr
 	merchantBalanceRecord := types.MerchantBalanceRecord{}
 	var txOrder = &types.OrderX{}
 	var errQuery error
-	if txOrder, errQuery = model.QueryOrderByOrderNo(l.svcCtx.MyDB, in.OrderNo, ""); err != nil {
-		return nil, errQuery
+	if txOrder, errQuery = model.QueryOrderByOrderNo(l.svcCtx.MyDB, in.OrderNo, ""); errQuery != nil {
+		return &transactionclient.ProxyPayFailResponse{
+			Code: response.DATABASE_FAILURE,
+			Message: "查詢訂單資料錯誤，orderNo : "+ in.OrderNo,
+		}, nil
 	}
 	//失败单
 	txOrder.Status = constants.FAIL
@@ -68,7 +72,10 @@ func (l *ProxyOrderTransactionFailXFBLogic) ProxyOrderTransactionFail_XFB(in *tr
 
 		return
 	}); err != nil {
-		return
+		return &transactionclient.ProxyPayFailResponse{
+			Code: response.UPDATE_DATABASE_FAILURE,
+			Message: "異動錢包失敗，orderNo : "+ in.OrderNo,
+		}, nil
 	}
 
 	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{

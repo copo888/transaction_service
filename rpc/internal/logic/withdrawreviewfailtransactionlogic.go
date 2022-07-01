@@ -36,9 +36,15 @@ func (l *WithdrawReviewFailTransactionLogic) WithdrawReviewFailTransaction(in *t
 
 	if err = l.svcCtx.MyDB.Table("tx_orders").Where("order_no = ?", in.OrderNo).Take(&txOrder).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errorz.New(response.DATA_NOT_FOUND)
+			return &transactionclient.WithdrawReviewFailResponse{
+				Code: response.DATA_NOT_FOUND,
+				Message: "找不到资料，orderNo = "+ in.OrderNo,
+			}, nil
 		}
-		return nil, errorz.New(response.DATABASE_FAILURE, err.Error())
+		return &transactionclient.WithdrawReviewFailResponse{
+			Code: response.DATABASE_FAILURE,
+			Message: "查询下发订单失败，orderNo = "+ in.OrderNo,
+		}, nil
 	}
 
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
@@ -55,7 +61,7 @@ func (l *WithdrawReviewFailTransactionLogic) WithdrawReviewFailTransaction(in *t
 			Comment:         txOrder.Memo,
 			CreatedBy:       in.UserAccount,
 		}); err != nil {
-			return
+			return err
 		}
 
 		txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance
@@ -67,11 +73,14 @@ func (l *WithdrawReviewFailTransactionLogic) WithdrawReviewFailTransaction(in *t
 
 		// 編輯訂單
 		if err = db.Table("tx_orders").Updates(&txOrder).Error; err != nil {
-			return
+			return err
 		}
-		return
+		return nil
 	}); err != nil {
-		return
+		return &transactionclient.WithdrawReviewFailResponse{
+			Code: response.SYSTEM_ERROR,
+			Message: "钱包异动失败，orderNo = "+ in.OrderNo,
+		}, nil
 	}
 
 	// 新單新增訂單歷程 (不抱錯)

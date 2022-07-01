@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"github.com/copo888/transaction_service/common/constants"
+	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/model"
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
@@ -103,7 +104,10 @@ func (l *InternalOrderTransactionLogic) InternalOrderTransaction(in *transaction
 
 		return nil
 	}); err != nil {
-		return
+		return &transactionclient.InternalOrderResponse{
+			Code: response.DATABASE_FAILURE,
+			Message: "数据库错误 tx_orders Create internal charge，err : "+ err.Error(),
+		}, nil
 	}
 
 	// 新單新增訂單歷程 (不抱錯) TODO: 異步??

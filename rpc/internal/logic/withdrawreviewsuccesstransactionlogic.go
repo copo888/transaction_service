@@ -39,9 +39,15 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 
 	if err = l.svcCtx.MyDB.Table("tx_orders").Where("order_no = ?", in.OrderNo).Take(&txOrder).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errorz.New(response.DATA_NOT_FOUND)
+			return &transactionclient.WithdrawReviewSuccessResponse{
+				Code: response.DATA_NOT_FOUND,
+				Message: "下发订单查无资料，orderNo = "+ in.OrderNo,
+			}, nil
 		}
-		return nil, errorz.New(response.DATABASE_FAILURE, err.Error())
+		return &transactionclient.WithdrawReviewSuccessResponse{
+			Code: response.DATABASE_FAILURE,
+			Message: "数据库错误，err : "+ err.Error(),
+		}, nil
 	}
 
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
@@ -108,7 +114,10 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 		return nil
 
 	}); err != nil {
-		return
+		return &transactionclient.WithdrawReviewSuccessResponse{
+			Code: response.UPDATE_DATABASE_FAILURE,
+			Message: "下发审核更新失敗，orderNo = "+ in.OrderNo + "，err : "+ err.Error(),
+		}, nil
 	}
 
 	// 新單新增訂單歷程 (不抱錯)

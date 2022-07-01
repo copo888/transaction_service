@@ -36,9 +36,16 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 
 	if err = l.svcCtx.MyDB.Table("tx_orders").Where("order_no = ?", in.OrderNo).Take(&txOrder).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errorz.New(response.DATA_NOT_FOUND)
+			return &transactionclient.InternalReviewSuccessResponse{
+				Code:    response.DATA_NOT_FOUND,
+				Message: "找不到资料，orderNo = " + in.OrderNo,
+			}, nil
 		}
-		return nil, errorz.New(response.DATABASE_FAILURE, err.Error())
+		return
+		return &transactionclient.InternalReviewSuccessResponse{
+			Code:    response.DATABASE_FAILURE,
+			Message: "找不到资料，orderNo = " + in.OrderNo,
+		}, nil
 	}
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 		// 異動錢包
@@ -73,7 +80,11 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 
 		return
 	}); err != nil {
-		return
+		return &transactionclient.InternalReviewSuccessResponse{
+			Code:    response.UPDATE_DATABASE_FAILURE,
+			Message: "数据库错误 tx_orders Update Internal Charge review， err : " + err.Error(),
+			OrderNo: in.OrderNo,
+		}, nil
 	}
 
 	// 新單新增訂單歷程 (不抱錯)

@@ -31,10 +31,14 @@ message ProxyPayFailRequest{
 
 message ProxyPayFailResponse{
   string ProxyOrderNo = 1;
+  string Code = 2;
+  string Message = 3;
 }
 
 message ProxyOrderResponse {
   string ProxyOrderNo = 1;
+  string Code = 2;
+  string Message = 3;
 }
 
 message PayOrderSwitchTestRequest {
@@ -137,6 +141,8 @@ message InternalOrderRequest {
 
 message InternalOrderResponse {
   string orderNo = 1;
+  string Code = 2;
+  string Message = 3;
 }
 
 message InternalOrder {
@@ -200,6 +206,8 @@ message WithdrawOrderRequest {
 }
 message WithdrawOrderResponse {
   string OrderNo = 1;
+  string Code = 2;
+  string Message = 3;
 }
 
 message PayCallBackRequest {
@@ -233,6 +241,8 @@ message InternalReviewSuccessRequest {
 
 message InternalReviewSuccessResponse {
   string OrderNo = 1;
+  string Code = 2;
+  string Message = 3;
 }
 
 message WithdrawReviewFailRequest {
@@ -243,6 +253,8 @@ message WithdrawReviewFailRequest {
 
 message WithdrawReviewFailResponse {
   string OrderNo = 1;
+  string Code = 2;
+  string Message = 3;
 }
 
 message WithdrawReviewSuccessRequest {
@@ -253,6 +265,8 @@ message WithdrawReviewSuccessRequest {
 
 message WithdrawReviewSuccessResponse {
   string OrderNo = 1;
+  string Code = 2;
+  string Message = 3;
 }
 
 message ChannelWithdraw {
@@ -267,6 +281,8 @@ message ProxyOrderUIRequest {
 
 message ProxyOrderUIResponse{
   string ProxyOrderNo = 1;
+  string Code = 2;
+  string Message = 3;
 }
 
 message ProxyOrderUI {
@@ -363,6 +379,8 @@ message PersonalRebundRequest {
 
 message PersonalRebundResponse {
   string orderNo = 1;
+  string Code = 2;
+  string Message = 3;
 }
 
 message RecalculateProfitRequest {

@@ -89,11 +89,17 @@ func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(in *transa
 	if txOrder.OrderAmount < rate.SingleMinCharge {
 		//金额超过上限
 		logx.Errorf("錯誤:代付金額未達下限")
-		return nil, errorz.New(response.ORDER_AMOUNT_LIMIT_MAX)
+		return &transactionclient.ProxyOrderUIResponse{
+			Code: response.ORDER_AMOUNT_LIMIT_MIN,
+			Message: "代付金額未達下限，orderNo : "+ txOrder.OrderNo,
+		}, nil
 	} else if txOrder.OrderAmount > rate.SingleMaxCharge {
 		//下发金额未达下限
 		logx.Errorf("錯誤:代付金額超過上限")
-		return nil, errorz.New(response.ORDER_AMOUNT_LIMIT_MIN)
+		return &transactionclient.ProxyOrderUIResponse{
+			Code: response.ORDER_AMOUNT_LIMIT_MAX,
+			Message: "代付金額超过上限，orderNo : "+ txOrder.OrderNo,
+		}, nil
 	}
 
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
@@ -118,7 +124,11 @@ func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(in *transa
 
 		return nil
 	}); err != nil {
-		return
+		return &transactionclient.ProxyOrderUIResponse{
+			Code: response.DATABASE_FAILURE,
+			Message: "数据库错误 tx_orders Create ui proxy-pay，err : "+ err.Error(),
+			ProxyOrderNo: txOrder.OrderNo,
+		}, nil
 	}
 
 	// 計算利潤(不報錯) TODO: 異步??

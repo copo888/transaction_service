@@ -133,7 +133,10 @@ func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(in *transactionc
 
 		return nil
 	}); err != nil {
-		return
+		return &transactionclient.ProxyOrderResponse{
+			Code: response.UPDATE_DATABASE_FAILURE,
+			Message: "異動錢包失敗，orderNo : "+ req.OrderNo,
+		}, nil
 	}
 
 	// 計算利潤(不報錯) TODO: 異步??

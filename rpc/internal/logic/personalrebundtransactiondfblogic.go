@@ -3,7 +3,6 @@ package logic
 import (
 	"context"
 	"github.com/copo888/transaction_service/common/constants"
-	"github.com/copo888/transaction_service/common/errorz"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
@@ -33,7 +32,10 @@ func (l *PersonalRebundTransactionDFBLogic) PersonalRebundTransaction_DFB(in *tr
 	merchantBalanceRecord := types.MerchantBalanceRecord{}
 	var txOrder = types.Order{}
 	if err = l.svcCtx.MyDB.Table("tx_orders").Where("order_no = ?", in.OrderNo).Take(&txOrder).Error; err != nil {
-		return nil, errorz.New(response.DATABASE_FAILURE, err.Error())
+		return &transactionclient.PersonalRebundResponse{
+			Code: response.DATA_NOT_FOUND,
+			Message: "查无单号资料，orderNo = "+ in.OrderNo,
+		}, nil
 	}
 	//失败单
 	txOrder.Status = constants.FAIL
@@ -61,7 +63,7 @@ func (l *PersonalRebundTransactionDFBLogic) PersonalRebundTransaction_DFB(in *tr
 
 		if merchantBalanceRecord, err = merchantbalanceservice.UpdateDFBalance_Deposit(db, updateBalance); err != nil {
 			logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
-			return
+			return err
 		} else {
 			logx.Infof("代付API提单失败 %s，代付錢包退款成功", merchantBalanceRecord.OrderNo)
 		}
@@ -70,12 +72,15 @@ func (l *PersonalRebundTransactionDFBLogic) PersonalRebundTransaction_DFB(in *tr
 			Order:   txOrder,
 			TransAt: jTime.New(),
 		}).Error; err != nil {
-			return
+			return err
 		}
 
-		return
+		return nil
 	}); err != nil {
-		return
+		return &transactionclient.PersonalRebundResponse{
+			Code: response.UPDATE_DATABASE_FAILURE,
+			Message: "人工还款失败，err : "+ err.Error(),
+		}, nil
 	}
 
 	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
