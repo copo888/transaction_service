@@ -39,8 +39,8 @@ func (l *ProxyOrderTransactionFailDFBLogic) ProxyOrderTransactionFail_DFB(in *tr
 	var errQuery error
 	if txOrder, errQuery = model.QueryOrderByOrderNo(l.svcCtx.MyDB, in.OrderNo, ""); errQuery != nil {
 		return &transactionclient.ProxyPayFailResponse{
-			Code: response.DATABASE_FAILURE,
-			Message: "查詢訂單資料錯誤，orderNo : "+ in.OrderNo,
+			Code:    response.DATABASE_FAILURE,
+			Message: "查詢訂單資料錯誤，orderNo : " + in.OrderNo,
 		}, nil
 	}
 	//失败单
@@ -79,8 +79,8 @@ func (l *ProxyOrderTransactionFailDFBLogic) ProxyOrderTransactionFail_DFB(in *tr
 		return
 	}); err != nil {
 		return &transactionclient.ProxyPayFailResponse{
-			Code: response.UPDATE_DATABASE_FAILURE,
-			Message: "異動錢包失敗，orderNo : "+ in.OrderNo,
+			Code:    response.UPDATE_DATABASE_FAILURE,
+			Message: "異動錢包失敗，orderNo : " + in.OrderNo,
 		}, nil
 	}
 
@@ -95,9 +95,9 @@ func (l *ProxyOrderTransactionFailDFBLogic) ProxyOrderTransactionFail_DFB(in *tr
 		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
 	}
 
-	failResp := &transactionclient.ProxyPayFailResponse{
+	return &transactionclient.ProxyPayFailResponse{
+		Code:         response.API_SUCCESS,
+		Message:      "操作成功",
 		ProxyOrderNo: txOrder.OrderNo,
-	}
-
-	return failResp, nil
+	}, nil
 }

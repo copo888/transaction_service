@@ -134,8 +134,8 @@ func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(in *transactionc
 		return nil
 	}); err != nil {
 		return &transactionclient.ProxyOrderResponse{
-			Code: response.UPDATE_DATABASE_FAILURE,
-			Message: "異動錢包失敗，orderNo : "+ req.OrderNo,
+			Code:    response.UPDATE_DATABASE_FAILURE,
+			Message: "異動錢包失敗，orderNo : " + req.OrderNo,
 		}, nil
 	}
 
@@ -165,9 +165,9 @@ func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(in *transactionc
 		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
 	}
 
-	proxyOrderResp := &transactionclient.ProxyOrderResponse{
+	return &transactionclient.ProxyOrderResponse{
+		Code:         response.API_SUCCESS,
+		Message:      "操作成功",
 		ProxyOrderNo: txOrder.OrderNo,
-	}
-
-	return proxyOrderResp, nil
+	}, nil
 }
