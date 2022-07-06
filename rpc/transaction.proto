@@ -426,10 +426,31 @@ message ConfirmCommissionMonthReportRequest {
   string ConfirmBy = 2;
 }
 
-message   ConfirmCommissionMonthReportResponse {
+message ConfirmCommissionMonthReportResponse {
   string Code = 1;
   string Message = 2;
 }
+
+message WithdrawCommissionOrderRequest {
+  string OrderNo = 1;
+  string MerchantCode = 2;
+  string WithdrawCurrencyCode = 3;
+  string PayCurrencyCode = 4;
+  double WithdrawAmount = 5;
+  double ExchangeRate = 6;
+  double PayAmount = 7;
+  string Remark = 8;
+  string AttachmentPath = 9;
+  string PayAt = 10;
+}
+
+message   WithdrawCommissionOrderResponse {
+  string Code = 1;
+  string Message = 2;
+}
+
+
+
 
 service Transaction {
 
@@ -492,4 +513,6 @@ service Transaction {
   rpc RecalculateCommissionMonthReport(RecalculateCommissionMonthReportRequest) returns (RecalculateCommissionMonthReportResponse);
 
   rpc ConfirmCommissionMonthReport(ConfirmCommissionMonthReportRequest) returns (ConfirmCommissionMonthReportResponse);
+
+  rpc WithdrawCommissionOrderTransaction(WithdrawCommissionOrderRequest) returns (WithdrawCommissionOrderResponse);
 }

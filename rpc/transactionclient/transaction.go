@@ -61,6 +61,8 @@ type (
 	RecoverReceiptOrderResponse              = transaction.RecoverReceiptOrderResponse
 	UnFrozenReceiptOrderRequest              = transaction.UnFrozenReceiptOrderRequest
 	UnFrozenReceiptOrderResponse             = transaction.UnFrozenReceiptOrderResponse
+	WithdrawCommissionOrderRequest           = transaction.WithdrawCommissionOrderRequest
+	WithdrawCommissionOrderResponse          = transaction.WithdrawCommissionOrderResponse
 	WithdrawOrderRequest                     = transaction.WithdrawOrderRequest
 	WithdrawOrderResponse                    = transaction.WithdrawOrderResponse
 	WithdrawReviewFailRequest                = transaction.WithdrawReviewFailRequest
@@ -99,6 +101,7 @@ type (
 		CalculateCommissionMonthAllReport(ctx context.Context, in *CalculateCommissionMonthAllRequest, opts ...grpc.CallOption) (*CalculateCommissionMonthAllResponse, error)
 		RecalculateCommissionMonthReport(ctx context.Context, in *RecalculateCommissionMonthReportRequest, opts ...grpc.CallOption) (*RecalculateCommissionMonthReportResponse, error)
 		ConfirmCommissionMonthReport(ctx context.Context, in *ConfirmCommissionMonthReportRequest, opts ...grpc.CallOption) (*ConfirmCommissionMonthReportResponse, error)
+		WithdrawCommissionOrderTransaction(ctx context.Context, in *WithdrawCommissionOrderRequest, opts ...grpc.CallOption) (*WithdrawCommissionOrderResponse, error)
 	}
 
 	defaultTransaction struct {
@@ -260,4 +263,9 @@ func (m *defaultTransaction) RecalculateCommissionMonthReport(ctx context.Contex
 func (m *defaultTransaction) ConfirmCommissionMonthReport(ctx context.Context, in *ConfirmCommissionMonthReportRequest, opts ...grpc.CallOption) (*ConfirmCommissionMonthReportResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.ConfirmCommissionMonthReport(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) WithdrawCommissionOrderTransaction(ctx context.Context, in *WithdrawCommissionOrderRequest, opts ...grpc.CallOption) (*WithdrawCommissionOrderResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.WithdrawCommissionOrderTransaction(ctx, in, opts...)
 }
