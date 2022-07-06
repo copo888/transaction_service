@@ -442,6 +442,7 @@ message WithdrawCommissionOrderRequest {
   string Remark = 8;
   string AttachmentPath = 9;
   string PayAt = 10;
+  string CreatedBy = 11;
 }
 
 message   WithdrawCommissionOrderResponse {
