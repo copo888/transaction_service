@@ -182,16 +182,6 @@ type UpdateFrozenAmount struct {
 	CreatedBy       string
 }
 
-type UpdateCommissionAmount struct {
-	MerchantCode            string
-	CurrencyCode            string
-	CommissionMonthReportId int64
-	TransactionType         string
-	TransferAmount          float64
-	Comment                 string
-	CreatedBy               string
-}
-
 type CorrespondMerChnRate struct {
 	MerchantCode        string  `json:"merchantCode"`
 	ChannelPayTypesCode string  `json:"channelPayTypesCode"`

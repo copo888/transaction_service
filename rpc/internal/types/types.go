@@ -792,8 +792,9 @@ type MerchantCommissionRecord struct {
 	ID                      int64   `json:"id, optional"`
 	MerchantBalanceId       int64   `json:"merchantBalanceId"`
 	MerchantCode            string  `json:"merchantCode, optional"`
+	OrderNo                 string  `json:"orderNo, optional"`
 	CurrencyCode            string  `json:"currencyCode, optional"`
-	CommissionMonthReportId int64  `json:"commissionMonthReportId"`
+	CommissionMonthReportId int64   `json:"commissionMonthReportId"`
 	TransactionType         string  `json:"transactionType"`
 	BeforeCommission        float64 `json:"before_commission"`
 	TransferAmount          float64 `json:"transferAmount"`
