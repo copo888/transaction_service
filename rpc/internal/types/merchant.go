@@ -182,6 +182,18 @@ type UpdateFrozenAmount struct {
 	CreatedBy       string
 }
 
+type FrozenManually struct {
+	MerchantCode    string
+	CurrencyCode    string
+	OrderNo         string
+	OrderType       string
+	TransactionType string
+	BalanceType     string
+	FrozenAmount    float64
+	Comment         string
+	CreatedBy       string
+}
+
 type CorrespondMerChnRate struct {
 	MerchantCode        string  `json:"merchantCode"`
 	ChannelPayTypesCode string  `json:"channelPayTypesCode"`

@@ -37,6 +37,11 @@ func (s *TransactionServer) MerchantBalanceUpdateTranaction(ctx context.Context,
 	return l.MerchantBalanceUpdateTranaction(in)
 }
 
+func (s *TransactionServer) MerchantBalanceFreezeTranaction(ctx context.Context, in *transaction.MerchantBalanceFreezeRequest) (*transaction.MerchantBalanceFreezeResponse, error) {
+	l := logic.NewMerchantBalanceFreezeTranactionLogic(ctx, s.svcCtx)
+	return l.MerchantBalanceFreezeTranaction(in)
+}
+
 func (s *TransactionServer) ProxyOrderTranaction_DFB(ctx context.Context, in *transaction.ProxyOrderRequest) (*transaction.ProxyOrderResponse, error) {
 	l := logic.NewProxyOrderTranactionDFBLogic(ctx, s.svcCtx)
 	return l.ProxyOrderTranaction_DFB(in)

@@ -31,6 +31,8 @@ type (
 	InternalReviewSuccessResponse            = transaction.InternalReviewSuccessResponse
 	MakeUpReceiptOrderRequest                = transaction.MakeUpReceiptOrderRequest
 	MakeUpReceiptOrderResponse               = transaction.MakeUpReceiptOrderResponse
+	MerchantBalanceFreezeRequest             = transaction.MerchantBalanceFreezeRequest
+	MerchantBalanceFreezeResponse            = transaction.MerchantBalanceFreezeResponse
 	MerchantBalanceUpdateRequest             = transaction.MerchantBalanceUpdateRequest
 	MerchantBalanceUpdateResponse            = transaction.MerchantBalanceUpdateResponse
 	MerchantOrderRateListView                = transaction.MerchantOrderRateListView
@@ -72,6 +74,7 @@ type (
 
 	Transaction interface {
 		MerchantBalanceUpdateTranaction(ctx context.Context, in *MerchantBalanceUpdateRequest, opts ...grpc.CallOption) (*MerchantBalanceUpdateResponse, error)
+		MerchantBalanceFreezeTranaction(ctx context.Context, in *MerchantBalanceFreezeRequest, opts ...grpc.CallOption) (*MerchantBalanceFreezeResponse, error)
 		ProxyOrderTranaction_DFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error)
 		ProxyOrderTranaction_XFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error)
 		ProxyOrderTransactionFail_DFB(ctx context.Context, in *ProxyPayFailRequest, opts ...grpc.CallOption) (*ProxyPayFailResponse, error)
@@ -118,6 +121,11 @@ func NewTransaction(cli zrpc.Client) Transaction {
 func (m *defaultTransaction) MerchantBalanceUpdateTranaction(ctx context.Context, in *MerchantBalanceUpdateRequest, opts ...grpc.CallOption) (*MerchantBalanceUpdateResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.MerchantBalanceUpdateTranaction(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) MerchantBalanceFreezeTranaction(ctx context.Context, in *MerchantBalanceFreezeRequest, opts ...grpc.CallOption) (*MerchantBalanceFreezeResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.MerchantBalanceFreezeTranaction(ctx, in, opts...)
 }
 
 func (m *defaultTransaction) ProxyOrderTranaction_DFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error) {
