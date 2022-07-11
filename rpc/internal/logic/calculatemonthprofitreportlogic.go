@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"errors"
 	"github.com/copo888/transaction_service/common/errorz"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
@@ -140,28 +141,62 @@ func (l *CalculateMonthProfitReportLogic) calculateMonthProfitReport(db *gorm.DB
 		profitGrowthRate = utils.FloatMul(utils.FloatDiv(utils.FloatSub(totalNetProfit, oldIncomReport.TotalNetProfit),oldIncomReport.TotalNetProfit), 100)
 	}
 
+	var incomReport types.IncomReportX
+	if err := db.Table("rp_incom_report").
+		Where("month = ? AND currency_code = ?", month, report.CurrencyCode).
+		Take(&incomReport).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound){
+				var newIncomReportX types.IncomReportX
+				newIncomReportX.Month = month
+				newIncomReportX.CurrencyCode = report.CurrencyCode
+				newIncomReportX.PayTotalAmount = zfDetail.TotalAmount
+				newIncomReportX.PayNetProfit = zfDetail.TotalProfit
+				newIncomReportX.InternalChargeTotalAmount = ncDetail.TotalAmount
+				newIncomReportX.InternalChargeNetProfit = ncDetail.TotalProfit
+				newIncomReportX.WithdrawTotalAmount = wfDetail.TotalAmount
+				newIncomReportX.WithdrawNetProfit = wfDetail.TotalProfit
+				newIncomReportX.ProxyPayTotalAmount = dfDetail.TotalAmount
+				newIncomReportX.ProxyPayNetProfit = dfDetail.TotalProfit
+				newIncomReportX.ReceivedTotalNetProfit = receivedTotalNetProfit
+				newIncomReportX.RemitTotalNetProfit = remitTotalNetProfit
+				newIncomReportX.TotalNetProfit = totalNetProfit
+				newIncomReportX.CommissionTotalAmount = commissionTotalAmount
+				newIncomReportX.ProfitGrowthRate = profitGrowthRate
 
-	var incomReportX types.IncomReportX
-	incomReportX.Month = month
-	incomReportX.CurrencyCode = report.CurrencyCode
-	incomReportX.PayTotalAmount = zfDetail.TotalAmount
-	incomReportX.PayNetProfit = zfDetail.TotalProfit
-	incomReportX.InternalChargeTotalAmount = ncDetail.TotalAmount
-	incomReportX.InternalChargeNetProfit = ncDetail.TotalProfit
-	incomReportX.WithdrawTotalAmount = wfDetail.TotalAmount
-	incomReportX.WithdrawNetProfit = wfDetail.TotalProfit
-	incomReportX.ProxyPayTotalAmount = dfDetail.TotalAmount
-	incomReportX.ProxyPayNetProfit = dfDetail.TotalProfit
-	incomReportX.ReceivedTotalNetProfit = receivedTotalNetProfit
-	incomReportX.RemitTotalNetProfit = remitTotalNetProfit
-	incomReportX.TotalNetProfit = totalNetProfit
-	incomReportX.CommissionTotalAmount = commissionTotalAmount
-	incomReportX.ProfitGrowthRate = profitGrowthRate
+				if err := db.Table("rp_incom_report").Create(&newIncomReportX).Error; err != nil {
+					logx.Errorf("新增收益報表失敗: %#v, error: %s", newIncomReportX, err.Error())
+					return errorz.New(response.DATABASE_FAILURE)
+				}
+			}else {
+				return errorz.New(response.DATABASE_FAILURE)
+			}
+	}
 
-	if err := db.Table("rp_incom_report").Create(&incomReportX).Error; err != nil {
-		logx.Errorf("新增收益報表失敗: %#v, error: %s", incomReportX, err.Error())
+	if err := db.Table("rp_icom_report").Delete(&incomReport).Error; err != nil {
 		return errorz.New(response.DATABASE_FAILURE)
 	}
+	var newIncomReportX types.IncomReportX
+	newIncomReportX.Month = month
+	newIncomReportX.CurrencyCode = report.CurrencyCode
+	newIncomReportX.PayTotalAmount = zfDetail.TotalAmount
+	newIncomReportX.PayNetProfit = zfDetail.TotalProfit
+	newIncomReportX.InternalChargeTotalAmount = ncDetail.TotalAmount
+	newIncomReportX.InternalChargeNetProfit = ncDetail.TotalProfit
+	newIncomReportX.WithdrawTotalAmount = wfDetail.TotalAmount
+	newIncomReportX.WithdrawNetProfit = wfDetail.TotalProfit
+	newIncomReportX.ProxyPayTotalAmount = dfDetail.TotalAmount
+	newIncomReportX.ProxyPayNetProfit = dfDetail.TotalProfit
+	newIncomReportX.ReceivedTotalNetProfit = receivedTotalNetProfit
+	newIncomReportX.RemitTotalNetProfit = remitTotalNetProfit
+	newIncomReportX.TotalNetProfit = totalNetProfit
+	newIncomReportX.CommissionTotalAmount = commissionTotalAmount
+	newIncomReportX.ProfitGrowthRate = profitGrowthRate
+
+	if err := db.Table("rp_incom_report").Create(&newIncomReportX).Error; err != nil {
+		logx.Errorf("新增收益報表失敗: %#v, error: %s", newIncomReportX, err.Error())
+		return errorz.New(response.DATABASE_FAILURE)
+	}
+
 	return nil
 }
 
@@ -222,7 +257,8 @@ func getAllMonthReports(db *gorm.DB, startAt, endAt string) ([]types.CaculateMon
 func (l *CalculateMonthProfitReportLogic) calculateCommissionMonthData (db *gorm.DB, month, currencyCode string) (float64, error){
 	var commissionMonthReports []types.CommissionMonthReport
 	if err := db.Table("cm_commission_month_reports").
-		Where("month = ? AND currency_code = ? And ", month, currencyCode).Find(&commissionMonthReports).Error; err != nil {
+		Where("month = ? AND currency_code = ? And status = ?", month, currencyCode, "1").
+		Find(&commissionMonthReports).Error; err != nil {
 		return 0.0, errorz.New(response.DATABASE_FAILURE)
 	}
 
