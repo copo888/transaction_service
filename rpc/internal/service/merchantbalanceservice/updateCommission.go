@@ -40,6 +40,7 @@ func UpdateCommissionAmount(db *gorm.DB, updateCommissionAmount types.UpdateComm
 		MerchantCode:            merchantBalance.MerchantCode,
 		CurrencyCode:            merchantBalance.CurrencyCode,
 		CommissionMonthReportId: updateCommissionAmount.CommissionMonthReportId,
+		OrderNo:                 updateCommissionAmount.OrderNo,
 		TransactionType:         updateCommissionAmount.TransactionType,
 		BeforeCommission:        beforeCommission,
 		TransferAmount:          updateCommissionAmount.TransferAmount,

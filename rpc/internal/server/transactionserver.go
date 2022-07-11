@@ -38,6 +38,11 @@ func (s *TransactionServer) MerchantBalanceUpdateTranaction(ctx context.Context,
 	return l.MerchantBalanceUpdateTranaction(in)
 }
 
+func (s *TransactionServer) MerchantBalanceFreezeTranaction(ctx context.Context, in *transactionclient.MerchantBalanceFreezeRequest) (*transactionclient.MerchantBalanceFreezeResponse, error) {
+	l := logic.NewMerchantBalanceFreezeTranactionLogic(ctx, s.svcCtx)
+	return l.MerchantBalanceFreezeTranaction(in)
+}
+
 func (s *TransactionServer) ProxyOrderTranaction_DFB(ctx context.Context, in *transactionclient.ProxyOrderRequest) (*transactionclient.ProxyOrderResponse, error) {
 	l := logic.NewProxyOrderTranactionDFBLogic(ctx, s.svcCtx)
 	return l.ProxyOrderTranaction_DFB(in)
@@ -186,4 +191,9 @@ func (s *TransactionServer) ConfirmCommissionMonthReport(ctx context.Context, in
 func (s *TransactionServer) CalculateMonthProfitReport(ctx context.Context, in *transactionclient.CalculateMonthProfitReportRequest) (*transactionclient.CalculateMonthProfitReportResponse, error) {
 	l := logic.NewCalculateMonthProfitReportLogic(ctx, s.svcCtx)
 	return l.CalculateMonthProfitReport(in)
+}
+
+func (s *TransactionServer) WithdrawCommissionOrderTransaction(ctx context.Context, in *transactionclient.WithdrawCommissionOrderRequest) (*transactionclient.WithdrawCommissionOrderResponse, error) {
+	l := logic.NewWithdrawCommissionOrderTransactionLogic(ctx, s.svcCtx)
+	return l.WithdrawCommissionOrderTransaction(in)
 }

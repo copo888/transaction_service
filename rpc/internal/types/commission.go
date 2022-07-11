@@ -48,3 +48,36 @@ type CommissionMonthReportDetail struct {
 	TotalNumber             float64 `json:"totalNumber"`
 	TotalCommission         float64 `json:"totalCommission"`
 }
+
+type UpdateCommissionAmount struct {
+	MerchantCode            string
+	CurrencyCode            string
+	CommissionMonthReportId int64
+	OrderNo                 string
+	TransactionType         string
+	TransferAmount          float64
+	Comment                 string
+	CreatedBy               string
+}
+
+type CommissionWithdrawOrderX struct {
+	CommissionWithdrawOrder
+	PayAt     JsonTime `json:"payAt, optional"`
+	CreatedAt JsonTime `json:"createdAt, optional"`
+	UpdatedAt JsonTime `json:"createdAt, optional"`
+}
+
+type CommissionWithdrawOrder struct {
+	ID                   int64   `json:"id, optional"`
+	OrderNo              string  `json:"orderNo, optional"`
+	MerchantCode         string  `json:"merchantCode, optional"`
+	WithdrawCurrencyCode string  `json:"withdrawCurrencyCode, optional"`
+	PayCurrencyCode      string  `json:"payCurrencyCode, optional"`
+	WithdrawAmount       float64 `json:"withdrawAmount, optional"`
+	ExchangeRate         float64 `json:"exchangeRate, optional"`
+	PayAmount            float64 `json:"payAmount, optional"`
+	AfterCommission      float64 `json:"afterCommission, optional"`
+	Remark               string  `json:"remark, optional"`
+	AttachmentPath       string  `json:"attachmentPath, optional"`
+	CreatedBy            string  `json:"createdBy, optional"`
+}

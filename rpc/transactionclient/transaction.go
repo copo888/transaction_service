@@ -33,6 +33,8 @@ type (
 	InternalReviewSuccessResponse            = transaction.InternalReviewSuccessResponse
 	MakeUpReceiptOrderRequest                = transaction.MakeUpReceiptOrderRequest
 	MakeUpReceiptOrderResponse               = transaction.MakeUpReceiptOrderResponse
+	MerchantBalanceFreezeRequest             = transaction.MerchantBalanceFreezeRequest
+	MerchantBalanceFreezeResponse            = transaction.MerchantBalanceFreezeResponse
 	MerchantBalanceUpdateRequest             = transaction.MerchantBalanceUpdateRequest
 	MerchantBalanceUpdateResponse            = transaction.MerchantBalanceUpdateResponse
 	MerchantOrderRateListView                = transaction.MerchantOrderRateListView
@@ -63,6 +65,8 @@ type (
 	RecoverReceiptOrderResponse              = transaction.RecoverReceiptOrderResponse
 	UnFrozenReceiptOrderRequest              = transaction.UnFrozenReceiptOrderRequest
 	UnFrozenReceiptOrderResponse             = transaction.UnFrozenReceiptOrderResponse
+	WithdrawCommissionOrderRequest           = transaction.WithdrawCommissionOrderRequest
+	WithdrawCommissionOrderResponse          = transaction.WithdrawCommissionOrderResponse
 	WithdrawOrderRequest                     = transaction.WithdrawOrderRequest
 	WithdrawOrderResponse                    = transaction.WithdrawOrderResponse
 	WithdrawReviewFailRequest                = transaction.WithdrawReviewFailRequest
@@ -72,6 +76,7 @@ type (
 
 	Transaction interface {
 		MerchantBalanceUpdateTranaction(ctx context.Context, in *MerchantBalanceUpdateRequest, opts ...grpc.CallOption) (*MerchantBalanceUpdateResponse, error)
+		MerchantBalanceFreezeTranaction(ctx context.Context, in *MerchantBalanceFreezeRequest, opts ...grpc.CallOption) (*MerchantBalanceFreezeResponse, error)
 		ProxyOrderTranaction_DFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error)
 		ProxyOrderTranaction_XFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error)
 		ProxyOrderTransactionFail_DFB(ctx context.Context, in *ProxyPayFailRequest, opts ...grpc.CallOption) (*ProxyPayFailResponse, error)
@@ -102,6 +107,7 @@ type (
 		RecalculateCommissionMonthReport(ctx context.Context, in *RecalculateCommissionMonthReportRequest, opts ...grpc.CallOption) (*RecalculateCommissionMonthReportResponse, error)
 		ConfirmCommissionMonthReport(ctx context.Context, in *ConfirmCommissionMonthReportRequest, opts ...grpc.CallOption) (*ConfirmCommissionMonthReportResponse, error)
 		CalculateMonthProfitReport(ctx context.Context, in *CalculateMonthProfitReportRequest, opts ...grpc.CallOption) (*CalculateMonthProfitReportResponse, error)
+		WithdrawCommissionOrderTransaction(ctx context.Context, in *WithdrawCommissionOrderRequest, opts ...grpc.CallOption) (*WithdrawCommissionOrderResponse, error)
 	}
 
 	defaultTransaction struct {
@@ -118,6 +124,11 @@ func NewTransaction(cli zrpc.Client) Transaction {
 func (m *defaultTransaction) MerchantBalanceUpdateTranaction(ctx context.Context, in *MerchantBalanceUpdateRequest, opts ...grpc.CallOption) (*MerchantBalanceUpdateResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.MerchantBalanceUpdateTranaction(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) MerchantBalanceFreezeTranaction(ctx context.Context, in *MerchantBalanceFreezeRequest, opts ...grpc.CallOption) (*MerchantBalanceFreezeResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.MerchantBalanceFreezeTranaction(ctx, in, opts...)
 }
 
 func (m *defaultTransaction) ProxyOrderTranaction_DFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error) {
@@ -268,4 +279,9 @@ func (m *defaultTransaction) ConfirmCommissionMonthReport(ctx context.Context, i
 func (m *defaultTransaction) CalculateMonthProfitReport(ctx context.Context, in *CalculateMonthProfitReportRequest, opts ...grpc.CallOption) (*CalculateMonthProfitReportResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.CalculateMonthProfitReport(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) WithdrawCommissionOrderTransaction(ctx context.Context, in *WithdrawCommissionOrderRequest, opts ...grpc.CallOption) (*WithdrawCommissionOrderResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.WithdrawCommissionOrderTransaction(ctx, in, opts...)
 }
