@@ -426,7 +426,16 @@ message ConfirmCommissionMonthReportRequest {
   string ConfirmBy = 2;
 }
 
-message   ConfirmCommissionMonthReportResponse {
+message  ConfirmCommissionMonthReportResponse {
+  string Code = 1;
+  string Message = 2;
+}
+
+message CalculateMonthProfitReportRequest {
+  string month = 1;
+}
+
+message CalculateMonthProfitReportResponse {
   string Code = 1;
   string Message = 2;
 }
@@ -492,4 +501,6 @@ service Transaction {
   rpc RecalculateCommissionMonthReport(RecalculateCommissionMonthReportRequest) returns (RecalculateCommissionMonthReportResponse);
 
   rpc ConfirmCommissionMonthReport(ConfirmCommissionMonthReportRequest) returns (ConfirmCommissionMonthReportResponse);
+
+  rpc CalculateMonthProfitReport(CalculateMonthProfitReportRequest) returns (CalculateMonthProfitReportResponse);
 }
