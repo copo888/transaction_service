@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/copo888/transaction_service/common/errorz"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
@@ -44,6 +45,10 @@ func (l *CalculateMonthProfitReportLogic) CalculateMonthProfitReport(in *transac
 		return nil, errorz.New(response.DATABASE_FAILURE)
 	}
 
+	// 取得此月份起訖時間
+	startAt := commissionService.BeginningOfMonth(y, m).Format("2006-01-02 15:04:05")
+	endAt := commissionService.EndOfMonth(y, m).Format("2006-01-02 15:04:05")
+
 	// 上月
 	if m == 1 {
 		m = 12
@@ -52,12 +57,8 @@ func (l *CalculateMonthProfitReportLogic) CalculateMonthProfitReport(in *transac
 		m -= 1
 	}
 	y2 := strconv.Itoa(y)
-	m2 := strconv.Itoa(m)
+	m2 := fmt.Sprintf("%02d",m)
 	preMonth := y2 +"-"+ m2
-
-	// 取得此月份起訖時間
-	startAt := commissionService.BeginningOfMonth(y, m).Format("2006-01-02 15:04:05")
-	endAt := commissionService.EndOfMonth(y, m).Format("2006-01-02 15:04:05")
 
 	reports, err := getAllMonthReports(l.svcCtx.MyDB, startAt, endAt)
 	if err != nil {
@@ -107,7 +108,7 @@ func (l *CalculateMonthProfitReportLogic) calculateMonthProfitReport(db *gorm.DB
 	}
 
 	// 计算下发资料
-	wfDetail, err := l.calculateMonthProfitReportDetails(db, "DF", startAt, endAt, report.CurrencyCode)
+	wfDetail, err := l.calculateMonthProfitReportDetails(db, "XF", startAt, endAt, report.CurrencyCode)
 	if err != nil {
 		logx.Errorf("計算收益報表 下發資料 失敗: %#v, error: %s", wfDetail, err.Error())
 		return err
@@ -121,6 +122,7 @@ func (l *CalculateMonthProfitReportLogic) calculateMonthProfitReport(db *gorm.DB
 	receivedTotalNetProfit = utils.FloatAdd(zfDetail.TotalProfit, ncDetail.TotalProfit)
 	remitTotalNetProfit = utils.FloatAdd(dfDetail.TotalProfit, wfDetail.TotalProfit)
 
+	totalNetProfit = utils.FloatAdd(receivedTotalNetProfit, remitTotalNetProfit)
 	// 計算佣金資料
 	commissionTotalAmount, err := l.calculateCommissionMonthData(db, month, report.CurrencyCode)
 	if err != nil {
@@ -129,14 +131,15 @@ func (l *CalculateMonthProfitReportLogic) calculateMonthProfitReport(db *gorm.DB
 	}
 
 	// 取得上個月收益資料，計算成長率
-	var oldIncomReport *types.IncomReport
-	if err := db.Table("re_incom_repot").
+	oldIncomReports := []types.IncomReport{}
+	if err := db.Table("rp_incom_report").
 		Where("month = ? AND currency_code = ?",preMonth, report.CurrencyCode).
-		Find(oldIncomReport).Error; err != nil {
+		Find(&oldIncomReports).Error; err != nil {
 		logx.Errorf("查詢上月收益報表失敗: error: %s", err.Error())
 		return errorz.New(response.DATABASE_FAILURE)
 	}
-	if oldIncomReport != nil {
+	if len(oldIncomReports) > 0  {
+		oldIncomReport := oldIncomReports[0]
 		// 盈利成長率 = (當月總盈利-上月總盈利)/上月總盈利*100
 		profitGrowthRate = utils.FloatMul(utils.FloatDiv(utils.FloatSub(totalNetProfit, oldIncomReport.TotalNetProfit),oldIncomReport.TotalNetProfit), 100)
 	}
@@ -167,12 +170,13 @@ func (l *CalculateMonthProfitReportLogic) calculateMonthProfitReport(db *gorm.DB
 					logx.Errorf("新增收益報表失敗: %#v, error: %s", newIncomReportX, err.Error())
 					return errorz.New(response.DATABASE_FAILURE)
 				}
+				return nil
 			}else {
 				return errorz.New(response.DATABASE_FAILURE)
 			}
 	}
 
-	if err := db.Table("rp_icom_report").Delete(&incomReport).Error; err != nil {
+	if err := db.Table("rp_incom_report").Delete(&incomReport).Error; err != nil {
 		return errorz.New(response.DATABASE_FAILURE)
 	}
 	var newIncomReportX types.IncomReportX
@@ -203,7 +207,7 @@ func (l *CalculateMonthProfitReportLogic) calculateMonthProfitReport(db *gorm.DB
 func (l *CalculateMonthProfitReportLogic) calculateMonthProfitReportDetails(db *gorm.DB, orderType, startAt, endAt, currencyCode string) ( *types.CaculateMonthProfitReport, error) {
  	var caculateMonthProfitReport types.CaculateMonthProfitReport
 	selectX := "m.merchant_code, " +
-		"o.curency_code, " +
+		"o.currency_code, " +
 		"sum( m.profit_amount ) AS total_profit, "
 
 	if orderType == "NC" {
