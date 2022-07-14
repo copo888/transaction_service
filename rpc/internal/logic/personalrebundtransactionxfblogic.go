@@ -96,6 +96,8 @@ func (l *PersonalRebundTransactionXFBLogic) PersonalRebundTransaction_XFB(in *tr
 
 	failResp := &transactionclient.PersonalRebundResponse{
 		OrderNo: txOrder.OrderNo,
+		Code: response.API_SUCCESS,
+		Message: "操作成功",
 	}
 
 	return failResp, nil

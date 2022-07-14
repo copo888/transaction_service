@@ -97,6 +97,8 @@ func (l *WithdrawReviewFailTransactionLogic) WithdrawReviewFailTransaction(in *t
 
 	resp = &transactionclient.WithdrawReviewFailResponse{
 		OrderNo: txOrder.OrderNo,
+		Code: response.API_SUCCESS,
+		Message: "操作成功",
 	}
 
 	return resp, nil

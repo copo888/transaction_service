@@ -173,6 +173,8 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 	}
 
 	return &transactionclient.WithdrawOrderResponse{
+		Code: response.API_SUCCESS,
+		Message: "操作成功",
 		OrderNo: txOrder.OrderNo,
 	}, nil
 }

@@ -101,6 +101,8 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 
 	resp = &transactionclient.InternalReviewSuccessResponse{
 		OrderNo: txOrder.OrderNo,
+		Code: response.API_SUCCESS,
+		Message: "操作成功",
 	}
 
 	return resp, nil

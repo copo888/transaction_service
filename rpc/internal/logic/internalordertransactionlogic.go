@@ -123,5 +123,7 @@ func (l *InternalOrderTransactionLogic) InternalOrderTransaction(in *transaction
 	}
 	return &transactionclient.InternalOrderResponse{
 		OrderNo: txOrder.OrderNo,
+		Code: response.API_SUCCESS,
+		Message: "操作成功",
 	}, nil
 }
