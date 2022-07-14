@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/neccoys/go-zero-extension/consul"
+	"github.com/zeromicro/go-zero/core/logx"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"log"
 
@@ -34,6 +35,7 @@ func main() {
 
 	var c config.Config
 	conf.MustLoad(*configFile, &c, conf.UseEnv())
+	logx.Info("Version : ", c.Version)
 	ctx := svc.NewServiceContext(c)
 	srv := server.NewTransactionServer(ctx)
 

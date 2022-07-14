@@ -23,4 +23,5 @@ type Config struct {
 		RedisMasterName   string
 		RedisDB           int
 	}
+	Version string
 }
