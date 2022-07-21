@@ -11,8 +11,6 @@ import (
 	"github.com/jinzhu/copier"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
-	"github.com/copo888/transaction_service/rpc/transaction"
-
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -30,7 +28,7 @@ func NewWithdrawCommissionOrderTransactionLogic(ctx context.Context, svcCtx *svc
 	}
 }
 
-func (l *WithdrawCommissionOrderTransactionLogic) WithdrawCommissionOrderTransaction(in *transaction.WithdrawCommissionOrderRequest) (resp *transaction.WithdrawCommissionOrderResponse, err error) {
+func (l *WithdrawCommissionOrderTransactionLogic) WithdrawCommissionOrderTransaction(in *transactionclient.WithdrawCommissionOrderRequest) (resp *transactionclient.WithdrawCommissionOrderResponse, err error) {
 
 	/****     交易開始      ****/
 	txDB := l.svcCtx.MyDB.Begin()

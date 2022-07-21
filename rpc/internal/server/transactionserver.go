@@ -8,6 +8,9 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/logic"
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/transaction"
+	"github.com/copo888/transaction_service/rpc/transactionclient"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
@@ -32,162 +35,365 @@ func (s *TransactionServer) Watch(req *grpc_health_v1.HealthCheckRequest, w grpc
 	return nil
 }
 
-func (s *TransactionServer) MerchantBalanceUpdateTranaction(ctx context.Context, in *transaction.MerchantBalanceUpdateRequest) (*transaction.MerchantBalanceUpdateResponse, error) {
+func (s *TransactionServer) MerchantBalanceUpdateTranaction(ctx context.Context, in *transactionclient.MerchantBalanceUpdateRequest) (*transactionclient.MerchantBalanceUpdateResponse, error) {
 	l := logic.NewMerchantBalanceUpdateTranactionLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "merchant-balance-update-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.MerchantBalanceUpdateTranaction(in)
 }
 
-func (s *TransactionServer) MerchantBalanceFreezeTranaction(ctx context.Context, in *transaction.MerchantBalanceFreezeRequest) (*transaction.MerchantBalanceFreezeResponse, error) {
+func (s *TransactionServer) MerchantBalanceFreezeTranaction(ctx context.Context, in *transactionclient.MerchantBalanceFreezeRequest) (*transactionclient.MerchantBalanceFreezeResponse, error) {
 	l := logic.NewMerchantBalanceFreezeTranactionLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "merchant-balance-freeze-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.MerchantBalanceFreezeTranaction(in)
 }
 
-func (s *TransactionServer) ProxyOrderTranaction_DFB(ctx context.Context, in *transaction.ProxyOrderRequest) (*transaction.ProxyOrderResponse, error) {
+func (s *TransactionServer) ProxyOrderTranaction_DFB(ctx context.Context, in *transactionclient.ProxyOrderRequest) (*transactionclient.ProxyOrderResponse, error) {
 	l := logic.NewProxyOrderTranactionDFBLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "pay-order-DFB-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.ProxyOrderTranaction_DFB(in)
 }
 
-func (s *TransactionServer) ProxyOrderTranaction_XFB(ctx context.Context, in *transaction.ProxyOrderRequest) (*transaction.ProxyOrderResponse, error) {
+func (s *TransactionServer) ProxyOrderTranaction_XFB(ctx context.Context, in *transactionclient.ProxyOrderRequest) (*transactionclient.ProxyOrderResponse, error) {
 	l := logic.NewProxyOrderTranactionXFBLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "pay-order-DFB-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.ProxyOrderTranaction_XFB(in)
 }
 
-func (s *TransactionServer) ProxyOrderTransactionFail_DFB(ctx context.Context, in *transaction.ProxyPayFailRequest) (*transaction.ProxyPayFailResponse, error) {
+func (s *TransactionServer) ProxyOrderTransactionFail_DFB(ctx context.Context, in *transactionclient.ProxyPayFailRequest) (*transactionclient.ProxyPayFailResponse, error) {
 	l := logic.NewProxyOrderTransactionFailDFBLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "pay-order-to-test-DFB-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.ProxyOrderTransactionFail_DFB(in)
 }
 
-func (s *TransactionServer) ProxyOrderTransactionFail_XFB(ctx context.Context, in *transaction.ProxyPayFailRequest) (*transaction.ProxyPayFailResponse, error) {
+func (s *TransactionServer) ProxyOrderTransactionFail_XFB(ctx context.Context, in *transactionclient.ProxyPayFailRequest) (*transactionclient.ProxyPayFailResponse, error) {
 	l := logic.NewProxyOrderTransactionFailXFBLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "pay-order-to-test-DFB-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.ProxyOrderTransactionFail_XFB(in)
 }
 
-func (s *TransactionServer) PayOrderSwitchTest(ctx context.Context, in *transaction.PayOrderSwitchTestRequest) (*transaction.PayOrderSwitchTestResponse, error) {
+func (s *TransactionServer) PayOrderSwitchTest(ctx context.Context, in *transactionclient.PayOrderSwitchTestRequest) (*transactionclient.PayOrderSwitchTestResponse, error) {
 	l := logic.NewPayOrderSwitchTestLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "pay-order-to-test-DFB-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.PayOrderSwitchTest(in)
 }
 
-func (s *TransactionServer) ProxyOrderToTest_DFB(ctx context.Context, in *transaction.ProxyOrderTestRequest) (*transaction.ProxyOrderTestResponse, error) {
+func (s *TransactionServer) ProxyOrderToTest_DFB(ctx context.Context, in *transactionclient.ProxyOrderTestRequest) (*transactionclient.ProxyOrderTestResponse, error) {
 	l := logic.NewProxyOrderToTestDFBLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "proxy-pay-order-to-test-DFB-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.ProxyOrderToTest_DFB(in)
 }
 
-func (s *TransactionServer) ProxyOrderToTest_XFB(ctx context.Context, in *transaction.ProxyOrderTestRequest) (*transaction.ProxyOrderTestResponse, error) {
+func (s *TransactionServer) ProxyOrderToTest_XFB(ctx context.Context, in *transactionclient.ProxyOrderTestRequest) (*transactionclient.ProxyOrderTestResponse, error) {
 	l := logic.NewProxyOrderToTestXFBLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "proxy-pay-order-to-test-XFB-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.ProxyOrderToTest_XFB(in)
 }
 
-func (s *TransactionServer) ProxyTestToNormal_DFB(ctx context.Context, in *transaction.ProxyOrderTestRequest) (*transaction.ProxyOrderTestResponse, error) {
+func (s *TransactionServer) ProxyTestToNormal_DFB(ctx context.Context, in *transactionclient.ProxyOrderTestRequest) (*transactionclient.ProxyOrderTestResponse, error) {
 	l := logic.NewProxyTestToNormalDFBLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "proxy-pay-test-order-to-normal-DFB-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.ProxyTestToNormal_DFB(in)
 }
 
-func (s *TransactionServer) ProxyTestToNormal_XFB(ctx context.Context, in *transaction.ProxyOrderTestRequest) (*transaction.ProxyOrderTestResponse, error) {
+func (s *TransactionServer) ProxyTestToNormal_XFB(ctx context.Context, in *transactionclient.ProxyOrderTestRequest) (*transactionclient.ProxyOrderTestResponse, error) {
 	l := logic.NewProxyTestToNormalXFBLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "proxy-pay-test-order-to-normal-XFB-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.ProxyTestToNormal_XFB(in)
 }
 
-func (s *TransactionServer) PayOrderTranaction(ctx context.Context, in *transaction.PayOrderRequest) (*transaction.PayOrderResponse, error) {
+func (s *TransactionServer) PayOrderTranaction(ctx context.Context, in *transactionclient.PayOrderRequest) (*transactionclient.PayOrderResponse, error) {
 	l := logic.NewPayOrderTranactionLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "Pay-order-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.PayOrderTranaction(in)
 }
 
-func (s *TransactionServer) InternalOrderTransaction(ctx context.Context, in *transaction.InternalOrderRequest) (*transaction.InternalOrderResponse, error) {
+func (s *TransactionServer) InternalOrderTransaction(ctx context.Context, in *transactionclient.InternalOrderRequest) (*transactionclient.InternalOrderResponse, error) {
 	l := logic.NewInternalOrderTransactionLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "Internal-order-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.InternalOrderTransaction(in)
 }
 
-func (s *TransactionServer) WithdrawOrderTransaction(ctx context.Context, in *transaction.WithdrawOrderRequest) (*transaction.WithdrawOrderResponse, error) {
+func (s *TransactionServer) WithdrawOrderTransaction(ctx context.Context, in *transactionclient.WithdrawOrderRequest) (*transactionclient.WithdrawOrderResponse, error) {
 	l := logic.NewWithdrawOrderTransactionLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "withdraw-order-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.WithdrawOrderTransaction(in)
 }
 
-func (s *TransactionServer) PayCallBackTranaction(ctx context.Context, in *transaction.PayCallBackRequest) (*transaction.PayCallBackResponse, error) {
+func (s *TransactionServer) PayCallBackTranaction(ctx context.Context, in *transactionclient.PayCallBackRequest) (*transactionclient.PayCallBackResponse, error) {
 	l := logic.NewPayCallBackTranactionLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "pay-order-call-back-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.PayCallBackTranaction(in)
 }
 
-func (s *TransactionServer) InternalReviewSuccessTransaction(ctx context.Context, in *transaction.InternalReviewSuccessRequest) (*transaction.InternalReviewSuccessResponse, error) {
+func (s *TransactionServer) InternalReviewSuccessTransaction(ctx context.Context, in *transactionclient.InternalReviewSuccessRequest) (*transactionclient.InternalReviewSuccessResponse, error) {
 	l := logic.NewInternalReviewSuccessTransactionLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "internal-order-review-success-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.InternalReviewSuccessTransaction(in)
 }
 
-func (s *TransactionServer) WithdrawReviewFailTransaction(ctx context.Context, in *transaction.WithdrawReviewFailRequest) (*transaction.WithdrawReviewFailResponse, error) {
+func (s *TransactionServer) WithdrawReviewFailTransaction(ctx context.Context, in *transactionclient.WithdrawReviewFailRequest) (*transactionclient.WithdrawReviewFailResponse, error) {
 	l := logic.NewWithdrawReviewFailTransactionLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "withdraw-order-review-fail-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.WithdrawReviewFailTransaction(in)
 }
 
-func (s *TransactionServer) WithdrawReviewSuccessTransaction(ctx context.Context, in *transaction.WithdrawReviewSuccessRequest) (*transaction.WithdrawReviewSuccessResponse, error) {
+func (s *TransactionServer) WithdrawReviewSuccessTransaction(ctx context.Context, in *transactionclient.WithdrawReviewSuccessRequest) (*transactionclient.WithdrawReviewSuccessResponse, error) {
 	l := logic.NewWithdrawReviewSuccessTransactionLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "withdraw-order-review-success-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.WithdrawReviewSuccessTransaction(in)
 }
 
-func (s *TransactionServer) ProxyOrderUITransaction_DFB(ctx context.Context, in *transaction.ProxyOrderUIRequest) (*transaction.ProxyOrderUIResponse, error) {
+func (s *TransactionServer) ProxyOrderUITransaction_DFB(ctx context.Context, in *transactionclient.ProxyOrderUIRequest) (*transactionclient.ProxyOrderUIResponse, error) {
 	l := logic.NewProxyOrderUITransactionDFBLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "proxy-ui-order-DFB-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.ProxyOrderUITransaction_DFB(in)
 }
 
-func (s *TransactionServer) ProxyOrderUITransaction_XFB(ctx context.Context, in *transaction.ProxyOrderUIRequest) (*transaction.ProxyOrderUIResponse, error) {
+func (s *TransactionServer) ProxyOrderUITransaction_XFB(ctx context.Context, in *transactionclient.ProxyOrderUIRequest) (*transactionclient.ProxyOrderUIResponse, error) {
 	l := logic.NewProxyOrderUITransactionXFBLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "proxy-ui-order-XFB-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.ProxyOrderUITransaction_XFB(in)
 }
 
-func (s *TransactionServer) MakeUpReceiptOrderTransaction(ctx context.Context, in *transaction.MakeUpReceiptOrderRequest) (*transaction.MakeUpReceiptOrderResponse, error) {
+func (s *TransactionServer) MakeUpReceiptOrderTransaction(ctx context.Context, in *transactionclient.MakeUpReceiptOrderRequest) (*transactionclient.MakeUpReceiptOrderResponse, error) {
 	l := logic.NewMakeUpReceiptOrderTransactionLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "make-up-receipt-order-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.MakeUpReceiptOrderTransaction(in)
 }
 
-func (s *TransactionServer) ConfirmPayOrderTransaction(ctx context.Context, in *transaction.ConfirmPayOrderRequest) (*transaction.ConfirmPayOrderResponse, error) {
+func (s *TransactionServer) ConfirmPayOrderTransaction(ctx context.Context, in *transactionclient.ConfirmPayOrderRequest) (*transactionclient.ConfirmPayOrderResponse, error) {
 	l := logic.NewConfirmPayOrderTransactionLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "pay-order-comfirm-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.ConfirmPayOrderTransaction(in)
 }
 
-func (s *TransactionServer) RecoverReceiptOrderTransaction(ctx context.Context, in *transaction.RecoverReceiptOrderRequest) (*transaction.RecoverReceiptOrderResponse, error) {
+func (s *TransactionServer) RecoverReceiptOrderTransaction(ctx context.Context, in *transactionclient.RecoverReceiptOrderRequest) (*transactionclient.RecoverReceiptOrderResponse, error) {
 	l := logic.NewRecoverReceiptOrderTransactionLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "recover-receipt-order-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.RecoverReceiptOrderTransaction(in)
 }
 
-func (s *TransactionServer) FrozenReceiptOrderTransaction(ctx context.Context, in *transaction.FrozenReceiptOrderRequest) (*transaction.FrozenReceiptOrderResponse, error) {
+func (s *TransactionServer) FrozenReceiptOrderTransaction(ctx context.Context, in *transactionclient.FrozenReceiptOrderRequest) (*transactionclient.FrozenReceiptOrderResponse, error) {
 	l := logic.NewFrozenReceiptOrderTransactionLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "frozen-receipt-order-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.FrozenReceiptOrderTransaction(in)
 }
 
-func (s *TransactionServer) UnFrozenReceiptOrderTransaction(ctx context.Context, in *transaction.UnFrozenReceiptOrderRequest) (*transaction.UnFrozenReceiptOrderResponse, error) {
+func (s *TransactionServer) UnFrozenReceiptOrderTransaction(ctx context.Context, in *transactionclient.UnFrozenReceiptOrderRequest) (*transactionclient.UnFrozenReceiptOrderResponse, error) {
 	l := logic.NewUnFrozenReceiptOrderTransactionLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "unfrozen-receipt-order-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.UnFrozenReceiptOrderTransaction(in)
 }
 
-func (s *TransactionServer) PersonalRebundTransaction_DFB(ctx context.Context, in *transaction.PersonalRebundRequest) (*transaction.PersonalRebundResponse, error) {
+func (s *TransactionServer) PersonalRebundTransaction_DFB(ctx context.Context, in *transactionclient.PersonalRebundRequest) (*transactionclient.PersonalRebundResponse, error) {
 	l := logic.NewPersonalRebundTransactionDFBLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "personal-rebund-DFB-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.PersonalRebundTransaction_DFB(in)
 }
 
-func (s *TransactionServer) PersonalRebundTransaction_XFB(ctx context.Context, in *transaction.PersonalRebundRequest) (*transaction.PersonalRebundResponse, error) {
+func (s *TransactionServer) PersonalRebundTransaction_XFB(ctx context.Context, in *transactionclient.PersonalRebundRequest) (*transactionclient.PersonalRebundResponse, error) {
 	l := logic.NewPersonalRebundTransactionXFBLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "personal-rebund-XFB-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.PersonalRebundTransaction_XFB(in)
 }
 
-func (s *TransactionServer) RecalculateProfitTransaction(ctx context.Context, in *transaction.RecalculateProfitRequest) (*transaction.RecalculateProfitResponse, error) {
+func (s *TransactionServer) RecalculateProfitTransaction(ctx context.Context, in *transactionclient.RecalculateProfitRequest) (*transactionclient.RecalculateProfitResponse, error) {
 	l := logic.NewRecalculateProfitTransactionLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "recalculate-profit-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.RecalculateProfitTransaction(in)
 }
 
-func (s *TransactionServer) CalculateCommissionMonthAllReport(ctx context.Context, in *transaction.CalculateCommissionMonthAllRequest) (*transaction.CalculateCommissionMonthAllResponse, error) {
+func (s *TransactionServer) CalculateCommissionMonthAllReport(ctx context.Context, in *transactionclient.CalculateCommissionMonthAllRequest) (*transactionclient.CalculateCommissionMonthAllResponse, error) {
 	l := logic.NewCalculateCommissionMonthAllReportLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "calculate-commission-month-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.CalculateCommissionMonthAllReport(in)
 }
 
-func (s *TransactionServer) RecalculateCommissionMonthReport(ctx context.Context, in *transaction.RecalculateCommissionMonthReportRequest) (*transaction.RecalculateCommissionMonthReportResponse, error) {
+func (s *TransactionServer) RecalculateCommissionMonthReport(ctx context.Context, in *transactionclient.RecalculateCommissionMonthReportRequest) (*transactionclient.RecalculateCommissionMonthReportResponse, error) {
 	l := logic.NewRecalculateCommissionMonthReportLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "recalculate-commission-month-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.RecalculateCommissionMonthReport(in)
 }
 
-func (s *TransactionServer) ConfirmCommissionMonthReport(ctx context.Context, in *transaction.ConfirmCommissionMonthReportRequest) (*transaction.ConfirmCommissionMonthReportResponse, error) {
+func (s *TransactionServer) ConfirmCommissionMonthReport(ctx context.Context, in *transactionclient.ConfirmCommissionMonthReportRequest) (*transactionclient.ConfirmCommissionMonthReportResponse, error) {
 	l := logic.NewConfirmCommissionMonthReportLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "confirm-calculate-commission-month-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.ConfirmCommissionMonthReport(in)
 }
 
-func (s *TransactionServer) WithdrawCommissionOrderTransaction(ctx context.Context, in *transaction.WithdrawCommissionOrderRequest) (*transaction.WithdrawCommissionOrderResponse, error) {
+func (s *TransactionServer) CalculateMonthProfitReport(ctx context.Context, in *transactionclient.CalculateMonthProfitReportRequest) (*transactionclient.CalculateMonthProfitReportResponse, error) {
+	l := logic.NewCalculateMonthProfitReportLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "calculate-month-profit-input",
+		Value: attribute.StringValue(in.String()),
+	})
+	return l.CalculateMonthProfitReport(in)
+}
+
+func (s *TransactionServer) WithdrawCommissionOrderTransaction(ctx context.Context, in *transactionclient.WithdrawCommissionOrderRequest) (*transactionclient.WithdrawCommissionOrderResponse, error) {
 	l := logic.NewWithdrawCommissionOrderTransactionLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "withdraw-commission-order-input",
+		Value: attribute.StringValue(in.String()),
+	})
 	return l.WithdrawCommissionOrderTransaction(in)
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
-	"github.com/copo888/transaction_service/rpc/transaction"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -28,7 +27,7 @@ func NewMerchantBalanceFreezeTranactionLogic(ctx context.Context, svcCtx *svc.Se
 	}
 }
 
-func (l *MerchantBalanceFreezeTranactionLogic) MerchantBalanceFreezeTranaction(req *transaction.MerchantBalanceFreezeRequest) (*transaction.MerchantBalanceFreezeResponse, error) {
+func (l *MerchantBalanceFreezeTranactionLogic) MerchantBalanceFreezeTranaction(req *transactionclient.MerchantBalanceFreezeRequest) (*transactionclient.MerchantBalanceFreezeResponse, error) {
 	newOrderNo := model.GenerateOrderNo("TJ")
     var transactionType string
 

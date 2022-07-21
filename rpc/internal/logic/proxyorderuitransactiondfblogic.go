@@ -159,6 +159,8 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 
 	resp = &transactionclient.ProxyOrderUIResponse{
 		ProxyOrderNo: txOrder.OrderNo,
+		Code: response.API_SUCCESS,
+		Message: "操作成功",
 	}
 
 	return resp, nil

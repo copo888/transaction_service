@@ -15,6 +15,8 @@ import (
 type (
 	CalculateCommissionMonthAllRequest       = transaction.CalculateCommissionMonthAllRequest
 	CalculateCommissionMonthAllResponse      = transaction.CalculateCommissionMonthAllResponse
+	CalculateMonthProfitReportRequest        = transaction.CalculateMonthProfitReportRequest
+	CalculateMonthProfitReportResponse       = transaction.CalculateMonthProfitReportResponse
 	CalculateProfit                          = transaction.CalculateProfit
 	ChannelWithdraw                          = transaction.ChannelWithdraw
 	ConfirmCommissionMonthReportRequest      = transaction.ConfirmCommissionMonthReportRequest
@@ -104,6 +106,7 @@ type (
 		CalculateCommissionMonthAllReport(ctx context.Context, in *CalculateCommissionMonthAllRequest, opts ...grpc.CallOption) (*CalculateCommissionMonthAllResponse, error)
 		RecalculateCommissionMonthReport(ctx context.Context, in *RecalculateCommissionMonthReportRequest, opts ...grpc.CallOption) (*RecalculateCommissionMonthReportResponse, error)
 		ConfirmCommissionMonthReport(ctx context.Context, in *ConfirmCommissionMonthReportRequest, opts ...grpc.CallOption) (*ConfirmCommissionMonthReportResponse, error)
+		CalculateMonthProfitReport(ctx context.Context, in *CalculateMonthProfitReportRequest, opts ...grpc.CallOption) (*CalculateMonthProfitReportResponse, error)
 		WithdrawCommissionOrderTransaction(ctx context.Context, in *WithdrawCommissionOrderRequest, opts ...grpc.CallOption) (*WithdrawCommissionOrderResponse, error)
 	}
 
@@ -271,6 +274,11 @@ func (m *defaultTransaction) RecalculateCommissionMonthReport(ctx context.Contex
 func (m *defaultTransaction) ConfirmCommissionMonthReport(ctx context.Context, in *ConfirmCommissionMonthReportRequest, opts ...grpc.CallOption) (*ConfirmCommissionMonthReportResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.ConfirmCommissionMonthReport(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) CalculateMonthProfitReport(ctx context.Context, in *CalculateMonthProfitReportRequest, opts ...grpc.CallOption) (*CalculateMonthProfitReportResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.CalculateMonthProfitReport(ctx, in, opts...)
 }
 
 func (m *defaultTransaction) WithdrawCommissionOrderTransaction(ctx context.Context, in *WithdrawCommissionOrderRequest, opts ...grpc.CallOption) (*WithdrawCommissionOrderResponse, error) {
