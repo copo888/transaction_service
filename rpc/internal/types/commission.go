@@ -79,4 +79,5 @@ type CommissionWithdrawOrder struct {
 	Remark               string  `json:"remark, optional"`
 	AttachmentPath       string  `json:"attachmentPath, optional"`
 	CreatedBy            string  `json:"createdBy, optional"`
+	PayAt                string  `json:"payAt, optional"`
 }
