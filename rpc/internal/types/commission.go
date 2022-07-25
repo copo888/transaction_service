@@ -62,7 +62,6 @@ type UpdateCommissionAmount struct {
 
 type CommissionWithdrawOrderX struct {
 	CommissionWithdrawOrder
-	PayAt     JsonTime `json:"payAt, optional"`
 	CreatedAt JsonTime `json:"createdAt, optional"`
 	UpdatedAt JsonTime `json:"createdAt, optional"`
 }

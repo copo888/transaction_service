@@ -38,15 +38,6 @@ func (l *WithdrawCommissionOrderTransactionLogic) WithdrawCommissionOrderTransac
 	copier.Copy(&order, &in)
 	newOrderNo := model.GenerateOrderNo("YJ")
 
-	payAt, errJ := types.JsonTime{}.Parse(in.PayAt)
-	if errJ != nil {
-		txDB.Rollback()
-		return &transactionclient.WithdrawCommissionOrderResponse{
-			Code:    response.SYSTEM_ERROR,
-			Message: "新增訂單失敗",
-		}, nil
-	}
-
 	var merchantCommissionRecord types.MerchantCommissionRecord
 	if merchantCommissionRecord, err = merchantbalanceservice.UpdateCommissionAmount(txDB, types.UpdateCommissionAmount{
 		MerchantCode:            in.MerchantCode,
@@ -74,7 +65,6 @@ func (l *WithdrawCommissionOrderTransactionLogic) WithdrawCommissionOrderTransac
 	order.AfterCommission = merchantCommissionRecord.AfterCommission
 	if err = txDB.Table("cm_withdraw_order").Create(&types.CommissionWithdrawOrderX{
 		CommissionWithdrawOrder:   order,
-		PayAt: payAt,
 	}).Error; err != nil {
 		txDB.Rollback()
 		return &transactionclient.WithdrawCommissionOrderResponse{
