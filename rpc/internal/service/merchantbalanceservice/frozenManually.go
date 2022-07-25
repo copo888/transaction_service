@@ -54,7 +54,7 @@ func FrozenManually(db *gorm.DB, frozenManually types.FrozenManually) (merchantB
 		CurrencyCode:      merchantBalance.CurrencyCode,
 		OrderNo:           frozenManually.OrderNo,
 		OrderType:         frozenManually.OrderType,
-		TransactionType:   transactionType,
+		TransactionType:   frozenManually.TransactionType,
 		BalanceType:       frozenManually.BalanceType,
 		BeforeBalance:     beforeBalance,
 		TransferAmount:    -frozenManually.FrozenAmount,
