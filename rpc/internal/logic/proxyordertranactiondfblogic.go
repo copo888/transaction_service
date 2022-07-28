@@ -156,7 +156,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		txOrder.IsCalculateProfit = constants.IS_CALCULATE_PROFIT_YES
 	}
 
-	if errUpdate := l.svcCtx.MyDB.Table("tx_orders").Updates(txOrder).Error; errUpdate != nil {
+	if errUpdate := l.svcCtx.MyDB.Table("tx_orders").Where("order_no = ?", txOrder.OrderNo).Updates(txOrder).Error; errUpdate != nil {
 		logx.Error("代付订单更新状态错误: ", errUpdate.Error())
 	}
 
