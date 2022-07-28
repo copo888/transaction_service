@@ -110,6 +110,7 @@ message CorrespondMerChnRate{
   double SingleMaxCharge = 12;
   string CurrencyCode = 13;
   string ApiUrl = 14;
+  string IsRate = 15;
 }
 
 message PayOrderRequest {
@@ -196,6 +197,7 @@ message MerchantOrderRateListView {
   string CptStatus = 16;
   double CptFee = 17;
   double CptHandlingFee = 18;
+  string IsRate = 19;
 }
 
 message WithdrawOrderRequest {

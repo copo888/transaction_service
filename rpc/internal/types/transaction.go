@@ -234,6 +234,7 @@ type CalculateProfit struct {
 	ChannelCode         string
 	ChannelPayTypesCode string
 	OrderAmount         float64
+	IsRate              string //代付是否用費率計算
 }
 
 type CalculateSubOrderProfit struct {

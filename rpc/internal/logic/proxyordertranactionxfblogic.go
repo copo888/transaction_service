@@ -149,6 +149,7 @@ func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(in *transactionc
 		ChannelCode:         txOrder.ChannelCode,
 		ChannelPayTypesCode: txOrder.ChannelPayTypesCode,
 		OrderAmount:         txOrder.OrderAmount,
+		IsRate:              rate.IsRate,
 	}); err4 != nil {
 		logx.Error("計算利潤出錯:%s", err4.Error())
 	}

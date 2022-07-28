@@ -149,10 +149,15 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		ChannelCode:         txOrder.ChannelCode,
 		ChannelPayTypesCode: txOrder.ChannelPayTypesCode,
 		OrderAmount:         txOrder.OrderAmount,
+		IsRate:              rate.IsRate,
 	}); err4 != nil {
 		logx.Error("計算利潤出錯:%s", err4.Error())
 	} else {
 		txOrder.IsCalculateProfit = constants.IS_CALCULATE_PROFIT_YES
+	}
+
+	if errUpdate := l.svcCtx.MyDB.Table("tx_orders").Updates(txOrder).Error; errUpdate != nil {
+		logx.Error("代付订单更新状态错误: ", errUpdate.Error())
 	}
 
 	// 新單新增訂單歷程 (不抱錯) TODO: 異步??

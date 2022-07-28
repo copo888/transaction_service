@@ -165,7 +165,10 @@ func setMerchantFee(db *gorm.DB, calculateProfit *types.CalculateProfit, orderFe
 	if calculateProfit.Type == "DF" {
 		// "代付" 只收手續費
 		orderFeeProfit.HandlingFee = merchantChannelRate.HandlingFee
-
+		// 判斷是否代付增加計算費率
+		if calculateProfit.IsRate == "1" {
+			orderFeeProfit.Fee = merchantChannelRate.Fee
+		}
 	} else if calculateProfit.Type == "ZF" || calculateProfit.Type == "NC" {
 		// "支付,內充" 收計算費率&手續費
 		orderFeeProfit.HandlingFee = merchantChannelRate.HandlingFee
@@ -193,9 +196,12 @@ func setChannelFee(db *gorm.DB, calculateProfit *types.CalculateProfit, orderFee
 	}
 
 	if calculateProfit.Type == "DF" {
-		// "代付" 只收手續費
-		orderFeeProfit.HandlingFee = channelPayType.HandlingFee
 
+		orderFeeProfit.HandlingFee = channelPayType.HandlingFee
+		// 判斷是否代付增加計算費率
+		if calculateProfit.IsRate == "1" {
+			orderFeeProfit.Fee = channelPayType.Fee
+		}
 	} else if calculateProfit.Type == "ZF" || calculateProfit.Type == "NC" {
 		// "支付,內充" 收計算費率&手續費
 		orderFeeProfit.HandlingFee = channelPayType.HandlingFee
@@ -217,4 +223,3 @@ func updateOrderByIsCalculateProfit(db *gorm.DB, orderNo string) error {
 		Where("order_no = ?", orderNo).
 		Updates(map[string]interface{}{"is_calculate_profit": constants.IS_CALCULATE_PROFIT_YES}).Error
 }
-

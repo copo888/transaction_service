@@ -90,15 +90,15 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 		//金额超过上限
 		logx.Errorf("錯誤:代付金額未達下限")
 		return &transactionclient.ProxyOrderUIResponse{
-			Code: response.ORDER_AMOUNT_LIMIT_MIN,
-			Message: "代付金額未達下限，orderNo : "+ txOrder.OrderNo,
+			Code:    response.ORDER_AMOUNT_LIMIT_MIN,
+			Message: "代付金額未達下限，orderNo : " + txOrder.OrderNo,
 		}, nil
 	} else if txOrder.OrderAmount > rate.SingleMaxCharge {
 		//下发金额未达下限
 		logx.Errorf("錯誤:代付金額超過上限")
 		return &transactionclient.ProxyOrderUIResponse{
-			Code: response.ORDER_AMOUNT_LIMIT_MAX,
-			Message: "代付金額超过上限，orderNo : "+ txOrder.OrderNo,
+			Code:    response.ORDER_AMOUNT_LIMIT_MAX,
+			Message: "代付金額超过上限，orderNo : " + txOrder.OrderNo,
 		}, nil
 	}
 
@@ -125,8 +125,8 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 		return nil
 	}); err != nil {
 		return &transactionclient.ProxyOrderUIResponse{
-			Code: response.DATABASE_FAILURE,
-			Message: "数据库错误 tx_orders Create，err : "+ err.Error(),
+			Code:         response.DATABASE_FAILURE,
+			Message:      "数据库错误 tx_orders Create，err : " + err.Error(),
 			ProxyOrderNo: txOrder.OrderNo,
 		}, nil
 	}
@@ -141,6 +141,7 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 		ChannelCode:         txOrder.ChannelCode,
 		ChannelPayTypesCode: txOrder.ChannelPayTypesCode,
 		OrderAmount:         txOrder.OrderAmount,
+		IsRate:              rate.IsRate,
 	}); err4 != nil {
 		logx.Error("計算利潤出錯:%s", err4.Error())
 	}
@@ -159,8 +160,8 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 
 	resp = &transactionclient.ProxyOrderUIResponse{
 		ProxyOrderNo: txOrder.OrderNo,
-		Code: response.API_SUCCESS,
-		Message: "操作成功",
+		Code:         response.API_SUCCESS,
+		Message:      "操作成功",
 	}
 
 	return resp, nil
