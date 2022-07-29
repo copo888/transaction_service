@@ -1,6 +1,11 @@
 Name: ${APP_NAME}
 ListenOn: ${APP_HOST}
 
+Log:
+  Mode: ${LOG_MODE}
+  Level: ${LOG_LEVEL}
+  KeepDays: ${LOG_KEEP_DAYS}
+
 Mysql:
   Host: ${DB_HOST}
   Port: ${DB_PORT}
