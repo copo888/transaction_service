@@ -35,6 +35,16 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 	rate := in.MerchantOrderRateListView
 	merchantBalanceRecord := types.MerchantBalanceRecord{}
 
+	var transferHandlingFee float64
+	if rate.IsRate == "1"{ // 是否算費率，0:否 1:是
+		//  交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
+		transferHandlingFee =
+			utils.FloatAdd(utils.FloatMul(utils.FloatDiv(req.OrderAmount, 100), rate.MerFee), rate.MerHandlingFee)
+	}else {
+		//  交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
+		transferHandlingFee =
+			utils.FloatAdd(utils.FloatMul(utils.FloatDiv(req.OrderAmount, 100), 0), rate.MerHandlingFee)
+	}
 	txOrder := &types.Order{
 		MerchantCode:         req.MerchantCode,
 		CreatedBy:            req.UserAccount,
@@ -61,7 +71,7 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 		ChannelPayTypesCode:  rate.ChannelPayTypesCode,
 		Fee:                  rate.MerFee,
 		HandlingFee:          rate.MerHandlingFee,
-		TransferHandlingFee:  rate.MerHandlingFee,
+		TransferHandlingFee:  transferHandlingFee,
 		PayTypeCode:          rate.PayTypeCode,
 		IsLock:               "0",
 	}

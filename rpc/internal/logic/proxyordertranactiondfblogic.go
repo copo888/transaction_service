@@ -44,6 +44,17 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 	} else {
 		isMerchantCallback = constants.MERCHANT_CALL_BACK_DONT_USE
 	}
+	var transferHandlingFee float64
+	if rate.IsRate == "1"{ // 是否算費率，0:否 1:是
+		//  交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
+		transferHandlingFee =
+			utils.FloatAdd(utils.FloatMul(utils.FloatDiv(req.OrderAmount, 100), rate.Fee), rate.HandlingFee)
+	}else {
+		//  交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
+		transferHandlingFee =
+			utils.FloatAdd(utils.FloatMul(utils.FloatDiv(req.OrderAmount, 100), 0), rate.HandlingFee)
+	}
+
 	//初始化订单
 	txOrder := &types.Order{
 		OrderNo:              model.GenerateOrderNo("DF"),
@@ -58,7 +69,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		MerchantBankName:     req.BankName,
 		Fee:                  rate.Fee,
 		HandlingFee:          rate.HandlingFee,
-		TransferHandlingFee:  rate.HandlingFee,
+		TransferHandlingFee:  transferHandlingFee,
 		MerchantAccountName:  req.DefrayName,
 		CurrencyCode:         req.Currency,
 		MerchantBankProvince: req.BankProvince,
