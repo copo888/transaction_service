@@ -169,11 +169,14 @@ func setMerchantFee(db *gorm.DB, calculateProfit *types.CalculateProfit, orderFe
 		if calculateProfit.IsRate == "1" {
 			orderFeeProfit.Fee = merchantChannelRate.Fee
 		}
-	} else if calculateProfit.Type == "ZF" || calculateProfit.Type == "NC" {
-		// "支付,內充" 收計算費率&手續費
+	} else if calculateProfit.Type == "ZF" {
+		// "支付" 收計算費率&手續費
 		orderFeeProfit.HandlingFee = merchantChannelRate.HandlingFee
 		orderFeeProfit.Fee = merchantChannelRate.Fee
 
+	} else if calculateProfit.Type == "NC" {
+		// "内充" 收計算費率
+		orderFeeProfit.Fee = merchantChannelRate.Fee
 	} else {
 		return errorz.New(response.ILLEGAL_PARAMETER, err.Error())
 	}
@@ -202,12 +205,15 @@ func setChannelFee(db *gorm.DB, calculateProfit *types.CalculateProfit, orderFee
 		if calculateProfit.IsRate == "1" {
 			orderFeeProfit.Fee = channelPayType.Fee
 		}
-	} else if calculateProfit.Type == "ZF" || calculateProfit.Type == "NC" {
-		// "支付,內充" 收計算費率&手續費
+	} else if calculateProfit.Type == "ZF" {
+		// "支付" 收計算費率&手續費
 		orderFeeProfit.HandlingFee = channelPayType.HandlingFee
 		orderFeeProfit.Fee = channelPayType.Fee
 
-	} else {
+	} else if calculateProfit.Type == "NC" {
+		// "内充" 收計算費率
+		orderFeeProfit.Fee = channelPayType.Fee
+	}else {
 		return errorz.New(response.ILLEGAL_PARAMETER, err.Error())
 	}
 
