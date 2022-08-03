@@ -276,7 +276,8 @@ message WithdrawReviewFailResponse {
 message WithdrawReviewSuccessRequest {
   string OrderNo = 1;
   string UserAccount = 2;
-  repeated ChannelWithdraw channelWithdraw = 3;
+  string Memo = 3;
+  repeated ChannelWithdraw channelWithdraw = 4;
 }
 
 message WithdrawReviewSuccessResponse {

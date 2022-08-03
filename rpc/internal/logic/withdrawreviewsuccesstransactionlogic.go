@@ -95,6 +95,7 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 		txOrder.TransAt = types.JsonTime{}.New()
 		txOrder.Status = constants.SUCCESS
 		txOrder.ReviewedBy = in.UserAccount
+		txOrder.Memo = in.Memo
 		// 更新审核通过
 		if err2 := db.Table("tx_orders").Updates(txOrder).Error; err2 != nil {
 			return errorz.New(response.DATABASE_FAILURE, err2.Error())
@@ -126,7 +127,7 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 			OrderNo:     txOrder.OrderNo,
 			Action:      "REVIEW_SUCCESS",
 			UserAccount: in.UserAccount,
-			Comment:     "",
+			Comment:     txOrder.Memo,
 		},
 	}).Error; err4 != nil {
 		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())

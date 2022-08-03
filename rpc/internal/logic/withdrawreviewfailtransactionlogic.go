@@ -70,6 +70,7 @@ func (l *WithdrawReviewFailTransactionLogic) WithdrawReviewFailTransaction(in *t
 
 		txOrder.Status = constants.FAIL
 		txOrder.ReviewedBy = in.UserAccount
+		txOrder.Memo = in.Memo
 
 		// 編輯訂單
 		if err = db.Table("tx_orders").Updates(&txOrder).Error; err != nil {
@@ -89,7 +90,7 @@ func (l *WithdrawReviewFailTransactionLogic) WithdrawReviewFailTransaction(in *t
 			OrderNo:     txOrder.OrderNo,
 			Action:      "REVIEW_FAIL",
 			UserAccount: in.UserAccount,
-			Comment:     "",
+			Comment:     in.Memo,
 		},
 	}).Error; err4 != nil {
 		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
