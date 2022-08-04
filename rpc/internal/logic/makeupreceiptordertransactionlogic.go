@@ -63,14 +63,14 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	transferHandlingFee := utils.FloatAdd(utils.FloatMul(utils.FloatDiv(req.Amount, 100), order.Fee), order.HandlingFee)
 	// 計算實際交易金額 = 訂單金額 - 手續費
 	transferAmount = req.Amount - transferHandlingFee
+	merchantOrderNo := order.MerchantOrderNo + "#M"
 
 	// 變更 商戶餘額並記錄
-
 	merchantBalanceRecord, err := merchantbalanceservice.UpdateBalanceForZF(txDB, types.UpdateBalance{
 		MerchantCode:    order.MerchantCode,
 		CurrencyCode:    order.CurrencyCode,
 		OrderNo:         newOrderNo,
-		MerchantOrderNo: order.MerchantOrderNo,
+		MerchantOrderNo: merchantOrderNo,
 		OrderType:       order.Type,
 		ChannelCode:     order.ChannelCode,
 		PayTypeCode:     order.PayTypeCode,
@@ -94,7 +94,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	newOrder.Status = constants.SUCCESS
 	newOrder.SourceOrderNo = order.OrderNo
 	newOrder.ChannelOrderNo = req.ChannelOrderNo
-	newOrder.MerchantOrderNo = order.MerchantOrderNo + "#M"
+	newOrder.MerchantOrderNo = merchantOrderNo
 	newOrder.OrderNo = newOrderNo
 	newOrder.OrderAmount = req.Amount
 	newOrder.ActualAmount = req.Amount
