@@ -60,13 +60,15 @@ func (l *ProxyOrderTransactionFailXFBLogic) ProxyOrderTransactionFail_XFB(in *tr
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
 		if merchantBalanceRecord, err = merchantbalanceservice.UpdateXFBalance_Deposit(db, *updateBalance); err != nil {
+			txOrder.RepaymentStatus = constants.REPAYMENT_FAIL
 			logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
-			return
 		} else {
+			txOrder.RepaymentStatus = constants.REPAYMENT_SUCCESS
 			logx.Infof("代付API提单失败 %s，下發錢包退款成功", merchantBalanceRecord.OrderNo)
 		}
 
 		if err = db.Table("tx_orders").Updates(txOrder).Error; err != nil {
+			logx.Errorf("代付出款失敗(下发餘額)_ %s 更新订单失败: %s", txOrder.OrderNo, err.Error())
 			return
 		}
 
