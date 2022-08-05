@@ -65,7 +65,7 @@ func (s *TransactionServer) ProxyOrderTranaction_DFB(ctx context.Context, in *tr
 		Key:   "pay-order-DFB-input",
 		Value: attribute.StringValue(in.String()),
 	})
-	return l.ProxyOrderTranaction_DFB(in)
+	return l.ProxyOrderTranaction_DFB(ctx, in)
 }
 
 func (s *TransactionServer) ProxyOrderTranaction_XFB(ctx context.Context, in *transactionclient.ProxyOrderRequest) (*transactionclient.ProxyOrderResponse, error) {
@@ -76,7 +76,7 @@ func (s *TransactionServer) ProxyOrderTranaction_XFB(ctx context.Context, in *tr
 		Key:   "pay-order-DFB-input",
 		Value: attribute.StringValue(in.String()),
 	})
-	return l.ProxyOrderTranaction_XFB(in)
+	return l.ProxyOrderTranaction_XFB(ctx, in)
 }
 
 func (s *TransactionServer) ProxyOrderTransactionFail_DFB(ctx context.Context, in *transactionclient.ProxyPayFailRequest) (*transactionclient.ProxyPayFailResponse, error) {
@@ -87,7 +87,7 @@ func (s *TransactionServer) ProxyOrderTransactionFail_DFB(ctx context.Context, i
 		Key:   "pay-order-to-test-DFB-input",
 		Value: attribute.StringValue(in.String()),
 	})
-	return l.ProxyOrderTransactionFail_DFB(in)
+	return l.ProxyOrderTransactionFail_DFB(ctx, in)
 }
 
 func (s *TransactionServer) ProxyOrderTransactionFail_XFB(ctx context.Context, in *transactionclient.ProxyPayFailRequest) (*transactionclient.ProxyPayFailResponse, error) {
@@ -98,7 +98,7 @@ func (s *TransactionServer) ProxyOrderTransactionFail_XFB(ctx context.Context, i
 		Key:   "pay-order-to-test-DFB-input",
 		Value: attribute.StringValue(in.String()),
 	})
-	return l.ProxyOrderTransactionFail_XFB(in)
+	return l.ProxyOrderTransactionFail_XFB(ctx, in)
 }
 
 func (s *TransactionServer) PayOrderSwitchTest(ctx context.Context, in *transactionclient.PayOrderSwitchTestRequest) (*transactionclient.PayOrderSwitchTestResponse, error) {
@@ -164,7 +164,7 @@ func (s *TransactionServer) PayOrderTranaction(ctx context.Context, in *transact
 		Key:   "Pay-order-input",
 		Value: attribute.StringValue(in.String()),
 	})
-	return l.PayOrderTranaction(in)
+	return l.PayOrderTranaction(ctx, in)
 }
 
 func (s *TransactionServer) InternalOrderTransaction(ctx context.Context, in *transactionclient.InternalOrderRequest) (*transactionclient.InternalOrderResponse, error) {
@@ -197,7 +197,7 @@ func (s *TransactionServer) PayCallBackTranaction(ctx context.Context, in *trans
 		Key:   "pay-order-call-back-input",
 		Value: attribute.StringValue(in.String()),
 	})
-	return l.PayCallBackTranaction(in)
+	return l.PayCallBackTranaction(ctx, in)
 }
 
 func (s *TransactionServer) InternalReviewSuccessTransaction(ctx context.Context, in *transactionclient.InternalReviewSuccessRequest) (*transactionclient.InternalReviewSuccessResponse, error) {
@@ -241,7 +241,7 @@ func (s *TransactionServer) ProxyOrderUITransaction_DFB(ctx context.Context, in 
 		Key:   "proxy-ui-order-DFB-input",
 		Value: attribute.StringValue(in.String()),
 	})
-	return l.ProxyOrderUITransaction_DFB(in)
+	return l.ProxyOrderUITransaction_DFB(ctx, in)
 }
 
 func (s *TransactionServer) ProxyOrderUITransaction_XFB(ctx context.Context, in *transactionclient.ProxyOrderUIRequest) (*transactionclient.ProxyOrderUIResponse, error) {
@@ -252,7 +252,7 @@ func (s *TransactionServer) ProxyOrderUITransaction_XFB(ctx context.Context, in 
 		Key:   "proxy-ui-order-XFB-input",
 		Value: attribute.StringValue(in.String()),
 	})
-	return l.ProxyOrderUITransaction_XFB(in)
+	return l.ProxyOrderUITransaction_XFB(ctx, in)
 }
 
 func (s *TransactionServer) MakeUpReceiptOrderTransaction(ctx context.Context, in *transactionclient.MakeUpReceiptOrderRequest) (*transactionclient.MakeUpReceiptOrderResponse, error) {

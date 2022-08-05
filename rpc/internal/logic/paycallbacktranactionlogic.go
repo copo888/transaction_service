@@ -31,7 +31,7 @@ func NewPayCallBackTranactionLogic(ctx context.Context, svcCtx *svc.ServiceConte
 	}
 }
 
-func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transactionclient.PayCallBackRequest) (resp *transactionclient.PayCallBackResponse, err error) {
+func (l *PayCallBackTranactionLogic) PayCallBackTranaction(ctx context.Context, in *transactionclient.PayCallBackRequest) (resp *transactionclient.PayCallBackResponse, err error) {
 	var order *types.OrderX
 
 	/****     交易開始      ****/
@@ -96,7 +96,7 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transactionclient
 		ChannelPayTypesCode: order.ChannelPayTypesCode,
 		OrderAmount:         order.ActualAmount,
 	}); err4 != nil {
-		logx.Error("計算利潤出錯:%s", err4.Error())
+		logx.WithContext(ctx).Error("計算利潤出錯:%s", err4.Error())
 	}
 
 	// 新單新增訂單歷程 (不抱錯)
@@ -108,7 +108,7 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transactionclient
 			Comment:     "",
 		},
 	}).Error; err4 != nil {
-		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
+		logx.WithContext(ctx).Error("紀錄訂單歷程出錯:%s", err4.Error())
 	}
 
 	return &transactionclient.PayCallBackResponse{

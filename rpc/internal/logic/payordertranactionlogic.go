@@ -27,7 +27,7 @@ func NewPayOrderTranactionLogic(ctx context.Context, svcCtx *svc.ServiceContext)
 	}
 }
 
-func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transactionclient.PayOrderRequest) (resp *transactionclient.PayOrderResponse, err error) {
+func (l *PayOrderTranactionLogic) PayOrderTranaction(ctx context.Context, in *transactionclient.PayOrderRequest) (resp *transactionclient.PayOrderResponse, err error) {
 
 	var payOrderReq = in.PayOrder
 	var correspondMerChnRate = in.Rate
@@ -98,7 +98,7 @@ func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transactionclient.PayOr
 
 	if err = txDB.Commit().Error; err != nil {
 		txDB.Rollback()
-		logx.Errorf("支付提单失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
+		logx.WithContext(ctx).Errorf("支付提单失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
 		return &transactionclient.PayOrderResponse{
 			Code:       response.DATABASE_FAILURE,
 			Message:    "Commit 数据库错误",
@@ -116,7 +116,7 @@ func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transactionclient.PayOr
 			Comment:     "",
 		},
 	}).Error; err4 != nil {
-		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
+		logx.WithContext(ctx).Errorf("紀錄訂單歷程出錯:%s", err4.Error())
 	}
 
 	return &transactionclient.PayOrderResponse{

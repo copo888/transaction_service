@@ -30,7 +30,7 @@ func NewProxyOrderTranactionDFBLogic(ctx context.Context, svcCtx *svc.ServiceCon
 	}
 }
 
-func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionclient.ProxyOrderRequest) (resp *transactionclient.ProxyOrderResponse, err error) {
+func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(ctx context.Context, in *transactionclient.ProxyOrderRequest) (resp *transactionclient.ProxyOrderResponse, err error) {
 	tx := l.svcCtx.MyDB
 	req := in.Req
 	rate := in.Rate
@@ -45,11 +45,11 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		isMerchantCallback = constants.MERCHANT_CALL_BACK_DONT_USE
 	}
 	var transferHandlingFee float64
-	if rate.IsRate == "1"{ // 是否算費率，0:否 1:是
+	if rate.IsRate == "1" { // 是否算費率，0:否 1:是
 		//  交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
 		transferHandlingFee =
 			utils.FloatAdd(utils.FloatMul(utils.FloatDiv(req.OrderAmount, 100), rate.Fee), rate.HandlingFee)
-	}else {
+	} else {
 		//  交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
 		transferHandlingFee =
 			utils.FloatAdd(utils.FloatMul(utils.FloatDiv(req.OrderAmount, 100), 0), rate.HandlingFee)
@@ -108,7 +108,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 	//是。1. 失败单 2. 手续费、费率设为0 3.不在txOrder计算利润 4.交易金额设为0 更动钱包
 	isBlock, _ := model.NewBankBlockAccount(tx).CheckIsBlockAccount(txOrder.MerchantBankAccount)
 	if isBlock { //银行账号为黑名单
-		logx.Infof("交易账户%s-%s在黑名单内", txOrder.MerchantAccountName, txOrder.MerchantBankNo)
+		logx.WithContext(ctx).Infof("交易账户%s-%s在黑名单内", txOrder.MerchantAccountName, txOrder.MerchantBankNo)
 		updateBalance.TransferAmount = 0                           // 使用0元前往钱包扣款
 		txOrder.ErrorType = constants.ERROR6_BANK_ACCOUNT_IS_BLACK //交易账户为黑名单
 		txOrder.ErrorNote = constants.BANK_ACCOUNT_IS_BLACK        //失败原因：黑名单交易失败
@@ -116,7 +116,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		txOrder.Fee = 0                                            //写入本次手续费(未发送到渠道的交易，都设为0元)
 		txOrder.HandlingFee = 0
 		//transAt = types.JsonTime{}.New()
-		logx.Infof("商户 %s，代付订单 %#v ，交易账户为黑名单", txOrder.MerchantCode, txOrder)
+		logx.WithContext(ctx).Infof("商户 %s，代付订单 %#v ，交易账户为黑名单", txOrder.MerchantCode, txOrder)
 	}
 
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
@@ -126,10 +126,10 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		updateBalance.TransferAmount = txOrder.TransferAmount //扣款依然傳正值
 		//更新钱包且新增商户钱包异动记录
 		if merchantBalanceRecord, err = merchantbalanceservice.UpdateDFBalance_Debit(db, updateBalance); err != nil {
-			logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
+			logx.WithContext(ctx).Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
 			return errorz.New(response.SYSTEM_ERROR, err.Error())
 		} else {
-			logx.Infof("代付API提单 %s，錢包扣款成功", merchantBalanceRecord.OrderNo)
+			logx.WithContext(ctx).Infof("代付API提单 %s，錢包扣款成功", merchantBalanceRecord.OrderNo)
 			txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance // 商戶錢包異動紀錄
 			txOrder.Balance = merchantBalanceRecord.AfterBalance
 		}
@@ -138,7 +138,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		if err = db.Table("tx_orders").Create(&types.OrderX{
 			Order: *txOrder,
 		}).Error; err != nil {
-			logx.Errorf("新增代付API提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err.Error())
+			logx.WithContext(ctx).Errorf("新增代付API提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err.Error())
 			return
 		}
 
@@ -162,13 +162,13 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		OrderAmount:         txOrder.OrderAmount,
 		IsRate:              rate.IsRate,
 	}); err4 != nil {
-		logx.Error("計算利潤出錯:%s", err4.Error())
+		logx.WithContext(ctx).Errorf("計算利潤出錯:%s", err4.Error())
 	} else {
 		txOrder.IsCalculateProfit = constants.IS_CALCULATE_PROFIT_YES
 	}
 
 	if errUpdate := l.svcCtx.MyDB.Table("tx_orders").Where("order_no = ?", txOrder.OrderNo).Updates(txOrder).Error; errUpdate != nil {
-		logx.Error("代付订单更新状态错误: ", errUpdate.Error())
+		logx.WithContext(ctx).Errorf("代付订单更新状态错误: %s", errUpdate.Error())
 	}
 
 	// 新單新增訂單歷程 (不抱錯) TODO: 異步??
@@ -180,7 +180,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 			Comment:     "",
 		},
 	}).Error; err4 != nil {
-		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
+		logx.WithContext(ctx).Errorf("紀錄訂單歷程出錯:%s", err4.Error())
 	}
 
 	return &transactionclient.ProxyOrderResponse{
