@@ -116,7 +116,7 @@ func (l WithdrawTestToNormalXFBLogic) UpdateBalance(db *gorm.DB, updateBalance t
 	}
 	selectBalance = "balance"
 	beforeBalance = merchantBalance.Balance
-	afterBalance = utils.FloatAdd(beforeBalance, updateBalance.TransferAmount)
+	afterBalance = utils.FloatAdd(beforeBalance, -updateBalance.TransferAmount)
 	merchantBalance.Balance = afterBalance
 
 	// 3. 變更 商戶餘額
