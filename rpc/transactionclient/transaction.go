@@ -69,6 +69,8 @@ type (
 	WithdrawCommissionOrderResponse          = transaction.WithdrawCommissionOrderResponse
 	WithdrawOrderRequest                     = transaction.WithdrawOrderRequest
 	WithdrawOrderResponse                    = transaction.WithdrawOrderResponse
+	WithdrawOrderTestRequest                 = transaction.WithdrawOrderTestRequest
+	WithdrawOrderTestResponse                = transaction.WithdrawOrderTestResponse
 	WithdrawReviewFailRequest                = transaction.WithdrawReviewFailRequest
 	WithdrawReviewFailResponse               = transaction.WithdrawReviewFailResponse
 	WithdrawReviewSuccessRequest             = transaction.WithdrawReviewSuccessRequest
@@ -108,6 +110,8 @@ type (
 		ConfirmCommissionMonthReport(ctx context.Context, in *ConfirmCommissionMonthReportRequest, opts ...grpc.CallOption) (*ConfirmCommissionMonthReportResponse, error)
 		CalculateMonthProfitReport(ctx context.Context, in *CalculateMonthProfitReportRequest, opts ...grpc.CallOption) (*CalculateMonthProfitReportResponse, error)
 		WithdrawCommissionOrderTransaction(ctx context.Context, in *WithdrawCommissionOrderRequest, opts ...grpc.CallOption) (*WithdrawCommissionOrderResponse, error)
+		WithdrawOrderToTest_XFB(ctx context.Context, in *WithdrawOrderTestRequest, opts ...grpc.CallOption) (*WithdrawOrderTestResponse, error)
+		WithdrawTestToNormal_XFB(ctx context.Context, in *WithdrawOrderTestRequest, opts ...grpc.CallOption) (*WithdrawOrderTestResponse, error)
 	}
 
 	defaultTransaction struct {
@@ -284,4 +288,14 @@ func (m *defaultTransaction) CalculateMonthProfitReport(ctx context.Context, in 
 func (m *defaultTransaction) WithdrawCommissionOrderTransaction(ctx context.Context, in *WithdrawCommissionOrderRequest, opts ...grpc.CallOption) (*WithdrawCommissionOrderResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.WithdrawCommissionOrderTransaction(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) WithdrawOrderToTest_XFB(ctx context.Context, in *WithdrawOrderTestRequest, opts ...grpc.CallOption) (*WithdrawOrderTestResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.WithdrawOrderToTest_XFB(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) WithdrawTestToNormal_XFB(ctx context.Context, in *WithdrawOrderTestRequest, opts ...grpc.CallOption) (*WithdrawOrderTestResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.WithdrawTestToNormal_XFB(ctx, in, opts...)
 }

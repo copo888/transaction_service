@@ -476,8 +476,13 @@ message   WithdrawCommissionOrderResponse {
   string Message = 2;
 }
 
+message WithdrawOrderTestRequest {
+  string WithdrawOrderNo = 1;
+}
 
+message  WithdrawOrderTestResponse {
 
+}
 
 service Transaction {
 
@@ -546,4 +551,8 @@ service Transaction {
   rpc CalculateMonthProfitReport(CalculateMonthProfitReportRequest) returns (CalculateMonthProfitReportResponse);
 
   rpc WithdrawCommissionOrderTransaction(WithdrawCommissionOrderRequest) returns (WithdrawCommissionOrderResponse);
+
+  rpc WithdrawOrderToTest_XFB(WithdrawOrderTestRequest) returns (WithdrawOrderTestResponse);
+
+  rpc WithdrawTestToNormal_XFB(WithdrawOrderTestRequest) returns (WithdrawOrderTestResponse);
 }
