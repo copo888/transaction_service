@@ -18,7 +18,9 @@ steps:
         from_secret: port
       script:
         - cd /root/transaction_service
+        - git checkout -- .
         - git checkout stage
+        - git checkout -- .
         - git pull
         - go mod tidy
         - docker-compose -f docker-compose.yml down
