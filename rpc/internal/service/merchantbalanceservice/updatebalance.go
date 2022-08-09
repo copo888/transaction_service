@@ -21,11 +21,11 @@ func DoUpdateDFBalance_Debit(ctx context.Context, svcCtx *svc.ServiceContext, db
 	redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
 	redisLock := redislock.New(svcCtx.RedisClient, redisKey, "merchant-balance:")
 	redisLock.SetExpire(5)
-	if isOK, _ := redisLock.Acquire(); isOK {
+	if isOK, _ := redisLock.TryLockTimeout(5); isOK {
+		defer redisLock.Release()
 		if resp, err = UpdateDFBalance_Debit(ctx, db, updateBalance); err != nil {
 			return types.MerchantBalanceRecord{}, err
 		}
-		defer redisLock.Release()
 	} else {
 		return types.MerchantBalanceRecord{}, errorz.New(response.BALANCE_PROCESSING)
 	}
@@ -37,11 +37,11 @@ func DoUpdateXFBalance_Debit(ctx context.Context, svcCtx *svc.ServiceContext, db
 	redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
 	redisLock := redislock.New(svcCtx.RedisClient, redisKey, "merchant-balance:")
 	redisLock.SetExpire(5)
-	if isOK, _ := redisLock.Acquire(); isOK {
+	if isOK, _ := redisLock.TryLockTimeout(5); isOK {
+		defer redisLock.Release()
 		if resp, err = UpdateXFBalance_Debit(ctx, db, updateBalance); err != nil {
 			return types.MerchantBalanceRecord{}, err
 		}
-		defer redisLock.Release()
 	} else {
 		return types.MerchantBalanceRecord{}, errorz.New(response.BALANCE_PROCESSING)
 	}
@@ -299,7 +299,7 @@ func UpdateBalanceForZF(db *gorm.DB, redisClient *redis.Client, updateBalance ty
 	redisLock := redislock.New(redisClient, redisKey, "balance:")
 	redisLock.SetExpire(5)
 
-	if isOK, _ := redisLock.Acquire(); isOK {
+	if isOK, _ := redisLock.TryLockTimeout(5); isOK {
 		defer redisLock.Release()
 		if merchantBalanceRecord, err = doUpdateBalanceForZF(db, updateBalance); err != nil {
 			return

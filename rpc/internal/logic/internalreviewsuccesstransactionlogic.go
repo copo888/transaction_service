@@ -102,7 +102,7 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 
 	resp = &transactionclient.InternalReviewSuccessResponse{
 		OrderNo: txOrder.OrderNo,
-		Code: response.API_SUCCESS,
+		Code:    response.API_SUCCESS,
 		Message: "操作成功",
 	}
 
@@ -113,12 +113,12 @@ func (l InternalReviewSuccessTransactionLogic) UpdateBalance(db *gorm.DB, update
 	redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
 	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "internal-review-success:")
 	redisLock.SetExpire(5)
-	if isOk, _ := redisLock.Acquire(); isOk{
+	if isOk, _ := redisLock.TryLockTimeout(5); isOk {
 		defer redisLock.Release()
 		if merchantBalanceRecord, err = l.doUpdateBalance(db, updateBalance); err != nil {
 			return
 		}
-	}else {
+	} else {
 		return merchantBalanceRecord, errorz.New(response.BALANCE_REDISLOCK_ERROR)
 	}
 	return

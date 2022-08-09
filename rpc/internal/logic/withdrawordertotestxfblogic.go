@@ -64,7 +64,6 @@ func (l *WithdrawOrderToTestXFBLogic) WithdrawOrderToTest_XFB(in *transactioncli
 			ChannelCode:     txOrder.ChannelCode,
 		}
 
-
 		if merchantBalanceRecord, err = l.UpdateBalance(db, updateBalance); err != nil {
 			logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
 			return errorz.New(response.SYSTEM_ERROR, err.Error())
@@ -104,18 +103,18 @@ func (l WithdrawOrderToTestXFBLogic) UpdateBalance(db *gorm.DB, updateBalance ty
 	redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
 	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "withdraw-to-test:")
 	redisLock.SetExpire(5)
-	if isOk, _ := redisLock.Acquire(); isOk{
+	if isOk, _ := redisLock.TryLockTimeout(5); isOk {
 		defer redisLock.Release()
 		if merchantBalanceRecord, err = l.doUpdateBalance(db, updateBalance); err != nil {
 			return
 		}
-	}else {
+	} else {
 		return merchantBalanceRecord, errorz.New(response.BALANCE_REDISLOCK_ERROR)
 	}
 	return
 }
 
-func (l WithdrawOrderToTestXFBLogic) doUpdateBalance (db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
+func (l WithdrawOrderToTestXFBLogic) doUpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 	var beforeBalance float64
 	var afterBalance float64
 	// 1. 取得 商戶餘額表

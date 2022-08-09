@@ -39,13 +39,13 @@ func (l *WithdrawReviewFailTransactionLogic) WithdrawReviewFailTransaction(in *t
 	if err = l.svcCtx.MyDB.Table("tx_orders").Where("order_no = ?", in.OrderNo).Take(&txOrder).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &transactionclient.WithdrawReviewFailResponse{
-				Code: response.DATA_NOT_FOUND,
-				Message: "找不到资料，orderNo = "+ in.OrderNo,
+				Code:    response.DATA_NOT_FOUND,
+				Message: "找不到资料，orderNo = " + in.OrderNo,
 			}, nil
 		}
 		return &transactionclient.WithdrawReviewFailResponse{
-			Code: response.DATABASE_FAILURE,
-			Message: "查询下发订单失败，orderNo = "+ in.OrderNo,
+			Code:    response.DATABASE_FAILURE,
+			Message: "查询下发订单失败，orderNo = " + in.OrderNo,
 		}, nil
 	}
 
@@ -81,8 +81,8 @@ func (l *WithdrawReviewFailTransactionLogic) WithdrawReviewFailTransaction(in *t
 		return nil
 	}); err != nil {
 		return &transactionclient.WithdrawReviewFailResponse{
-			Code: response.SYSTEM_ERROR,
-			Message: "钱包异动失败，orderNo = "+ in.OrderNo,
+			Code:    response.SYSTEM_ERROR,
+			Message: "钱包异动失败，orderNo = " + in.OrderNo,
 		}, nil
 	}
 
@@ -100,7 +100,7 @@ func (l *WithdrawReviewFailTransactionLogic) WithdrawReviewFailTransaction(in *t
 
 	resp = &transactionclient.WithdrawReviewFailResponse{
 		OrderNo: txOrder.OrderNo,
-		Code: response.API_SUCCESS,
+		Code:    response.API_SUCCESS,
 		Message: "操作成功",
 	}
 
@@ -111,12 +111,12 @@ func (l WithdrawReviewFailTransactionLogic) UpdateBalance(db *gorm.DB, updateBal
 	redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
 	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "withdraw-review-fail:")
 	redisLock.SetExpire(5)
-	if isOk, _ := redisLock.Acquire(); isOk{
+	if isOk, _ := redisLock.TryLockTimeout(5); isOk {
 		defer redisLock.Release()
 		if merchantBalanceRecord, err = l.doUpdateBalance(db, updateBalance); err != nil {
 			return
 		}
-	}else {
+	} else {
 		return merchantBalanceRecord, errorz.New(response.BALANCE_REDISLOCK_ERROR)
 	}
 	return
