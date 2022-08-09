@@ -18,7 +18,7 @@ func DoUpdateDFBalance_Debit(ctx context.Context, svcCtx *svc.ServiceContext, db
 	var resp *types.MerchantBalanceRecord
 	redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
 	redisLock := redislock.New(svcCtx.RedisClient, redisKey, "merchant-balance:")
-	redisLock.SetExpire(5000)
+	redisLock.SetExpire(5)
 	if isOK, _ := redisLock.Acquire(); isOK {
 		if resp, err = UpdateDFBalance_Debit(ctx, db, updateBalance); err != nil {
 			return types.MerchantBalanceRecord{}, err
@@ -34,7 +34,7 @@ func DoUpdateXFBalance_Debit(ctx context.Context, svcCtx *svc.ServiceContext, db
 	var resp *types.MerchantBalanceRecord
 	redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
 	redisLock := redislock.New(svcCtx.RedisClient, redisKey, "merchant-balance:")
-	redisLock.SetExpire(5000)
+	redisLock.SetExpire(5)
 	if isOK, _ := redisLock.Acquire(); isOK {
 		if resp, err = UpdateXFBalance_Debit(ctx, db, updateBalance); err != nil {
 			return types.MerchantBalanceRecord{}, err
