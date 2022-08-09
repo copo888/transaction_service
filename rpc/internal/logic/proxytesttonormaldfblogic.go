@@ -61,7 +61,7 @@ func (l *ProxyTestToNormalDFBLogic) ProxyTestToNormal_DFB(in *transactionclient.
 			ChannelCode:     txOrder.ChannelCode,
 		}
 
-		if merchantBalanceRecord, err = merchantbalanceservice.UpdateDFBalance_Debit(db, updateBalance); err != nil {
+		if merchantBalanceRecord, err = merchantbalanceservice.DoUpdateDFBalance_Debit(l.ctx, l.svcCtx, db, updateBalance); err != nil {
 			logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
 			return errorz.New(response.SYSTEM_ERROR, err.Error())
 		} else {

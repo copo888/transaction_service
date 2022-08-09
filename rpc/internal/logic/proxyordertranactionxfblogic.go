@@ -124,7 +124,7 @@ func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(ctx context.Cont
 		txOrder.TransferAmount = utils.FloatAdd(txOrder.OrderAmount, txOrder.TransferHandlingFee)
 		updateBalance.TransferAmount = txOrder.TransferAmount //扣款依然傳正值
 		//更新钱包且新增商户钱包异动记录
-		if merchantBalanceRecord, err = merchantbalanceservice.UpdateXFBalance_Debit(db, updateBalance); err != nil {
+		if merchantBalanceRecord, err = merchantbalanceservice.DoUpdateXFBalance_Debit(l.ctx, l.svcCtx, db, updateBalance); err != nil {
 			logx.WithContext(ctx).Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
 			return errorz.New(response.SYSTEM_ERROR, err.Error())
 		} else {

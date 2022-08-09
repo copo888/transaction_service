@@ -44,7 +44,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 	logx.Infof("下发单交易初始化： %v, %v, %v", in.String())
 	// 依商户是否给回调网址，决定是否回调商户flag
 	var isMerchantCallback string //0：否、1:是、2:不需回调
-	if len(in.NotifyUrl) > 0{
+	if len(in.NotifyUrl) > 0 {
 		isMerchantCallback = constants.MERCHANT_CALL_BACK_NO
 	} else {
 		isMerchantCallback = constants.MERCHANT_CALL_BACK_DONT_USE
@@ -79,7 +79,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		PageUrl:              in.PageUrl,
 		NotifyUrl:            in.NotifyUrl,
 		Memo:                 in.Memo,
-		ChangeType: 		  in.ChangeType,
+		ChangeType:           in.ChangeType,
 	}
 	if len(in.MerchantOrderNo) > 0 {
 		txOrder.MerchantOrderNo = in.MerchantOrderNo
@@ -114,13 +114,13 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		}
 	}
 	//更新钱包且新增商户钱包异动记录
-	merchantBalanceRecord, err1 := merchantbalanceservice.UpdateXFBalance_Debit(tx, &updateBalance)
+	merchantBalanceRecord, err1 := merchantbalanceservice.DoUpdateXFBalance_Debit(l.ctx, l.svcCtx, tx, &updateBalance)
 	if err1 != nil {
 		logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err1.Error(), updateBalance)
 		//TODO  IF 更新钱包错误是response.DATABASE_FAILURE THEN return SYSTEM_ERROR
 		tx.Rollback()
 		return &transactionclient.WithdrawOrderResponse{
-			Code: response.SYSTEM_ERROR,
+			Code:    response.SYSTEM_ERROR,
 			Message: "钱包异动失败",
 			OrderNo: txOrder.OrderNo,
 		}, nil
@@ -137,7 +137,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		logx.Errorf("新增下发提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err3.Error())
 		tx.Rollback()
 		return &transactionclient.WithdrawOrderResponse{
-			Code: response.DATABASE_FAILURE,
+			Code:    response.DATABASE_FAILURE,
 			Message: "数据库错误 tx_orders Create",
 			OrderNo: txOrder.OrderNo,
 		}, nil
@@ -145,12 +145,12 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 
 	//計算商戶利潤（不报错）
 	calculateProfit := types.CalculateProfit{
-		MerchantCode:        txOrder.MerchantCode,
-		OrderNo:             txOrder.OrderNo,
-		Type:                txOrder.Type,
-		CurrencyCode:        txOrder.CurrencyCode,
-		BalanceType:         txOrder.BalanceType,
-		OrderAmount:         txOrder.ActualAmount,
+		MerchantCode: txOrder.MerchantCode,
+		OrderNo:      txOrder.OrderNo,
+		Type:         txOrder.Type,
+		CurrencyCode: txOrder.CurrencyCode,
+		BalanceType:  txOrder.BalanceType,
+		OrderAmount:  txOrder.ActualAmount,
 	}
 	if err4 := l.calculateOrderProfit(l.svcCtx.MyDB, calculateProfit); err4 != nil {
 		logx.Errorf("计算下发利润失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err4.Error())
@@ -174,7 +174,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 	}
 
 	return &transactionclient.WithdrawOrderResponse{
-		Code: response.API_SUCCESS,
+		Code:    response.API_SUCCESS,
 		Message: "操作成功",
 		OrderNo: txOrder.OrderNo,
 	}, nil
@@ -213,8 +213,7 @@ func (l *WithdrawOrderTransactionLogic) calculateOrderProfit(db *gorm.DB, calcul
 	var merchantCurrency *types.MerchantCurrency
 	if err = db.Table("mc_merchant_currencies").
 		Where("merchant_code = ? AND currency_code = ?", calculateProfit.MerchantCode, calculateProfit.CurrencyCode).
-		Take(&merchantCurrency).Error;
-		errors.Is(err, gorm.ErrRecordNotFound) {
+		Take(&merchantCurrency).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 		return errorz.New(response.RATE_NOT_CONFIGURED, err.Error())
 	} else if err != nil {
 		return errorz.New(response.DATABASE_FAILURE, err.Error())
