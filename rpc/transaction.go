@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/neccoys/go-zero-extension/consul"
-	"google.golang.org/grpc/health/grpc_health_v1"
 	"log"
 
 	"github.com/copo888/transaction_service/rpc/internal/config"
@@ -39,7 +38,7 @@ func main() {
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		transaction.RegisterTransactionServer(grpcServer, srv)
-		grpc_health_v1.RegisterHealthServer(grpcServer, srv)
+		//grpc_health_v1.RegisterHealthServer(grpcServer, srv)
 
 		if c.Mode == service.DevMode || c.Mode == service.TestMode {
 			reflection.Register(grpcServer)
