@@ -6,6 +6,7 @@ import (
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // UpdateFrozenAmount FrozenAmount需正負(凍結正/解凍負), BalanceType:餘額類型 (DFB=代付餘額 XFB=下發餘額)
@@ -16,6 +17,7 @@ func UpdateFrozenAmount(db *gorm.DB, updateFrozenAmount types.UpdateFrozenAmount
 	// 1. 取得 商戶餘額表
 	var merchantBalance types.MerchantBalance
 	if err = db.Table("mc_merchant_balances").
+		Clauses(clause.Locking{Strength: "UPDATE"}).
 		Where("merchant_code = ? AND currency_code = ? AND balance_type = ?", updateFrozenAmount.MerchantCode, updateFrozenAmount.CurrencyCode, updateFrozenAmount.BalanceType).
 		Take(&merchantBalance).Error; err != nil {
 		return merchantBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
