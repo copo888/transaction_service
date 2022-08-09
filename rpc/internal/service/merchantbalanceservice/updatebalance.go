@@ -261,7 +261,7 @@ func UpdateBalanceForZF(db *gorm.DB, redisClient *redis.Client, updateBalance ty
 
 	redisKey := fmt.Sprintf("%s-%s-%s", merchantBalanceRecord.MerchantCode, merchantBalanceRecord.CurrencyCode, merchantBalanceRecord.BalanceType)
 	redisLock := redislock.New(redisClient, redisKey, "balance:")
-	redisLock.SetExpire(3)
+	redisLock.SetExpire(5)
 
 	if isOK, _ := redisLock.Acquire(); isOK {
 		defer redisLock.Release()
