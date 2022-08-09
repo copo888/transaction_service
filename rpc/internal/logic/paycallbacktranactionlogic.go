@@ -141,7 +141,7 @@ func (l *PayCallBackTranactionLogic) updateOrderAndBalance(db *gorm.DB, req *tra
 		order.TransferAmount = order.ActualAmount - order.TransferHandlingFee
 
 		// 異動錢包
-		if merchantBalanceRecord, err = merchantbalanceservice.UpdateBalanceForZF(db, types.UpdateBalance{
+		if merchantBalanceRecord, err = merchantbalanceservice.UpdateBalanceForZF(db, l.svcCtx.RedisClient, types.UpdateBalance{
 			MerchantCode:    order.MerchantCode,
 			CurrencyCode:    order.CurrencyCode,
 			OrderNo:         order.OrderNo,

@@ -66,7 +66,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	merchantOrderNo := order.MerchantOrderNo + "#M"
 
 	// 變更 商戶餘額並記錄
-	merchantBalanceRecord, err := merchantbalanceservice.UpdateBalanceForZF(txDB, types.UpdateBalance{
+	merchantBalanceRecord, err := merchantbalanceservice.UpdateBalanceForZF(txDB, l.svcCtx.RedisClient, types.UpdateBalance{
 		MerchantCode:    order.MerchantCode,
 		CurrencyCode:    order.CurrencyCode,
 		OrderNo:         newOrderNo,

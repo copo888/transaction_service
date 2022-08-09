@@ -79,7 +79,7 @@ func (l *PayOrderSwitchTestLogic) PayOrderSwitchTest(in *transactionclient.PayOr
 		updateBalance.Comment = "支付订单轉測試單"
 		action = constants.ACTION_TRANSFER_TEST
 	}
-	if merchantBalanceRecord, err = merchantbalanceservice.UpdateBalanceForZF(txDB, updateBalance); err != nil {
+	if merchantBalanceRecord, err = merchantbalanceservice.UpdateBalanceForZF(txDB, l.svcCtx.RedisClient, updateBalance); err != nil {
 		txDB.Rollback()
 		return &transactionclient.PayOrderSwitchTestResponse{
 			Code:    response.SYSTEM_ERROR,

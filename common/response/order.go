@@ -30,4 +30,5 @@ var (
 	ORDER_TYPE_IS_WRONG                      = "1094014" //订单类型错误
 	ORDER_ALREADY_IS_TEST                    = "1094015" //已為測試單
 	ORDER_NOT_CALCULATED_PROFIT_PLEASE_WAIT  = "1094016" //有订单还未计算佣金利润,请稍后
+	BALANCE_REDISLOCK_ERROR                  = "1094017" //有订单还未计算佣金利润,请稍后
 )

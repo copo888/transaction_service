@@ -6,8 +6,11 @@ import (
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/types"
+	"github.com/go-redis/redis/v8"
+	"github.com/neccoys/go-zero-extension/redislock"
 	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 /*
@@ -254,7 +257,25 @@ func UpdateDFBalance_Deposit(db *gorm.DB, updateBalance *types.UpdateBalance) (m
 /*
 	UpdateBalanceForZF 支付異動錢包
 */
-func UpdateBalanceForZF(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
+func UpdateBalanceForZF(db *gorm.DB, redisClient *redis.Client, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
+
+	redisKey := fmt.Sprintf("%s-%s-%s", merchantBalanceRecord.MerchantCode, merchantBalanceRecord.CurrencyCode, merchantBalanceRecord.BalanceType)
+	redisLock := redislock.New(redisClient, redisKey, "balance:")
+	redisLock.SetExpire(3)
+
+	if isOK, _ := redisLock.Acquire(); isOK {
+		defer redisLock.Release()
+		if merchantBalanceRecord, err = doUpdateBalanceForZF(db, updateBalance); err != nil {
+			return
+		}
+	} else {
+		return merchantBalanceRecord, errorz.New(response.BALANCE_REDISLOCK_ERROR)
+	}
+
+	return
+}
+
+func doUpdateBalanceForZF(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 
 	var beforeBalance float64
 	var afterBalance float64
@@ -262,6 +283,7 @@ func UpdateBalanceForZF(db *gorm.DB, updateBalance types.UpdateBalance) (merchan
 	// 1. 取得 商戶餘額表
 	var merchantBalance types.MerchantBalance
 	if err = db.Table("mc_merchant_balances").
+		Clauses(clause.Locking{Strength: "UPDATE"}).
 		Where("merchant_code = ? AND currency_code = ? AND balance_type = ?", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType).
 		Take(&merchantBalance).Error; err != nil {
 		return merchantBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
