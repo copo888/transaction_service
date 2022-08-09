@@ -100,7 +100,7 @@ func (l *WithdrawTestToNormalXFBLogic) WithdrawTestToNormal_XFB(in *transactionc
 
 func (l WithdrawTestToNormalXFBLogic) UpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 	redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
-	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "withdraw-test-to-normal:")
+	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
 	redisLock.SetExpire(5)
 	if isOk, _ := redisLock.TryLockTimeout(5); isOk {
 		defer redisLock.Release()

@@ -111,7 +111,7 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 
 func (l InternalReviewSuccessTransactionLogic) UpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 	redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
-	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "internal-review-success:")
+	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
 	redisLock.SetExpire(5)
 	if isOk, _ := redisLock.TryLockTimeout(5); isOk {
 		defer redisLock.Release()

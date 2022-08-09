@@ -296,7 +296,7 @@ func UpdateDFBalance_Deposit(db *gorm.DB, updateBalance *types.UpdateBalance) (m
 func UpdateBalanceForZF(db *gorm.DB, redisClient *redis.Client, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 
 	redisKey := fmt.Sprintf("%s-%s-%s", merchantBalanceRecord.MerchantCode, merchantBalanceRecord.CurrencyCode, merchantBalanceRecord.BalanceType)
-	redisLock := redislock.New(redisClient, redisKey, "balance:")
+	redisLock := redislock.New(redisClient, redisKey, "merchant-balance:")
 	redisLock.SetExpire(5)
 
 	if isOK, _ := redisLock.TryLockTimeout(5); isOK {
