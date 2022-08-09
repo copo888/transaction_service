@@ -95,6 +95,7 @@ var (
 	MERCHANT_FROZEN_NOT_ENOUGH       = "1052309" //"账户余额不足以冻结"
 	MERCHANT_UNFROZEN_ERROR          = "1052310" //"商户解冻金额不得大于冻结金额"
 	MERCHANT_UNFROZEN_ORDER_ERROR    = "1052311" //"商户解冻後金额不得小于冻结訂單的金额"
+	BALANCE_PROCESSING               = "1052312" //"商户钱包处理中"
 
 	/**
 	 * 商戶代理错误 10530XX
