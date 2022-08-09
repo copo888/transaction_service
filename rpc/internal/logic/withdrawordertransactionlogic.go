@@ -12,6 +12,7 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -186,7 +187,9 @@ func (l *WithdrawOrderTransactionLogic) calculateOrderProfit(db *gorm.DB, calcul
 
 	// 1. 不是算系統利潤時 要取當前計算商戶(或代理商戶)
 	if calculateProfit.MerchantCode != "00000000" {
-		if err = db.Table("mc_merchants").Where("code = ?", calculateProfit.MerchantCode).Take(&merchant).Error; err != nil {
+		if err = db.Table("mc_merchants").
+			Clauses(clause.Locking{Strength: "UPDATE"}).
+			Where("code = ?", calculateProfit.MerchantCode).Take(&merchant).Error; err != nil {
 			return errorz.New(response.DATABASE_FAILURE, err.Error())
 		}
 		agentLayerCode = merchant.AgentLayerCode

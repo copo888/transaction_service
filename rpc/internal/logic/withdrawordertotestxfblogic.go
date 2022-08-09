@@ -10,7 +10,9 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/model"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
+	"github.com/neccoys/go-zero-extension/redislock"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -98,12 +100,28 @@ func (l *WithdrawOrderToTestXFBLogic) WithdrawOrderToTest_XFB(in *transactioncli
 }
 
 func (l WithdrawOrderToTestXFBLogic) UpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
+
+	redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
+	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "withdraw-to-test:")
+	redisLock.SetExpire(5)
+	if isOk, _ := redisLock.Acquire(); isOk{
+		defer redisLock.Release()
+		if merchantBalanceRecord, err = l.doUpdateBalance(db, updateBalance); err != nil {
+			return
+		}
+	}else {
+		return merchantBalanceRecord, errorz.New(response.BALANCE_REDISLOCK_ERROR)
+	}
+	return
+}
+
+func (l WithdrawOrderToTestXFBLogic) doUpdateBalance (db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 	var beforeBalance float64
 	var afterBalance float64
-
 	// 1. 取得 商戶餘額表
 	var merchantBalance types.MerchantBalance
 	if err = db.Table("mc_merchant_balances").
+		Clauses(clause.Locking{Strength: "UPDATE"}).
 		Where("merchant_code = ? AND currency_code = ? AND balance_type = ?", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType).
 		Take(&merchantBalance).Error; err != nil {
 		return merchantBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
