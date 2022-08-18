@@ -35,9 +35,16 @@ func CalculateMonthReport(db *gorm.DB, report types.CommissionMonthReportX, star
 	}
 
 	// 計算報表 代付 資料
-	dfDetails, err := calculateMonthReportDetails(db, report, "DF", startAt, endAt)
+	dfNoFeeDetails, err := calculateMonthReportDetailsForDF(db, report, "DF", startAt, endAt, false)
 	if err != nil {
-		logx.Errorf("計算傭金報表 代付詳情 失敗: %#v, error: %s", report, err.Error())
+		logx.Errorf("計算傭金報表 代付詳情(不收费率) 失敗: %#v, error: %s", report, err.Error())
+		return err
+	}
+
+	// 計算報表 代付 資料
+	dfHasFeeDetails, err := calculateMonthReportDetailsForDF(db, report, "DF", startAt, endAt, true)
+	if err != nil {
+		logx.Errorf("計算傭金報表 代付詳情(有收费率) 失敗: %#v, error: %s", report, err.Error())
 		return err
 	}
 
@@ -68,7 +75,21 @@ func CalculateMonthReport(db *gorm.DB, report types.CommissionMonthReportX, star
 	}
 
 	// 保存 並 計算代付總額
-	for _, detail := range dfDetails {
+	for _, detail := range dfNoFeeDetails {
+		proxyPayTotalAmount += detail.TotalAmount
+		proxyPayTotalNumber += detail.TotalNumber
+		proxyPayCommission += detail.TotalCommission
+		totalCommission += detail.TotalCommission
+		detail.CommissionMonthReportId = report.ID
+		detail.OrderType = "DF"
+		if err = db.Table("cm_commission_month_report_details").Create(&detail).Error; err != nil {
+			logx.Errorf("保存傭金報表代付詳情 失敗: %#v, error: %s", detail, err.Error())
+			return errorz.New(response.DATABASE_FAILURE)
+		}
+	}
+
+	// 保存 並 計算代付總額
+	for _, detail := range dfHasFeeDetails {
 		proxyPayTotalAmount += detail.TotalAmount
 		proxyPayTotalNumber += detail.TotalNumber
 		proxyPayCommission += detail.TotalCommission
@@ -123,13 +144,13 @@ func calculateMonthReportDetails(db *gorm.DB, report types.CommissionMonthReport
 		// 支付 使用實際付款金額
 		selectX += "sum(o.actual_amount) as total_amount"
 	} else {
-		// 內充 代付 使用訂單金額
+		// 內充 使用訂單金額
 		selectX += "sum(o.order_amount) as total_amount"
 	}
 
-	err := db.Table("tx_orders_fee_profit m"). //上層商戶
+	err := db.Table("tx_orders_fee_profit m"). //下層商戶
 							Select(selectX).
-							Joins("JOIN tx_orders_fee_profit p on p.merchant_code = m.agent_parent_code and p.order_no = m.order_no"). //代理商戶
+							Joins("JOIN tx_orders_fee_profit p on p.merchant_code = m.agent_parent_code and p.order_no = m.order_no"). //上層代理商戶
 							Joins("JOIN tx_orders o on o.order_no = m.order_no").                                                      // 訂單
 							Where("o.trans_at >= ? and o.trans_at < ? ", startAt, endAt).
 							Where("p.merchant_code = ? ", report.MerchantCode).
@@ -140,6 +161,50 @@ func calculateMonthReportDetails(db *gorm.DB, report types.CommissionMonthReport
 							Where("o.is_test != 1 ").
 							Group("merchant_code, currency_code, pay_type_code, merchant_fee, agent_fee").
 							Find(&reportDetails).Error
+
+	return reportDetails, err
+}
+
+// isFeeCalculated:
+func calculateMonthReportDetailsForDF(db *gorm.DB, report types.CommissionMonthReportX, orderType, startAt, endAt string, isCalculateFee bool) ([]types.CommissionMonthReportDetailX, error) {
+	var reportDetails []types.CommissionMonthReportDetailX
+	var err error
+	selectX := "o.merchant_code, " +
+		"o.currency_code," +
+		"m.fee as merchant_fee," +
+		"p.fee as agent_fee," +
+		"m.fee - p.fee as diff_fee," +
+		"m.handling_fee as merchant_handling_fee," +
+		"p.handling_fee as agent_handling_fee," +
+		"m.handling_fee - p.handling_fee as diff_handling_fee," +
+		"count(o.order_no) as total_number," +
+		"sum(p.profit_amount) as total_commission," +
+		"o.pay_type_code as pay_type_code," +
+		"sum(o.order_amount) as total_amount"
+
+	txDb := db.Table("tx_orders_fee_profit m"). //下層商戶
+						Select(selectX).
+						Joins("JOIN tx_orders_fee_profit p on p.merchant_code = m.agent_parent_code and p.order_no = m.order_no"). //上層代理商戶
+						Joins("JOIN tx_orders o on o.order_no = m.order_no").                                                      // 訂單
+						Where("o.trans_at >= ? and o.trans_at < ? ", startAt, endAt).
+						Where("p.merchant_code = ? ", report.MerchantCode).
+						Where("o.currency_code = ? ", report.CurrencyCode).
+						Where("o.type = ? ", orderType).
+						Where("p.profit_amount != 0 ").
+						Where("(o.status = 20 || o.status = 31) ").
+						Where("o.is_test != 1 ")
+
+	if isCalculateFee {
+		// 需要计算费率的代付
+		err = txDb.Where("m.fee > 0").
+			Group("merchant_code, currency_code, pay_type_code, merchant_fee, agent_fee").
+			Find(&reportDetails).Error
+	} else {
+		// 只计算手续费的代付
+		err = txDb.Where("m.fee = 0").
+			Group("merchant_code, currency_code, pay_type_code, merchant_handling_fee, agent_handling_fee").
+			Find(&reportDetails).Error
+	}
 
 	return reportDetails, err
 }
