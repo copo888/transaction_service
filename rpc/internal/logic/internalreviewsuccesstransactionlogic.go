@@ -92,7 +92,7 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
 		OrderAction: types.OrderAction{
 			OrderNo:     txOrder.OrderNo,
-			Action:      "SUCCESS",
+			Action:      "REVIEW_SUCCESS",
 			UserAccount: in.UserAccount,
 			Comment:     "",
 		},

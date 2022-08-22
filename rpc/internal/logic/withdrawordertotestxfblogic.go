@@ -43,6 +43,7 @@ func (l *WithdrawOrderToTestXFBLogic) WithdrawOrderToTest_XFB(in *transactioncli
 
 	//如果月結傭金"已結算/確認報表無誤按鈕" : 不扣款
 	txOrder.IsTest = "1"
+	txOrder.Memo = "下发订单轉測試單\n" + txOrder.Memo
 
 	l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
