@@ -40,6 +40,7 @@ func (l *ProxyTestToNormalDFBLogic) ProxyTestToNormal_DFB(in *transactionclient.
 
 	//改非測試單
 	txOrder.IsTest = "0"
+	txOrder.Memo = "代付订单轉正式單\n" + txOrder.Memo
 
 	l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 

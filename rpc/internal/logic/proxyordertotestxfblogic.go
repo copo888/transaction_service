@@ -40,6 +40,7 @@ func (l *ProxyOrderToTestXFBLogic) ProxyOrderToTest_XFB(in *transactionclient.Pr
 
 	//如果月結傭金"已結算/確認報表無誤按鈕" : 不扣款
 	txOrder.IsTest = "1"
+	txOrder.Memo = "代付订单转测试单\n" + txOrder.Memo
 
 	l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
