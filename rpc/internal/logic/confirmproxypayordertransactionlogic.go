@@ -147,5 +147,8 @@ func (l *ConfirmProxyPayOrderTransactionLogic) ConfirmProxyPayOrderTransaction(i
 		logx.WithContext(l.ctx).Error("紀錄訂單歷程出錯:%s", err.Error())
 	}
 
-	return &transaction.ConfirmProxyPayOrderResponse{}, nil
+	return &transactionclient.ConfirmProxyPayOrderResponse{
+		Code:                response.API_SUCCESS,
+		Message:             "操作成功",
+	}, nil
 }
