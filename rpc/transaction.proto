@@ -352,6 +352,16 @@ message ConfirmPayOrderResponse {
   string Status = 12;
 }
 
+message ConfirmProxyPayOrderRequest {
+  string OrderNo = 1;
+  string Comment = 2;
+}
+
+message ConfirmProxyPayOrderResponse {
+  string Code = 1;
+  string Message = 2;
+}
+
 message RecoverReceiptOrderRequest {
   string OrderNo = 1;
   double Amount = 2;
@@ -529,6 +539,8 @@ service Transaction {
   rpc MakeUpReceiptOrderTransaction(MakeUpReceiptOrderRequest) returns (MakeUpReceiptOrderResponse);
 
   rpc ConfirmPayOrderTransaction(ConfirmPayOrderRequest) returns (ConfirmPayOrderResponse);
+
+  rpc ConfirmProxyPayOrderTransaction(ConfirmProxyPayOrderRequest) returns (ConfirmProxyPayOrderResponse);
 
   rpc RecoverReceiptOrderTransaction (RecoverReceiptOrderRequest) returns (RecoverReceiptOrderResponse);
 

@@ -23,6 +23,8 @@ type (
 	ConfirmCommissionMonthReportResponse     = transaction.ConfirmCommissionMonthReportResponse
 	ConfirmPayOrderRequest                   = transaction.ConfirmPayOrderRequest
 	ConfirmPayOrderResponse                  = transaction.ConfirmPayOrderResponse
+	ConfirmProxyPayOrderRequest              = transaction.ConfirmProxyPayOrderRequest
+	ConfirmProxyPayOrderResponse             = transaction.ConfirmProxyPayOrderResponse
 	CorrespondMerChnRate                     = transaction.CorrespondMerChnRate
 	FrozenReceiptOrderRequest                = transaction.FrozenReceiptOrderRequest
 	FrozenReceiptOrderResponse               = transaction.FrozenReceiptOrderResponse
@@ -99,6 +101,7 @@ type (
 		ProxyOrderUITransaction_XFB(ctx context.Context, in *ProxyOrderUIRequest, opts ...grpc.CallOption) (*ProxyOrderUIResponse, error)
 		MakeUpReceiptOrderTransaction(ctx context.Context, in *MakeUpReceiptOrderRequest, opts ...grpc.CallOption) (*MakeUpReceiptOrderResponse, error)
 		ConfirmPayOrderTransaction(ctx context.Context, in *ConfirmPayOrderRequest, opts ...grpc.CallOption) (*ConfirmPayOrderResponse, error)
+		ConfirmProxyPayOrderTransaction(ctx context.Context, in *ConfirmProxyPayOrderRequest, opts ...grpc.CallOption) (*ConfirmProxyPayOrderResponse, error)
 		RecoverReceiptOrderTransaction(ctx context.Context, in *RecoverReceiptOrderRequest, opts ...grpc.CallOption) (*RecoverReceiptOrderResponse, error)
 		FrozenReceiptOrderTransaction(ctx context.Context, in *FrozenReceiptOrderRequest, opts ...grpc.CallOption) (*FrozenReceiptOrderResponse, error)
 		UnFrozenReceiptOrderTransaction(ctx context.Context, in *UnFrozenReceiptOrderRequest, opts ...grpc.CallOption) (*UnFrozenReceiptOrderResponse, error)
@@ -233,6 +236,11 @@ func (m *defaultTransaction) MakeUpReceiptOrderTransaction(ctx context.Context, 
 func (m *defaultTransaction) ConfirmPayOrderTransaction(ctx context.Context, in *ConfirmPayOrderRequest, opts ...grpc.CallOption) (*ConfirmPayOrderResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.ConfirmPayOrderTransaction(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) ConfirmProxyPayOrderTransaction(ctx context.Context, in *ConfirmProxyPayOrderRequest, opts ...grpc.CallOption) (*ConfirmProxyPayOrderResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.ConfirmProxyPayOrderTransaction(ctx, in, opts...)
 }
 
 func (m *defaultTransaction) RecoverReceiptOrderTransaction(ctx context.Context, in *RecoverReceiptOrderRequest, opts ...grpc.CallOption) (*RecoverReceiptOrderResponse, error) {

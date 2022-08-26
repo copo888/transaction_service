@@ -419,3 +419,14 @@ func (s *TransactionServer) WithdrawTestToNormal_XFB(ctx context.Context, in *tr
 	})
 	return l.WithdrawTestToNormal_XFB(in)
 }
+
+func (s *TransactionServer) ConfirmProxyPayOrderTransaction(ctx context.Context, in *transaction.ConfirmProxyPayOrderRequest) (*transaction.ConfirmProxyPayOrderResponse, error) {
+	l := logic.NewConfirmProxyPayOrderTransactionLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "confirm-proxy-pay-order",
+		Value: attribute.StringValue(in.String()),
+	})
+	return l.ConfirmProxyPayOrderTransaction(in)
+}
