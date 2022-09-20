@@ -65,7 +65,7 @@ func (s *TransactionServer) ProxyOrderTranaction_DFB(ctx context.Context, in *tr
 		Key:   "proxypay-order-DFB-input",
 		Value: attribute.StringValue(in.String()),
 	})
-	return l.ProxyOrderTranaction_DFB(ctx,in)
+	return l.ProxyOrderTranaction_DFB(ctx, in)
 }
 
 func (s *TransactionServer) ProxyOrderTranaction_XFB(ctx context.Context, in *transactionclient.ProxyOrderRequest) (*transactionclient.ProxyOrderResponse, error) {

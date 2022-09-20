@@ -110,7 +110,6 @@ func (l *ConfirmProxyPayOrderTransactionLogic) ConfirmProxyPayOrderTransaction(i
 		}, nil
 	}
 
-
 	// 編輯訂單
 	order.Status = constants.SUCCESS
 	order.TransAt = types.JsonTime{}.New()
@@ -134,7 +133,6 @@ func (l *ConfirmProxyPayOrderTransactionLogic) ConfirmProxyPayOrderTransaction(i
 	}
 	/****     交易結束      ****/
 
-
 	// 新單新增訂單歷程 (不抱錯)
 	if err := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
 		OrderAction: types.OrderAction{
@@ -148,7 +146,7 @@ func (l *ConfirmProxyPayOrderTransactionLogic) ConfirmProxyPayOrderTransaction(i
 	}
 
 	return &transactionclient.ConfirmProxyPayOrderResponse{
-		Code:                response.API_SUCCESS,
-		Message:             "操作成功",
+		Code:    response.API_SUCCESS,
+		Message: "操作成功",
 	}, nil
 }
