@@ -51,6 +51,7 @@ type (
 	PersonalRebundResponse                   = transaction.PersonalRebundResponse
 	ProxyOrderRequest                        = transaction.ProxyOrderRequest
 	ProxyOrderResponse                       = transaction.ProxyOrderResponse
+	ProxyOrderSmartRequest                   = transaction.ProxyOrderSmartRequest
 	ProxyOrderTestRequest                    = transaction.ProxyOrderTestRequest
 	ProxyOrderTestResponse                   = transaction.ProxyOrderTestResponse
 	ProxyOrderUI                             = transaction.ProxyOrderUI
@@ -83,6 +84,8 @@ type (
 		MerchantBalanceFreezeTranaction(ctx context.Context, in *MerchantBalanceFreezeRequest, opts ...grpc.CallOption) (*MerchantBalanceFreezeResponse, error)
 		ProxyOrderTranaction_DFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error)
 		ProxyOrderTranaction_XFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error)
+		ProxyOrderSmartTranaction_DFB(ctx context.Context, in *ProxyOrderSmartRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error)
+		ProxyOrderSmartTranaction_XFB(ctx context.Context, in *ProxyOrderSmartRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error)
 		ProxyOrderTransactionFail_DFB(ctx context.Context, in *ProxyPayFailRequest, opts ...grpc.CallOption) (*ProxyPayFailResponse, error)
 		ProxyOrderTransactionFail_XFB(ctx context.Context, in *ProxyPayFailRequest, opts ...grpc.CallOption) (*ProxyPayFailResponse, error)
 		PayOrderSwitchTest(ctx context.Context, in *PayOrderSwitchTestRequest, opts ...grpc.CallOption) (*PayOrderSwitchTestResponse, error)
@@ -146,6 +149,16 @@ func (m *defaultTransaction) ProxyOrderTranaction_DFB(ctx context.Context, in *P
 func (m *defaultTransaction) ProxyOrderTranaction_XFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.ProxyOrderTranaction_XFB(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) ProxyOrderSmartTranaction_DFB(ctx context.Context, in *ProxyOrderSmartRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.ProxyOrderSmartTranaction_DFB(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) ProxyOrderSmartTranaction_XFB(ctx context.Context, in *ProxyOrderSmartRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.ProxyOrderSmartTranaction_XFB(ctx, in, opts...)
 }
 
 func (m *defaultTransaction) ProxyOrderTransactionFail_DFB(ctx context.Context, in *ProxyPayFailRequest, opts ...grpc.CallOption) (*ProxyPayFailResponse, error) {

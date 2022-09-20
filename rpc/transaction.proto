@@ -38,6 +38,13 @@ message ProxyOrderRequest {
   string balanceType = 3;
 }
 
+message ProxyOrderSmartRequest {
+  ProxyPayOrderRequest req = 1;
+  CorrespondMerChnRate rate = 2;
+  string orderNo = 3;
+  string balanceType = 4;
+}
+
 message ProxyPayFailRequest{
   string merchantCode = 1;
   string orderNo = 2;
@@ -503,6 +510,10 @@ service Transaction {
   rpc ProxyOrderTranaction_DFB(ProxyOrderRequest) returns (ProxyOrderResponse);
 
   rpc ProxyOrderTranaction_XFB(ProxyOrderRequest) returns (ProxyOrderResponse);
+
+  rpc ProxyOrderSmartTranaction_DFB(ProxyOrderSmartRequest) returns (ProxyOrderResponse);
+
+  rpc ProxyOrderSmartTranaction_XFB(ProxyOrderSmartRequest) returns (ProxyOrderResponse);
 
   rpc ProxyOrderTransactionFail_DFB(ProxyPayFailRequest) returns (ProxyPayFailResponse);
 
