@@ -7,7 +7,6 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
-	"github.com/copo888/transaction_service/rpc/transaction"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -27,7 +26,7 @@ func NewConfirmProxyPayOrderTransactionLogic(ctx context.Context, svcCtx *svc.Se
 	}
 }
 
-func (l *ConfirmProxyPayOrderTransactionLogic) ConfirmProxyPayOrderTransaction(in *transaction.ConfirmProxyPayOrderRequest) (*transaction.ConfirmProxyPayOrderResponse, error) {
+func (l *ConfirmProxyPayOrderTransactionLogic) ConfirmProxyPayOrderTransaction(in *transactionclient.ConfirmProxyPayOrderRequest) (*transactionclient.ConfirmProxyPayOrderResponse, error) {
 	var order *types.OrderX
 
 	/****     交易開始      ****/

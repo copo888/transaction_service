@@ -65,11 +65,11 @@ func (l *ProxyOrderSmartTranactionXFBLogic) ProxyOrderSmartTranaction_XFB(in *tr
 		MerchantOrderNo: txOrder.MerchantOrderNo,
 		OrderType:       txOrder.Type,
 		PayTypeCode:     txOrder.PayTypeCode,
-		TransferAmount:  txOrder.TransferAmount,
+		//TransferAmount:  txOrder.TransferAmount,
 		TransactionType: "11", //異動類型 (1=收款; 2=解凍; 3=沖正; 11=出款 ; 12=凍結)
 		BalanceType:     constants.DF_BALANCE,
 		CreatedBy:       txOrder.MerchantCode,
-		ChannelCode:     txOrder.ChannelCode,
+		ChannelCode:     rate.ChannelCode, //每次依渠道費率不同
 	}
 
 	//判断是否是银行账号是否是黑名单
@@ -117,6 +117,11 @@ func (l *ProxyOrderSmartTranactionXFBLogic) ProxyOrderSmartTranaction_XFB(in *tr
 			Code:    response.UPDATE_DATABASE_FAILURE,
 			Message: "異動錢包失敗，orderNo : " + req.OrderNo,
 		}, nil
+	}
+
+	// 刪除利潤紀錄
+	if err := orderfeeprofitservice.DeleteOrderProfit(l.svcCtx.MyDB, txOrder.OrderNo); err != nil {
+		logx.WithContext(l.ctx).Errorf("刪除利潤出錯:%s", err.Error())
 	}
 
 	// 計算利潤(不報錯) TODO: 異步??

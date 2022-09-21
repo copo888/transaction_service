@@ -79,6 +79,28 @@ func (s *TransactionServer) ProxyOrderTranaction_XFB(ctx context.Context, in *tr
 	return l.ProxyOrderTranaction_XFB(ctx, in)
 }
 
+func (s *TransactionServer) ProxyOrderSmartTranaction_DFB(ctx context.Context, in *transactionclient.ProxyOrderSmartRequest) (*transactionclient.ProxyOrderResponse, error) {
+	l := logic.NewProxyOrderSmartTranactionDFBLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "proxypay-smart-order-DFB-input",
+		Value: attribute.StringValue(in.String()),
+	})
+	return l.ProxyOrderSmartTranaction_DFB(in)
+}
+
+func (s *TransactionServer) ProxyOrderSmartTranaction_XFB(ctx context.Context, in *transactionclient.ProxyOrderSmartRequest) (*transactionclient.ProxyOrderResponse, error) {
+	l := logic.NewProxyOrderSmartTranactionXFBLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "proxypay-smart-order-XFB-input",
+		Value: attribute.StringValue(in.String()),
+	})
+	return l.ProxyOrderSmartTranaction_XFB(in)
+}
+
 func (s *TransactionServer) ProxyOrderTransactionFail_DFB(ctx context.Context, in *transactionclient.ProxyPayFailRequest) (*transactionclient.ProxyPayFailResponse, error) {
 	l := logic.NewProxyOrderTransactionFailDFBLogic(ctx, s.svcCtx)
 	span := trace.SpanFromContext(ctx)
@@ -420,7 +442,7 @@ func (s *TransactionServer) WithdrawTestToNormal_XFB(ctx context.Context, in *tr
 	return l.WithdrawTestToNormal_XFB(in)
 }
 
-func (s *TransactionServer) ConfirmProxyPayOrderTransaction(ctx context.Context, in *transaction.ConfirmProxyPayOrderRequest) (*transaction.ConfirmProxyPayOrderResponse, error) {
+func (s *TransactionServer) ConfirmProxyPayOrderTransaction(ctx context.Context, in *transactionclient.ConfirmProxyPayOrderRequest) (*transactionclient.ConfirmProxyPayOrderResponse, error) {
 	l := logic.NewConfirmProxyPayOrderTransactionLogic(ctx, s.svcCtx)
 	span := trace.SpanFromContext(ctx)
 	defer span.End()
