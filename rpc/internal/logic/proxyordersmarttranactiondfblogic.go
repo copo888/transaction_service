@@ -57,7 +57,7 @@ func (l *ProxyOrderSmartTranactionDFBLogic) ProxyOrderSmartTranaction_DFB(in *tr
 			utils.FloatAdd(utils.FloatMul(utils.FloatDiv(req.OrderAmount, 100), 0), rate.HandlingFee)
 	}
 
-	// 新增收支记录，与更新商户余额(商户账户号是黑名单，把交易金额为设为 0)
+	//更新收支记录，与更新商户余额(商户账户号是黑名单，把交易金额为设为 0)
 	updateBalance := &types.UpdateBalance{
 		MerchantCode:    txOrder.MerchantCode,
 		CurrencyCode:    txOrder.CurrencyCode,
