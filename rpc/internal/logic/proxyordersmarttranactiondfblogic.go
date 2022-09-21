@@ -46,6 +46,8 @@ func (l *ProxyOrderSmartTranactionDFBLogic) ProxyOrderSmartTranaction_DFB(in *tr
 		}, nil
 	}
 
+	txOrder.Memo = "智能訂單"
+
 	var transferHandlingFee float64
 	if rate.IsRate == "1" { // 是否算費率，0:否 1:是
 		//  交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
@@ -108,7 +110,8 @@ func (l *ProxyOrderSmartTranactionDFBLogic) ProxyOrderSmartTranaction_DFB(in *tr
 			txOrder.Balance = merchantBalanceRecord.AfterBalance
 		}
 
-		if err = db.Table("tx_orders").Where("order_no = ?", txOrder.OrderNo).Updates(txOrder).Error; err != nil {
+		// 更新订单
+		if err = db.Table("tx_orders").Updates(txOrder).Error; err != nil {
 			logx.WithContext(l.ctx).Errorf("代付出款失敗(代付餘額)_ %s 更新订单失败: %s", txOrder.OrderNo, err.Error())
 			return
 		}
@@ -142,7 +145,7 @@ func (l *ProxyOrderSmartTranactionDFBLogic) ProxyOrderSmartTranaction_DFB(in *tr
 		txOrder.IsCalculateProfit = constants.IS_CALCULATE_PROFIT_YES
 	}
 
-	if errUpdate := l.svcCtx.MyDB.Table("tx_orders").Where("order_no = ?", txOrder.OrderNo).Updates(txOrder).Error; errUpdate != nil {
+	if errUpdate := l.svcCtx.MyDB.Table("tx_orders").Updates(txOrder).Error; errUpdate != nil {
 		logx.WithContext(l.ctx).Errorf("代付订单更新状态错误: %s", errUpdate.Error())
 	}
 
