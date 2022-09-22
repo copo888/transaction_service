@@ -45,7 +45,6 @@ func (l *ProxyOrderSmartTranactionXFBLogic) ProxyOrderSmartTranaction_XFB(in *tr
 			Message: "查詢訂單資料錯誤，orderNo : " + in.OrderNo,
 		}, nil
 	}
-	txOrder.Memo = "智能訂單"
 
 	var transferHandlingFee float64
 	if rate.IsRate == "1" { // 是否算費率，0:否 1:是

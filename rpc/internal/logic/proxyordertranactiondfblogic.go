@@ -55,6 +55,16 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(ctx context.Cont
 			utils.FloatAdd(utils.FloatMul(utils.FloatDiv(req.OrderAmount, 100), 0), rate.HandlingFee)
 	}
 
+	merchant := &types.Merchant{}
+	if errMer := l.svcCtx.MyDB.Table("mc_merchants").Where("code = ?", rate.MerchantCode).Take(merchant); errMer != nil {
+		logx.Errorf("查尋商戶錯誤", errMer)
+	}
+
+	var memo string
+	if req.PayTypeSubNo == "" && merchant.BillLadingType == "1" { //多指模式 AND 沒給payTypeSubNo => 智能訂單
+		memo = "智能訂單"
+	}
+
 	//初始化订单
 	txOrder := &types.Order{
 		OrderNo:              model.GenerateOrderNo("DF"),
@@ -87,6 +97,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(ctx context.Cont
 		//API 要填的参数
 		NotifyUrl:          req.NotifyUrl,
 		IsMerchantCallback: isMerchantCallback,
+		Memo:               memo,
 	}
 
 	// 新增收支记录，与更新商户余额(商户账户号是黑名单，把交易金额为设为 0)

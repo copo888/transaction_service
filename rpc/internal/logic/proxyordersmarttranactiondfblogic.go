@@ -46,8 +46,6 @@ func (l *ProxyOrderSmartTranactionDFBLogic) ProxyOrderSmartTranaction_DFB(in *tr
 		}, nil
 	}
 
-	txOrder.Memo = "智能訂單"
-
 	var transferHandlingFee float64
 	if rate.IsRate == "1" { // 是否算費率，0:否 1:是
 		//  交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
