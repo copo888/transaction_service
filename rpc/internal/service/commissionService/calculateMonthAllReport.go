@@ -1,6 +1,7 @@
 package commissionService
 
 import (
+	"context"
 	"github.com/copo888/transaction_service/common/errorz"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/rpc/internal/types"
@@ -12,9 +13,11 @@ import (
 )
 
 // CalculateMonthAllReport 計算當月傭金報表
-func CalculateMonthAllReport(db *gorm.DB, month string) error {
-	monthArray := strings.Split(month, "-")
+func CalculateMonthAllReport(db *gorm.DB, month string, ctx context.Context) error {
 
+	logx.WithContext(ctx).Infof("開始計算 月份傭金 Transaction start")
+
+	monthArray := strings.Split(month, "-")
 	// 檢查月份格式
 	if len(monthArray) != 2 {
 		return errorz.New(response.DATABASE_FAILURE)
@@ -29,12 +32,13 @@ func CalculateMonthAllReport(db *gorm.DB, month string) error {
 	startAt := BeginningOfMonth(y, m).Format("2006-01-02 15:04:05")
 	endAt := EndOfMonth(y, m).Format("2006-01-02 15:04:05")
 
+
 	// 取得此月份所有要計算的代理商戶
 	reports, err := getAllMonthReports(db, startAt, endAt)
 	if err != nil {
 		return errorz.New(response.DATABASE_FAILURE)
 	}
-	logx.Infof("開始計算 %s 月份傭金 總共有 %d 筆 Transaction start", month, len(reports))
+	logx.WithContext(ctx).Infof("開始計算 %s 月份傭金 總共有 %d 筆 Transaction start", month, len(reports))
 	if errTx := db.Transaction(func(txdb *gorm.DB) (err error) {
 		// 迴圈計算 單筆代理傭金報表
 		for _, report := range reports {
@@ -91,5 +95,7 @@ func BeginningOfMonth(year, month int) time.Time {
 
 // EndOfMonth 取得月結束時間 (下個月1號)
 func EndOfMonth(year, month int) time.Time {
-	return BeginningOfMonth(year, month).AddDate(0, 1, 0)
+	d1 := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
+	h, _ := time.ParseDuration("1h")
+	return d1.AddDate(0, 1, 0).Add(-8 * h)
 }

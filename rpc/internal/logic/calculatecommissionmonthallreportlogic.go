@@ -26,7 +26,7 @@ func NewCalculateCommissionMonthAllReportLogic(ctx context.Context, svcCtx *svc.
 
 func (l *CalculateCommissionMonthAllReportLogic) CalculateCommissionMonthAllReport(in *transactionclient.CalculateCommissionMonthAllRequest) (*transactionclient.CalculateCommissionMonthAllResponse, error) {
 
-	err := commissionService.CalculateMonthAllReport(l.svcCtx.MyDB, in.Month)
+	err := commissionService.CalculateMonthAllReport(l.svcCtx.MyDB, in.Month, l.ctx)
 	if err != nil {
 		return &transactionclient.CalculateCommissionMonthAllResponse{
 			Code:    response.SYSTEM_ERROR,
