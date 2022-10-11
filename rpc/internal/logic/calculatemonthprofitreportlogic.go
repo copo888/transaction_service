@@ -234,7 +234,8 @@ func (l *CalculateMonthProfitReportLogic) calculateMonthProfitReportDetails(db *
 		Where("o.type = ?", orderType).
 		Where("(o.status = 20)").
 		Where("o.is_test != 1").
-		Group("merchant_code, currency_code, pay_type_code").
+		Where("o.reason_type != 11").
+		Group("merchant_code, currency_code").
 		Find(&caculateMonthProfitReport).Error
 
 	return &caculateMonthProfitReport, err
