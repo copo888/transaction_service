@@ -36,6 +36,8 @@ Consul:
 
 Target: consul://${CONSUL_HOST}/@?wait=14s
 
+Timeout: 10000
+
 Version: "1.0"
 
 

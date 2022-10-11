@@ -23,6 +23,8 @@ type (
 	ConfirmCommissionMonthReportResponse     = transaction.ConfirmCommissionMonthReportResponse
 	ConfirmPayOrderRequest                   = transaction.ConfirmPayOrderRequest
 	ConfirmPayOrderResponse                  = transaction.ConfirmPayOrderResponse
+	ConfirmProxyPayOrderRequest              = transaction.ConfirmProxyPayOrderRequest
+	ConfirmProxyPayOrderResponse             = transaction.ConfirmProxyPayOrderResponse
 	CorrespondMerChnRate                     = transaction.CorrespondMerChnRate
 	FrozenReceiptOrderRequest                = transaction.FrozenReceiptOrderRequest
 	FrozenReceiptOrderResponse               = transaction.FrozenReceiptOrderResponse
@@ -49,6 +51,7 @@ type (
 	PersonalRebundResponse                   = transaction.PersonalRebundResponse
 	ProxyOrderRequest                        = transaction.ProxyOrderRequest
 	ProxyOrderResponse                       = transaction.ProxyOrderResponse
+	ProxyOrderSmartRequest                   = transaction.ProxyOrderSmartRequest
 	ProxyOrderTestRequest                    = transaction.ProxyOrderTestRequest
 	ProxyOrderTestResponse                   = transaction.ProxyOrderTestResponse
 	ProxyOrderUI                             = transaction.ProxyOrderUI
@@ -81,6 +84,8 @@ type (
 		MerchantBalanceFreezeTranaction(ctx context.Context, in *MerchantBalanceFreezeRequest, opts ...grpc.CallOption) (*MerchantBalanceFreezeResponse, error)
 		ProxyOrderTranaction_DFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error)
 		ProxyOrderTranaction_XFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error)
+		ProxyOrderSmartTranaction_DFB(ctx context.Context, in *ProxyOrderSmartRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error)
+		ProxyOrderSmartTranaction_XFB(ctx context.Context, in *ProxyOrderSmartRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error)
 		ProxyOrderTransactionFail_DFB(ctx context.Context, in *ProxyPayFailRequest, opts ...grpc.CallOption) (*ProxyPayFailResponse, error)
 		ProxyOrderTransactionFail_XFB(ctx context.Context, in *ProxyPayFailRequest, opts ...grpc.CallOption) (*ProxyPayFailResponse, error)
 		PayOrderSwitchTest(ctx context.Context, in *PayOrderSwitchTestRequest, opts ...grpc.CallOption) (*PayOrderSwitchTestResponse, error)
@@ -99,6 +104,7 @@ type (
 		ProxyOrderUITransaction_XFB(ctx context.Context, in *ProxyOrderUIRequest, opts ...grpc.CallOption) (*ProxyOrderUIResponse, error)
 		MakeUpReceiptOrderTransaction(ctx context.Context, in *MakeUpReceiptOrderRequest, opts ...grpc.CallOption) (*MakeUpReceiptOrderResponse, error)
 		ConfirmPayOrderTransaction(ctx context.Context, in *ConfirmPayOrderRequest, opts ...grpc.CallOption) (*ConfirmPayOrderResponse, error)
+		ConfirmProxyPayOrderTransaction(ctx context.Context, in *ConfirmProxyPayOrderRequest, opts ...grpc.CallOption) (*ConfirmProxyPayOrderResponse, error)
 		RecoverReceiptOrderTransaction(ctx context.Context, in *RecoverReceiptOrderRequest, opts ...grpc.CallOption) (*RecoverReceiptOrderResponse, error)
 		FrozenReceiptOrderTransaction(ctx context.Context, in *FrozenReceiptOrderRequest, opts ...grpc.CallOption) (*FrozenReceiptOrderResponse, error)
 		UnFrozenReceiptOrderTransaction(ctx context.Context, in *UnFrozenReceiptOrderRequest, opts ...grpc.CallOption) (*UnFrozenReceiptOrderResponse, error)
@@ -143,6 +149,16 @@ func (m *defaultTransaction) ProxyOrderTranaction_DFB(ctx context.Context, in *P
 func (m *defaultTransaction) ProxyOrderTranaction_XFB(ctx context.Context, in *ProxyOrderRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.ProxyOrderTranaction_XFB(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) ProxyOrderSmartTranaction_DFB(ctx context.Context, in *ProxyOrderSmartRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.ProxyOrderSmartTranaction_DFB(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) ProxyOrderSmartTranaction_XFB(ctx context.Context, in *ProxyOrderSmartRequest, opts ...grpc.CallOption) (*ProxyOrderResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.ProxyOrderSmartTranaction_XFB(ctx, in, opts...)
 }
 
 func (m *defaultTransaction) ProxyOrderTransactionFail_DFB(ctx context.Context, in *ProxyPayFailRequest, opts ...grpc.CallOption) (*ProxyPayFailResponse, error) {
@@ -233,6 +249,11 @@ func (m *defaultTransaction) MakeUpReceiptOrderTransaction(ctx context.Context, 
 func (m *defaultTransaction) ConfirmPayOrderTransaction(ctx context.Context, in *ConfirmPayOrderRequest, opts ...grpc.CallOption) (*ConfirmPayOrderResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.ConfirmPayOrderTransaction(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) ConfirmProxyPayOrderTransaction(ctx context.Context, in *ConfirmProxyPayOrderRequest, opts ...grpc.CallOption) (*ConfirmProxyPayOrderResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.ConfirmProxyPayOrderTransaction(ctx, in, opts...)
 }
 
 func (m *defaultTransaction) RecoverReceiptOrderTransaction(ctx context.Context, in *RecoverReceiptOrderRequest, opts ...grpc.CallOption) (*RecoverReceiptOrderResponse, error) {

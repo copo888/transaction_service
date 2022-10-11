@@ -6,6 +6,7 @@ const (
 
 	WAIT_PROCESS = "0"  /*订单状态:待处理*/
 	PROCESSING   = "1"  /*订单状态:处理中*/
+	TRANSACTION  = "2"  /*订单状态:交易中*/
 	SUCCESS      = "20" /*订单状态:成功*/
 	FAIL         = "30" /*订单状态:失败*/
 	FROZEN       = "31" /*订单状态:凍結*/
@@ -57,8 +58,8 @@ const (
 	ACTION_TRANSFER_TEST      = "TRANSFER_TEST"     //轉測試單
 	ACTION_TRANSFER_NORMAL    = "TRANSFER_NORMAL"   //轉正式單
 
-	ORDER_REASON_TYPE_UPDATE_AMOUNT = "1" // 修改金額
-	ORDER_REASON_TYPE_REPAYMENT = "2" // 重複支付
-	ORDER_REASON_TYPE_OTHER = "3" // 其它
-	ORDER_REASON_TYPE_RECOVER = "11" // 追回
+	ORDER_REASON_TYPE_UPDATE_AMOUNT = "1"  // 修改金額
+	ORDER_REASON_TYPE_REPAYMENT     = "2"  // 重複支付
+	ORDER_REASON_TYPE_OTHER         = "3"  // 其它
+	ORDER_REASON_TYPE_RECOVER       = "11" // 追回
 )

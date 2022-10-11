@@ -40,6 +40,13 @@ func CalculateOrderProfitForSchedule(db *gorm.DB, calculateProfit types.Calculat
 	})
 }
 
+func DeleteOrderProfit(db *gorm.DB, orderNo string) (err error) {
+	if err = db.Delete(&types.OrderFeeProfit{}, "order_no = ?", orderNo).Error; err != nil {
+		return
+	}
+	return nil
+}
+
 // CalculateOrderProfit 計算利潤 (ZF,DF 專用用)
 func CalculateOrderProfit(db *gorm.DB, calculateProfit types.CalculateProfit) (err error) {
 	return db.Transaction(func(db *gorm.DB) (err error) {
@@ -213,7 +220,7 @@ func setChannelFee(db *gorm.DB, calculateProfit *types.CalculateProfit, orderFee
 	} else if calculateProfit.Type == "NC" {
 		// "内充" 收計算費率
 		orderFeeProfit.Fee = channelPayType.Fee
-	}else {
+	} else {
 		return errorz.New(response.ILLEGAL_PARAMETER, err.Error())
 	}
 

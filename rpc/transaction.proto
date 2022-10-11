@@ -38,6 +38,13 @@ message ProxyOrderRequest {
   string balanceType = 3;
 }
 
+message ProxyOrderSmartRequest {
+  ProxyPayOrderRequest req = 1;
+  CorrespondMerChnRate rate = 2;
+  string orderNo = 3;
+  string balanceType = 4;
+}
+
 message ProxyPayFailRequest{
   string merchantCode = 1;
   string orderNo = 2;
@@ -352,6 +359,16 @@ message ConfirmPayOrderResponse {
   string Status = 12;
 }
 
+message ConfirmProxyPayOrderRequest {
+  string OrderNo = 1;
+  string Comment = 2;
+}
+
+message ConfirmProxyPayOrderResponse {
+  string Code = 1;
+  string Message = 2;
+}
+
 message RecoverReceiptOrderRequest {
   string OrderNo = 1;
   double Amount = 2;
@@ -494,6 +511,10 @@ service Transaction {
 
   rpc ProxyOrderTranaction_XFB(ProxyOrderRequest) returns (ProxyOrderResponse);
 
+  rpc ProxyOrderSmartTranaction_DFB(ProxyOrderSmartRequest) returns (ProxyOrderResponse);
+
+  rpc ProxyOrderSmartTranaction_XFB(ProxyOrderSmartRequest) returns (ProxyOrderResponse);
+
   rpc ProxyOrderTransactionFail_DFB(ProxyPayFailRequest) returns (ProxyPayFailResponse);
 
   rpc ProxyOrderTransactionFail_XFB(ProxyPayFailRequest) returns (ProxyPayFailResponse);
@@ -529,6 +550,8 @@ service Transaction {
   rpc MakeUpReceiptOrderTransaction(MakeUpReceiptOrderRequest) returns (MakeUpReceiptOrderResponse);
 
   rpc ConfirmPayOrderTransaction(ConfirmPayOrderRequest) returns (ConfirmPayOrderResponse);
+
+  rpc ConfirmProxyPayOrderTransaction(ConfirmProxyPayOrderRequest) returns (ConfirmProxyPayOrderResponse);
 
   rpc RecoverReceiptOrderTransaction (RecoverReceiptOrderRequest) returns (RecoverReceiptOrderResponse);
 
