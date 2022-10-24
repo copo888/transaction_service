@@ -155,8 +155,8 @@ func (l *WithdrawReviewSuccessTransactionLogic) CalculateSystemProfit(db *gorm.D
 		MerchantCode:        "00000000",
 		BalanceType:         order.BalanceType,
 		Fee:                 0,
-		HandlingFee:         TransferHandlingFee,
-		TransferHandlingFee: TransferHandlingFee,
+		HandlingFee:         order.TransferHandlingFee,
+		TransferHandlingFee: order.TransferHandlingFee,
 		// 商戶手續費 - 渠道總手續費 = 利潤 (有可能是負的)
 		ProfitAmount: utils.FloatSub(order.TransferHandlingFee, TransferHandlingFee),
 	}
