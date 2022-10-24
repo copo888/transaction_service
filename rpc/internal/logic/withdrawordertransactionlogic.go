@@ -218,10 +218,10 @@ func (l *WithdrawOrderTransactionLogic) calculateOrderProfit(db *gorm.DB, calcul
 	} else if err != nil {
 		return errorz.New(response.DATABASE_FAILURE, err.Error())
 	}
-	orderFeeProfit.HandlingFee = merchantCurrency.WithdrawHandlingFee
+	//orderFeeProfit.HandlingFee = merchantCurrency.WithdrawHandlingFee
 	//  交易手續費總額 = 訂單金額 + 手續費
-	orderFeeProfit.TransferHandlingFee =
-		utils.FloatAdd(calculateProfit.OrderAmount, orderFeeProfit.HandlingFee)
+	//orderFeeProfit.TransferHandlingFee =
+	//	utils.FloatAdd(calculateProfit.OrderAmount, orderFeeProfit.HandlingFee)
 
 	// 4. 除存费率
 	if err = db.Table("tx_orders_fee_profit").Create(&types.OrderFeeProfitX{
