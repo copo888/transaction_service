@@ -152,7 +152,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		BalanceType:  txOrder.BalanceType,
 		OrderAmount:  txOrder.ActualAmount,
 	}
-	if err4 := l.calculateOrderProfit(l.svcCtx.MyDB, calculateProfit, txOrder); err4 != nil {
+	if err4 := l.calculateOrderProfit(l.svcCtx.MyDB, calculateProfit, in.HandlingFee); err4 != nil {
 		logx.Errorf("计算下发利润失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err4.Error())
 	}
 
@@ -180,7 +180,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 	}, nil
 }
 
-func (l *WithdrawOrderTransactionLogic) calculateOrderProfit(db *gorm.DB, calculateProfit types.CalculateProfit, txOrder *types.Order) (err error) {
+func (l *WithdrawOrderTransactionLogic) calculateOrderProfit(db *gorm.DB, calculateProfit types.CalculateProfit, handlingFee float64) (err error) {
 	var merchant *types.Merchant
 	var agentLayerCode string
 	var agentParentCode string
@@ -204,8 +204,8 @@ func (l *WithdrawOrderTransactionLogic) calculateOrderProfit(db *gorm.DB, calcul
 		AgentParentCode:     agentParentCode,
 		BalanceType:         calculateProfit.BalanceType,
 		Fee:                 0,
-		HandlingFee:         txOrder.HandlingFee,
-		TransferHandlingFee: txOrder.TransferHandlingFee,
+		HandlingFee:         handlingFee,
+		TransferHandlingFee: handlingFee,
 		ProfitAmount:        0,
 	}
 
