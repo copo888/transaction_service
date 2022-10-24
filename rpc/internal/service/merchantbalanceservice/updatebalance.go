@@ -121,6 +121,7 @@ func UpdateXFBalance_Debit(ctx context.Context, db *gorm.DB, updateBalance *type
 	// 1. 取得 商戶餘額表
 	var merchantBalance types.MerchantBalance
 	if err = db.Table("mc_merchant_balances").
+		Clauses(clause.Locking{Strength: "UPDATE"}).
 		Where("merchant_code = ? AND currency_code = ? AND balance_type = ?", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType).
 		Take(&merchantBalance).Error; err != nil {
 		return merchantBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
@@ -184,6 +185,7 @@ func UpdateXFBalance_Deposit(db *gorm.DB, updateBalance types.UpdateBalance) (me
 	// 1. 取得 商戶餘額表
 	var merchantBalance types.MerchantBalance
 	if err = db.Table("mc_merchant_balances").
+		Clauses(clause.Locking{Strength: "UPDATE"}).
 		Where("merchant_code = ? AND currency_code = ? AND balance_type = ?", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType).
 		Take(&merchantBalance).Error; err != nil {
 		return merchantBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
@@ -242,6 +244,7 @@ func UpdateDFBalance_Deposit(db *gorm.DB, updateBalance *types.UpdateBalance) (m
 	// 1. 取得 商戶餘額表
 	var merchantBalance types.MerchantBalance
 	if err = db.Table("mc_merchant_balances").
+		Clauses(clause.Locking{Strength: "UPDATE"}).
 		Where("merchant_code = ? AND currency_code = ? AND balance_type = ?", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType).
 		Take(&merchantBalance).Error; err != nil {
 		return merchantBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
@@ -375,6 +378,7 @@ func UpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBala
 	// 1. 取得 商戶餘額表
 	var merchantBalance types.MerchantBalance
 	if err = db.Table("mc_merchant_balances").
+		Clauses(clause.Locking{Strength: "UPDATE"}).
 		Where("merchant_code = ? AND currency_code = ? AND balance_type = ?", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType).
 		Take(&merchantBalance).Error; err != nil {
 		return merchantBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())

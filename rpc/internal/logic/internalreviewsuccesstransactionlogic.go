@@ -12,6 +12,7 @@ import (
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"github.com/neccoys/go-zero-extension/redislock"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -133,6 +134,7 @@ func (l *InternalReviewSuccessTransactionLogic) doUpdateBalance(db *gorm.DB, upd
 	// 1. 取得 商戶餘額表
 	var merchantBalance types.MerchantBalance
 	if err = db.Table("mc_merchant_balances").
+		Clauses(clause.Locking{Strength: "UPDATE"}).
 		Where("merchant_code = ? AND currency_code = ? AND balance_type = ?", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType).
 		Take(&merchantBalance).Error; err != nil {
 		return merchantBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
