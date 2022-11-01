@@ -3,18 +3,17 @@ package logic
 import (
 	"context"
 	"github.com/copo888/transaction_service/common/constants"
-	"github.com/copo888/transaction_service/common/errorz"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/model"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
+	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
-	"gorm.io/gorm"
-
-	"github.com/copo888/transaction_service/rpc/internal/svc"
+	"github.com/gioco-play/easy-i18n/i18n"
 	"github.com/zeromicro/go-zero/core/logx"
+	"gorm.io/gorm"
 )
 
 type ProxyOrderTranactionXFBLogic struct {
@@ -57,7 +56,7 @@ func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(ctx context.Cont
 
 	merchant := &types.Merchant{}
 	if errMer := l.svcCtx.MyDB.Table("mc_merchants").Where("code = ?", rate.MerchantCode).Take(merchant); errMer != nil {
-		logx.Errorf("查尋商戶錯誤", errMer)
+		logx.Errorf("查尋商戶錯誤", errMer.Error)
 	}
 
 	var memo string
@@ -138,7 +137,7 @@ func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(ctx context.Cont
 		//更新钱包且新增商户钱包异动记录
 		if merchantBalanceRecord, err = merchantbalanceservice.DoUpdateXFBalance_Debit(l.ctx, l.svcCtx, db, updateBalance); err != nil {
 			logx.WithContext(ctx).Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
-			return errorz.New(response.SYSTEM_ERROR, err.Error())
+			return err
 		} else {
 			logx.WithContext(ctx).Infof("代付API提单 %s，錢包扣款成功", merchantBalanceRecord.OrderNo)
 			txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance // 商戶錢包異動紀錄
@@ -156,8 +155,9 @@ func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(ctx context.Cont
 		return nil
 	}); err != nil {
 		return &transactionclient.ProxyOrderResponse{
-			Code:    response.UPDATE_DATABASE_FAILURE,
-			Message: "異動錢包失敗，orderNo : " + req.OrderNo,
+			Code:         err.Error(),
+			Message:      i18n.Sprintf(err.Error()),
+			ProxyOrderNo: req.OrderNo,
 		}, nil
 	}
 
