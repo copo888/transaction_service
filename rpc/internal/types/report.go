@@ -17,6 +17,7 @@ type IncomReport struct {
 	TotalNetProfit float64 `json:"total_net_profit"`
 	CommissionTotalAmount float64 `json:"commission_total_amount"`
 	ProfitGrowthRate float64 `json:"profit_growth_rate"`
+	TotalAllocHandlingFee float64 `json:"total_alloc_handling_fee"`
 }
 
 type IncomReportX struct {

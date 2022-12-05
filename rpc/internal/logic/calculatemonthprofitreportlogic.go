@@ -114,15 +114,24 @@ func (l *CalculateMonthProfitReportLogic) calculateMonthProfitReport(db *gorm.DB
 		return err
 	}
 
+	// 計算撥款資料
+	alDetail, err := l.calculateMonthProfitReportDetails(db, "BK", startAt, endAt, report.CurrencyCode)
+	if err != nil {
+		logx.Errorf("計算收益報表 撥款資料 失敗: %#v, error: %s", wfDetail, err.Error())
+		return err
+	}
+
 	receivedTotalNetProfit := 0.0
 	remitTotalNetProfit := 0.0
 	totalNetProfit := 0.0
 	profitGrowthRate := 0.0
+	totalAllocHandlingFee := 0.0
 
 	receivedTotalNetProfit = utils.FloatAdd(zfDetail.TotalProfit, ncDetail.TotalProfit)
 	remitTotalNetProfit = utils.FloatAdd(dfDetail.TotalProfit, wfDetail.TotalProfit)
 
 	totalNetProfit = utils.FloatAdd(receivedTotalNetProfit, remitTotalNetProfit)
+	totalAllocHandlingFee = alDetail.TotalProfit
 	// 計算佣金資料
 	commissionTotalAmount, err := l.calculateCommissionMonthData(db, month, report.CurrencyCode)
 	if err != nil {
@@ -165,6 +174,7 @@ func (l *CalculateMonthProfitReportLogic) calculateMonthProfitReport(db *gorm.DB
 				newIncomReportX.TotalNetProfit = totalNetProfit
 				newIncomReportX.CommissionTotalAmount = commissionTotalAmount
 				newIncomReportX.ProfitGrowthRate = profitGrowthRate
+				newIncomReportX.TotalAllocHandlingFee = totalAllocHandlingFee
 
 				if err := db.Table("rp_incom_report").Create(&newIncomReportX).Error; err != nil {
 					logx.Errorf("新增收益報表失敗: %#v, error: %s", newIncomReportX, err.Error())
@@ -195,6 +205,7 @@ func (l *CalculateMonthProfitReportLogic) calculateMonthProfitReport(db *gorm.DB
 	newIncomReportX.TotalNetProfit = totalNetProfit
 	newIncomReportX.CommissionTotalAmount = commissionTotalAmount
 	newIncomReportX.ProfitGrowthRate = profitGrowthRate
+	newIncomReportX.TotalAllocHandlingFee = totalAllocHandlingFee
 
 	if err := db.Table("rp_incom_report").Create(&newIncomReportX).Error; err != nil {
 		logx.Errorf("新增收益報表失敗: %#v, error: %s", newIncomReportX, err.Error())
