@@ -67,7 +67,7 @@ func (l *ProxyOrderSmartTranactionXFBLogic) ProxyOrderSmartTranaction_XFB(in *tr
 		PayTypeCode:     txOrder.PayTypeCode,
 		//TransferAmount:  txOrder.TransferAmount,
 		TransactionType: "11", //異動類型 (1=收款; 2=解凍; 3=沖正; 11=出款 ; 12=凍結)
-		BalanceType:     constants.DF_BALANCE,
+		BalanceType:     constants.XF_BALANCE,
 		CreatedBy:       txOrder.MerchantCode,
 		ChannelCode:     rate.ChannelCode, //每次依渠道費率不同
 	}
