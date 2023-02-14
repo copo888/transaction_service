@@ -26,6 +26,9 @@ type (
 	ConfirmProxyPayOrderRequest              = transaction.ConfirmProxyPayOrderRequest
 	ConfirmProxyPayOrderResponse             = transaction.ConfirmProxyPayOrderResponse
 	CorrespondMerChnRate                     = transaction.CorrespondMerChnRate
+	CryptoPayOrder                           = transaction.CryptoPayOrder
+	CryptoPayOrderRequest                    = transaction.CryptoPayOrderRequest
+	CryptoPayOrderResponse                   = transaction.CryptoPayOrderResponse
 	FrozenReceiptOrderRequest                = transaction.FrozenReceiptOrderRequest
 	FrozenReceiptOrderResponse               = transaction.FrozenReceiptOrderResponse
 	InternalOrder                            = transaction.InternalOrder
@@ -118,6 +121,7 @@ type (
 		WithdrawCommissionOrderTransaction(ctx context.Context, in *WithdrawCommissionOrderRequest, opts ...grpc.CallOption) (*WithdrawCommissionOrderResponse, error)
 		WithdrawOrderToTest_XFB(ctx context.Context, in *WithdrawOrderTestRequest, opts ...grpc.CallOption) (*WithdrawOrderTestResponse, error)
 		WithdrawTestToNormal_XFB(ctx context.Context, in *WithdrawOrderTestRequest, opts ...grpc.CallOption) (*WithdrawOrderTestResponse, error)
+		CryptoPayOrderTranaction(ctx context.Context, in *CryptoPayOrderRequest, opts ...grpc.CallOption) (*CryptoPayOrderResponse, error)
 	}
 
 	defaultTransaction struct {
@@ -319,4 +323,9 @@ func (m *defaultTransaction) WithdrawOrderToTest_XFB(ctx context.Context, in *Wi
 func (m *defaultTransaction) WithdrawTestToNormal_XFB(ctx context.Context, in *WithdrawOrderTestRequest, opts ...grpc.CallOption) (*WithdrawOrderTestResponse, error) {
 	client := transaction.NewTransactionClient(m.cli.Conn())
 	return client.WithdrawTestToNormal_XFB(ctx, in, opts...)
+}
+
+func (m *defaultTransaction) CryptoPayOrderTranaction(ctx context.Context, in *CryptoPayOrderRequest, opts ...grpc.CallOption) (*CryptoPayOrderResponse, error) {
+	client := transaction.NewTransactionClient(m.cli.Conn())
+	return client.CryptoPayOrderTranaction(ctx, in, opts...)
 }

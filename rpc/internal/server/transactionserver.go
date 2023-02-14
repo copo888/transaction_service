@@ -452,3 +452,14 @@ func (s *TransactionServer) ConfirmProxyPayOrderTransaction(ctx context.Context,
 	})
 	return l.ConfirmProxyPayOrderTransaction(in)
 }
+
+func (s *TransactionServer) CryptoPayOrderTranaction(ctx context.Context, in *transaction.CryptoPayOrderRequest) (*transaction.CryptoPayOrderResponse, error) {
+	l := logic.NewCryptoPayOrderTranactionLogic(ctx, s.svcCtx)
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+	span.SetAttributes(attribute.KeyValue{
+		Key:   "confirm-proxy-pay-order",
+		Value: attribute.StringValue(in.String()),
+	})
+	return l.CryptoPayOrderTranaction(in)
+}

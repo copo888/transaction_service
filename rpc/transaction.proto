@@ -156,6 +156,29 @@ message PayOrder {
   string UserIp = 20;
 }
 
+message CryptoPayOrderRequest {
+  CryptoPayOrder CryptoPayOrder = 1;
+  CorrespondMerChnRate Rate = 2;
+  string OrderNo = 3;
+  string ChannelOrderNo = 4;
+}
+
+message CryptoPayOrderResponse {
+  string Code = 1;
+  string Message = 2;
+  string PayOrderNo = 3;
+}
+
+message CryptoPayOrder {
+  string MerchantId = 1;
+  string OrderNo = 2;
+  string OrderAmount = 3;
+  string Currency = 4;
+  string PayType = 5;
+  string Language = 6;
+  string NotifyUrl = 7;
+}
+
 message InternalOrderRequest {
   InternalOrder internalOrder = 1;
   MerchantOrderRateListView merchantOrderRateListView = 2;
@@ -578,4 +601,6 @@ service Transaction {
   rpc WithdrawOrderToTest_XFB(WithdrawOrderTestRequest) returns (WithdrawOrderTestResponse);
 
   rpc WithdrawTestToNormal_XFB(WithdrawOrderTestRequest) returns (WithdrawOrderTestResponse);
+
+  rpc CryptoPayOrderTranaction(CryptoPayOrderRequest) returns (CryptoPayOrderResponse);
 }
