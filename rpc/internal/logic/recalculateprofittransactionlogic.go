@@ -32,7 +32,7 @@ func (l *RecalculateProfitTransactionLogic) RecalculateProfitTransaction(in *tra
 	for _, profit := range in.List {
 		var calculateProfit types.CalculateProfit
 		copier.Copy(&calculateProfit, &profit)
-		l.svcCtx.MyDB.Table("tx_orders_fee_profit")
+
 		if err := orderfeeprofitservice.CalculateOrderProfitForSchedule(l.svcCtx.MyDB, calculateProfit); err != nil {
 			errNum += 1
 		} else {

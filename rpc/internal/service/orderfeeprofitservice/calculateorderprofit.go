@@ -25,6 +25,13 @@ func CalculateOrderProfitForSchedule(db *gorm.DB, calculateProfit types.Calculat
 			db.Delete(&types.OrderFeeProfit{}, "order_no = ?", calculateProfit.OrderNo)
 		}
 
+		if err = db.Select("is_rate").Table("ch_channel_pay_types").
+			Where("code = ?", calculateProfit.ChannelPayTypesCode).
+			Take(&calculateProfit).Error; err != nil {
+			logx.Errorf("計算利潤錯誤:%s, %#v", err.Error(), calculateProfit)
+			return err
+		}
+
 		var orderFeeProfits []types.OrderFeeProfit
 		if err = calculateProfitLoop(db, &calculateProfit, &orderFeeProfits, true); err != nil {
 			logx.Errorf("計算利潤錯誤:%s, %#v", err.Error(), calculateProfit)
