@@ -2,12 +2,15 @@ package logic
 
 import (
 	"context"
+	"errors"
 	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"strconv"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
@@ -82,8 +85,30 @@ func (l *CryptoPayOrderTranactionLogic) CryptoPayOrderTranaction(in *transaction
 	txDB := l.svcCtx.MyDB.Begin()
 
 	// TODO: 綁定地址
+	// 1. 取得可綁定地址
+	var walletAddress types.WalletAddress
+	if err = txDB.Table("ch_wallet_address").
+		Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where("channel_pay_types_code = ? AND status = ? AND order_no = '' ", in.Rate.ChannelPayTypesCode, constants.WALLET_ADDRESS_STATUS_IDLE).
+		Take(&walletAddress).Error; errors.Is(err, gorm.ErrRecordNotFound) { // 無閒置可用地址
+		txDB.Rollback()
+		logx.WithContext(l.ctx).Errorf("虛擬貨幣支付提单失败,無閒置可用地址，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
+		return &transactionclient.CryptoPayOrderResponse{
+			Code:       response.NO_AVAILABLE_CHANNEL_ERROR,
+			Message:    "無可用地址",
+			PayOrderNo: order.OrderNo,
+		}, nil
+	} else if err != nil {
+		txDB.Rollback()
+		logx.WithContext(l.ctx).Errorf("虛擬貨幣支付提单失败,数据库错误，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
+		return &transactionclient.CryptoPayOrderResponse{
+			Code:       response.DATABASE_FAILURE,
+			Message:    "数据库错误 ch_wallet_address select",
+			PayOrderNo: order.OrderNo,
+		}, nil
+	}
 
-
+	order.ChannelBankAccount = walletAddress.Address // 訂單綁定地址
 	order.Fee = correspondMerChnRate.Fee
 	order.HandlingFee = correspondMerChnRate.HandlingFee
 	// 交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
@@ -95,10 +120,25 @@ func (l *CryptoPayOrderTranactionLogic) CryptoPayOrderTranaction(in *transaction
 		Order: *order,
 	}).Error; err != nil {
 		txDB.Rollback()
-		logx.WithContext(l.ctx).Errorf("虛擬貨幣支付提单失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
+		logx.WithContext(l.ctx).Errorf("虛擬貨幣支付提单失败,Create error，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
 		return &transactionclient.CryptoPayOrderResponse{
 			Code:       response.DATABASE_FAILURE,
-			Message:    "数据库错误 tx_orders Create",
+			Message:    "数据库错误 tx_orders Create error",
+			PayOrderNo: order.OrderNo,
+		}, nil
+	}
+
+	// 抵制改為綁定狀態
+	if err = l.svcCtx.MyDB.Table("ch_wallet_address").Where("id = ?", walletAddress.ID).
+		Updates(map[string]interface{}{
+			"order_no": order.OrderNo,
+			"status":  constants.WALLET_ADDRESS_STATUS_USE,
+			"usage_at":  types.JsonTime{}.New(),
+		}).Error; err != nil {
+		logx.WithContext(l.ctx).Error("編輯錢包地址失敗: %s", err.Error())
+		return &transactionclient.CryptoPayOrderResponse{
+			Code:       response.DATABASE_FAILURE,
+			Message:    "数据库错误, ch_wallet_address error",
 			PayOrderNo: order.OrderNo,
 		}, nil
 	}

@@ -131,3 +131,26 @@ type ChannelBankX struct {
 	BankNo      string `json:"bank_no"`
 	BankName    string `json:"bank_name"`
 }
+
+type WalletAddressX struct {
+	WalletAddress
+	CreatedAt JsonTime `json:"createdAt"`
+	UpdatedAt JsonTime `json:"updatedAt"`
+	UsageAt   JsonTime `json:"usageAt"`
+	ReleaseAt JsonTime `json:"releaseAt"`
+}
+
+type WalletAddress struct {
+	ID                  int64   `json:"id"`
+	ChannelPayTypesCode string  `json:"channelPayTypesCode"`
+	ChannelCode         string  `json:"channelCode"`
+	PayTypeCode         string  `json:"payTypeCode"`
+	Account             string  `json:"account"`
+	Address             string  `json:"address"`
+	Status              string  `json:"status"`
+	Balance             float64 `json:"balance"`
+	OrderNo             string  `json:"orderNo"`
+	PrivateKey          string  `json:"privateKey"`
+	LastBlock           string  `json:"lastBlock"`
+	Remark              string  `json:"remark"`
+}
