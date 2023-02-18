@@ -7,14 +7,14 @@ import (
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
+	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
+	"github.com/copo888/transaction_service/rpc/transaction"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"strconv"
-
-	"github.com/copo888/transaction_service/rpc/internal/svc"
-	"github.com/copo888/transaction_service/rpc/transaction"
+	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -127,13 +127,14 @@ func (l *CryptoPayOrderTranactionLogic) CryptoPayOrderTranaction(in *transaction
 			PayOrderNo: order.OrderNo,
 		}, nil
 	}
+	usageAt := types.JsonTime{}.New()
 
 	// 抵制改為綁定狀態
 	if err = l.svcCtx.MyDB.Table("ch_wallet_address").Where("id = ?", walletAddress.ID).
 		Updates(map[string]interface{}{
 			"order_no": order.OrderNo,
 			"status":  constants.WALLET_ADDRESS_STATUS_USE,
-			"usage_at":  types.JsonTime{}.New(),
+			"usage_at":  usageAt,
 		}).Error; err != nil {
 		logx.WithContext(l.ctx).Error("編輯錢包地址失敗: %s", err.Error())
 		return &transactionclient.CryptoPayOrderResponse{
@@ -166,9 +167,13 @@ func (l *CryptoPayOrderTranactionLogic) CryptoPayOrderTranaction(in *transaction
 		logx.WithContext(l.ctx).Errorf("虛擬貨幣紀錄訂單歷程出錯:%s", err4.Error())
 	}
 
+
+
 	return &transactionclient.CryptoPayOrderResponse{
 		Code:       response.API_SUCCESS,
 		Message:    "操作成功",
 		PayOrderNo: order.OrderNo,
+		WalletAddress: walletAddress.Address,
+		ExpireTime: usageAt.Time().Add(time.Minute * 15).Unix(),
 	}, nil
 }

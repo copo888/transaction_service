@@ -167,6 +167,8 @@ message CryptoPayOrderResponse {
   string Code = 1;
   string Message = 2;
   string PayOrderNo = 3;
+  string WalletAddress =4 ;
+  int64 ExpireTime = 5;
 }
 
 message CryptoPayOrder {
