@@ -161,22 +161,24 @@ func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(ctx context.Cont
 		}, nil
 	}
 
-	// 計算利潤(不報錯) TODO: 異步??
-	if err4 := orderfeeprofitservice.CalculateOrderProfit(l.svcCtx.MyDB, types.CalculateProfit{
-		MerchantCode:        txOrder.MerchantCode,
-		OrderNo:             txOrder.OrderNo,
-		Type:                txOrder.Type,
-		CurrencyCode:        txOrder.CurrencyCode,
-		BalanceType:         txOrder.BalanceType,
-		ChannelCode:         txOrder.ChannelCode,
-		ChannelPayTypesCode: txOrder.ChannelPayTypesCode,
-		OrderAmount:         txOrder.OrderAmount,
-		IsRate:              rate.IsRate,
-	}); err4 != nil {
-		logx.WithContext(ctx).Errorf("計算利潤出錯:%s", err4.Error())
-	}
+	go func() {
+		// 計算利潤(不報錯)
+		if err4 := orderfeeprofitservice.CalculateOrderProfit(l.svcCtx.MyDB, types.CalculateProfit{
+			MerchantCode:        txOrder.MerchantCode,
+			OrderNo:             txOrder.OrderNo,
+			Type:                txOrder.Type,
+			CurrencyCode:        txOrder.CurrencyCode,
+			BalanceType:         txOrder.BalanceType,
+			ChannelCode:         txOrder.ChannelCode,
+			ChannelPayTypesCode: txOrder.ChannelPayTypesCode,
+			OrderAmount:         txOrder.OrderAmount,
+			IsRate:              rate.IsRate,
+		}); err4 != nil {
+			logx.WithContext(ctx).Errorf("計算利潤出錯:%s", err4.Error())
+		}
+	}()
 
-	// 新單新增訂單歷程 (不抱錯) TODO: 異步??
+	// 新單新增訂單歷程 (不抱錯)
 	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
 		OrderAction: types.OrderAction{
 			OrderNo:     txOrder.OrderNo,

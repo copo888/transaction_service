@@ -185,16 +185,16 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(ctx context.Cont
 		logx.WithContext(ctx).Errorf("代付订单更新状态错误: %s", errUpdate.Error())
 	}
 
-	// 新單新增訂單歷程 (不抱錯) TODO: 異步??
-	if err5 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
+	// 新單新增訂單歷程 (不抱錯)
+	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
 		OrderAction: types.OrderAction{
 			OrderNo:     txOrder.OrderNo,
 			Action:      "PLACE_ORDER",
 			UserAccount: req.MerchantId,
 			Comment:     "",
 		},
-	}).Error; err5 != nil {
-		logx.WithContext(ctx).Errorf("紀錄訂單歷程出錯:%s", err5.Error())
+	}).Error; err4 != nil {
+		logx.WithContext(ctx).Errorf("紀錄訂單歷程出錯:%s", err4.Error())
 	}
 
 	return &transactionclient.ProxyOrderResponse{
