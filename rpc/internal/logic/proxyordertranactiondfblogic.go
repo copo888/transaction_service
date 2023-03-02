@@ -161,29 +161,30 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(ctx context.Cont
 			ProxyOrderNo: req.OrderNo,
 		}, nil
 	}
-
-	// 計算利潤(不報錯) TODO: 異步??
-	if err4 := orderfeeprofitservice.CalculateOrderProfit(l.svcCtx.MyDB, types.CalculateProfit{
-		MerchantCode:        txOrder.MerchantCode,
-		OrderNo:             txOrder.OrderNo,
-		Type:                txOrder.Type,
-		CurrencyCode:        txOrder.CurrencyCode,
-		BalanceType:         txOrder.BalanceType,
-		ChannelCode:         txOrder.ChannelCode,
-		ChannelPayTypesCode: txOrder.ChannelPayTypesCode,
-		OrderAmount:         txOrder.OrderAmount,
-		IsRate:              rate.IsRate,
-	}); err4 != nil {
-		logx.WithContext(ctx).Errorf("計算利潤出錯:%s", err4.Error())
-	} else {
-		txOrder.IsCalculateProfit = constants.IS_CALCULATE_PROFIT_YES
-	}
+	go func() {
+		// 計算利潤(不報錯)
+		if err4 := orderfeeprofitservice.CalculateOrderProfit(l.svcCtx.MyDB, types.CalculateProfit{
+			MerchantCode:        txOrder.MerchantCode,
+			OrderNo:             txOrder.OrderNo,
+			Type:                txOrder.Type,
+			CurrencyCode:        txOrder.CurrencyCode,
+			BalanceType:         txOrder.BalanceType,
+			ChannelCode:         txOrder.ChannelCode,
+			ChannelPayTypesCode: txOrder.ChannelPayTypesCode,
+			OrderAmount:         txOrder.OrderAmount,
+			IsRate:              rate.IsRate,
+		}); err4 != nil {
+			logx.WithContext(ctx).Errorf("計算利潤出錯:%s", err4.Error())
+		} else {
+			txOrder.IsCalculateProfit = constants.IS_CALCULATE_PROFIT_YES
+		}
+	}()
 
 	if errUpdate := l.svcCtx.MyDB.Table("tx_orders").Where("order_no = ?", txOrder.OrderNo).Updates(txOrder).Error; errUpdate != nil {
 		logx.WithContext(ctx).Errorf("代付订单更新状态错误: %s", errUpdate.Error())
 	}
 
-	// 新單新增訂單歷程 (不抱錯) TODO: 異步??
+	// 新單新增訂單歷程 (不抱錯)
 	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
 		OrderAction: types.OrderAction{
 			OrderNo:     txOrder.OrderNo,
