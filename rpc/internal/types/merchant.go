@@ -114,6 +114,12 @@ type MerchantBalanceX struct {
 	UpdatedAt time.Time
 }
 
+type MerchantPtBalanceX struct {
+	MerchantPtBalance
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
 type MerchantChannelRateConfigure struct {
 	MerchantChannelRateConfigureRequest
 	CreatedAt time.Time
@@ -134,6 +140,12 @@ type MerchantBindBankUpdate struct {
 
 type MerchantBalanceRecordX struct {
 	MerchantBalanceRecord
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type MerchantPtBalanceRecordX struct {
+	MerchantPtBalanceRecord
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

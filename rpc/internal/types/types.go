@@ -453,6 +453,15 @@ type MerchantBalance struct {
 	FrozenAmount float64 `json:"frozenAmount, optional"`
 }
 
+type MerchantPtBalance struct {
+	ID           int64   `json:"id, optional"`
+	MerchantCode string  `json:"merchantCode, optional"`
+	CurrencyCode string  `json:"currencyCode, optional"`
+	ChannelCode  string  `json:"channelCode, optional"`
+	PayTypeCode  string  `json:"payTypeCode, optional"`
+	Balance      float64 `json:"balance"`
+}
+
 type MerchantBalanceCreateRequest struct {
 	ID           int64   `json:"id, optional"`
 	MerchantCode string  `json:"merchantCode, optional" validate:"required"`
@@ -786,6 +795,26 @@ type MerchantBalanceRecord struct {
 	CreatedAt         string      `json:"createdAt"`
 	PayTypeData       PayType     `json:"payTypeData, optional" gorm:"foreignKey:Code;references:PayTypeCode"`
 	ChannelData       ChannelData `json:"channelData, optional" gorm:"foreignKey:Code;references:ChannelCode"`
+}
+
+type MerchantPtBalanceRecord struct {
+	ID                  int64       `json:"id, optional"`
+	MerchantPtBalanceId int64       `json:"merchantPtBalanceId"`
+	MerchantCode        string      `json:"merchantCode, optional"`
+	CurrencyCode        string      `json:"currencyCode, optional"`
+	OrderNo             string      `json:"orderNo"`
+	MerchantOrderNo     string      `json:"merchantOrderNo"`
+	ChannelCode         string      `json:"channelCode"`
+	PayTypeCode         string      `json:"payTypeCode"`
+	TransactionType     string      `json:"transactionType"`
+	BeforeBalance       float64     `json:"beforeBalance"`
+	TransferAmount      float64     `json:"transferAmount"`
+	AfterBalance        float64     `json:"afterBalance"`
+	Comment             string      `json:"comment"`
+	CreatedBy           string      `json:"createdBy"`
+	CreatedAt           string      `json:"createdAt"`
+	PayTypeData         PayType     `json:"payTypeData, optional" gorm:"foreignKey:Code;references:PayTypeCode"`
+	ChannelData         ChannelData `json:"channelData, optional" gorm:"foreignKey:Code;references:ChannelCode"`
 }
 
 type MerchantCommissionRecord struct {
