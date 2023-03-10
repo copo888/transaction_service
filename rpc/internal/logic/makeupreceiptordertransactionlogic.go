@@ -66,7 +66,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	transferAmount = req.Amount - transferHandlingFee
 	merchantOrderNo := order.MerchantOrderNo + "#M"
 
-	UpdateBalance := types.UpdateBalance{
+	updateBalance := types.UpdateBalance{
 		MerchantCode:    order.MerchantCode,
 		CurrencyCode:    order.CurrencyCode,
 		OrderNo:         newOrderNo,
@@ -81,10 +81,10 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 		CreatedBy:       req.UserAccount,
 	}
 	// 變更 商戶餘額並記錄
-	merchantBalanceRecord, err := merchantbalanceservice.UpdateBalanceForZF(txDB, l.svcCtx.RedisClient, UpdateBalance)
+	merchantBalanceRecord, err := merchantbalanceservice.UpdateBalanceForZF(txDB, l.svcCtx.RedisClient, updateBalance)
 	if err != nil {
 		txDB.Rollback()
-		logx.WithContext(l.ctx).Errorf("異動錢包失敗:%s", err.Error())
+		logx.WithContext(l.ctx).Errorf("更新錢包失敗:%s", err.Error())
 		return &transactionclient.MakeUpReceiptOrderResponse{
 			Code:    response.SYSTEM_ERROR,
 			Message: "更新錢包失敗",
@@ -102,7 +102,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	if isDisplayBalance == "1" {
 		logx.WithContext(l.ctx).Infof("需異動子錢包: %s,%s,%s.%s", order.MerchantCode, order.CurrencyCode, order.ChannelCode, order.PayTypeCode)
 		// 變更 商戶子錢包餘額
-		_, err = merchantPtBalanceService.UpdatePtBalanceForZF(txDB, l.svcCtx.RedisClient, UpdateBalance)
+		_, err = merchantPtBalanceService.UpdatePtBalanceForZF(txDB, l.svcCtx.RedisClient, updateBalance)
 		if err != nil {
 			txDB.Rollback()
 			logx.WithContext(l.ctx).Errorf("異動子錢包失敗:%s", err.Error())
