@@ -140,7 +140,7 @@ func (l *ConfirmPayOrderTransactionLogic) updateOrderAndBalance(db *gorm.DB, req
 		OrderType:       order.Type,
 		ChannelCode:     order.ChannelCode,
 		PayTypeCode:     order.PayTypeCode,
-		TransactionType: "1",
+		TransactionType: "6",
 		BalanceType:     order.BalanceType,
 		TransferAmount:  order.TransferAmount,
 		Comment:         order.Memo,
