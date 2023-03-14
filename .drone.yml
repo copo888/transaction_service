@@ -19,7 +19,7 @@ steps:
       script:
         - cd /root/transaction_service
         - git checkout -- .
-        - git checkout allen
+        - git checkout dev
         - git checkout -- .
         - git pull
         - go mod tidy
@@ -31,10 +31,10 @@ steps:
         - docker-compose -f docker-compose.yml up -d
     when:
       branch:
-        - allen
+        - dev
       event:
         - push
 trigger:
   branch:
-    - allen
+    - dev
 
