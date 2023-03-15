@@ -6,6 +6,7 @@ import (
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/model"
+	"github.com/copo888/transaction_service/rpc/internal/service/merchantPtBalanceService"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
@@ -62,8 +63,7 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 	transferAmount = -req.Amount - transferHandlingFee
 	merchantOrderNo := order.MerchantOrderNo + "#R"
 
-	// 變更 商戶餘額並記錄
-	merchantBalanceRecord, err := merchantbalanceservice.UpdateBalanceForZF(txDB, l.svcCtx.RedisClient, types.UpdateBalance{
+	updateBalance := types.UpdateBalance{
 		MerchantCode:    order.MerchantCode,
 		CurrencyCode:    order.CurrencyCode,
 		OrderNo:         newOrderNo,
@@ -76,13 +76,39 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 		TransferAmount:  transferAmount,
 		Comment:         req.Comment,
 		CreatedBy:       req.UserAccount,
-	})
+	}
+
+	// 變更 商戶餘額並記錄
+	merchantBalanceRecord, err := merchantbalanceservice.UpdateBalanceForZF(txDB, l.svcCtx.RedisClient, updateBalance)
 	if err != nil {
 		txDB.Rollback()
+		logx.WithContext(l.ctx).Errorf("更新錢包失敗:%s", err.Error())
 		return &transactionclient.RecoverReceiptOrderResponse{
 			Code:    response.SYSTEM_ERROR,
 			Message: "更新錢包失敗",
 		}, nil
+	}
+
+	var isDisplayBalance string
+	err = txDB.Table("mc_merchant_channel_rate").
+		Select("is_display_balance").
+		Where("merchant_code = ? AND currency_code = ?", order.MerchantCode, order.CurrencyCode).
+		Where("channel_code = ? AND pay_type_code = ?", order.ChannelCode, order.PayTypeCode).
+		Find(&isDisplayBalance).Error
+
+	// 若有啟用顯示子錢包
+	if isDisplayBalance == "1" {
+		logx.WithContext(l.ctx).Infof("需異動子錢包: %s,%s,%s.%s", order.MerchantCode, order.CurrencyCode, order.ChannelCode, order.PayTypeCode)
+		// 變更 商戶子錢包餘額
+		_, err = merchantPtBalanceService.UpdatePtBalanceForZF(txDB, l.svcCtx.RedisClient, updateBalance)
+		if err != nil {
+			txDB.Rollback()
+			logx.WithContext(l.ctx).Errorf("異動子錢包失敗:%s", err.Error())
+			return &transactionclient.RecoverReceiptOrderResponse{
+				Code:    response.SYSTEM_ERROR,
+				Message: "更新子錢包失敗",
+			}, nil
+		}
 	}
 
 	// 新增訂單

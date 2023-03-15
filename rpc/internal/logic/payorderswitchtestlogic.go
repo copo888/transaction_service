@@ -5,6 +5,7 @@ import (
 	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/rpc/internal/model"
+	"github.com/copo888/transaction_service/rpc/internal/service/merchantPtBalanceService"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
@@ -85,6 +86,25 @@ func (l *PayOrderSwitchTestLogic) PayOrderSwitchTest(in *transactionclient.PayOr
 			Code:    response.SYSTEM_ERROR,
 			Message: "更新錢包失敗",
 		}, nil
+	}
+
+	var isDisplayBalance string
+	err = txDB.Table("mc_merchant_channel_rate").
+		Select("is_display_balance").
+		Where("merchant_code = ? AND currency_code = ?", txOrder.MerchantCode, txOrder.CurrencyCode).
+		Where("channel_code = ? AND pay_type_code = ?", txOrder.ChannelCode, txOrder.PayTypeCode).
+		Find(&isDisplayBalance).Error
+
+	// 若有啟用顯示子錢包
+	if isDisplayBalance == "1" {
+		logx.WithContext(l.ctx).Infof("需異動子錢包: %s,%s,%s.%s", txOrder.MerchantCode, txOrder.CurrencyCode, txOrder.ChannelCode, txOrder.PayTypeCode)
+		// 變更 商戶子錢包餘額
+		if  _, err = merchantPtBalanceService.UpdatePtBalanceForZF(txDB, l.svcCtx.RedisClient, updateBalance); err != nil {
+			return &transactionclient.PayOrderSwitchTestResponse{
+				Code:    response.SYSTEM_ERROR,
+				Message: "更新子錢包失敗",
+			}, nil
+		}
 	}
 
 	txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance
