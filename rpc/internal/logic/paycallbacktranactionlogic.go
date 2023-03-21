@@ -33,6 +33,20 @@ func NewPayCallBackTranactionLogic(ctx context.Context, svcCtx *svc.ServiceConte
 }
 
 func (l *PayCallBackTranactionLogic) PayCallBackTranaction(ctx context.Context, in *transactionclient.PayCallBackRequest) (resp *transactionclient.PayCallBackResponse, err error) {
+
+	if in.OrderStatus == "20" {
+		return l.PayCallBackTranactionForSuccess(ctx, in)
+	} else if in.OrderStatus == "30" {
+		return l.PayCallBackTranactionForFailure(ctx, in)
+	}
+	return &transactionclient.PayCallBackResponse{
+		Code:    response.ORDER_STATUS_WRONG,
+		Message: fmt.Sprintf("訂單:%s, 回調狀態:%s. 異常", in.PayOrderNo, in.OrderStatus),
+	}, nil
+
+}
+
+func (l *PayCallBackTranactionLogic) PayCallBackTranactionForSuccess(ctx context.Context, in *transactionclient.PayCallBackRequest) (resp *transactionclient.PayCallBackResponse, err error) {
 	var order *types.OrderX
 
 	/****     交易開始      ****/
@@ -43,7 +57,7 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranaction(ctx context.Context, 
 		txDB.Rollback()
 		return &transactionclient.PayCallBackResponse{
 			Code:    response.ORDER_NUMBER_NOT_EXIST,
-			Message: "商户订单号不存在",
+			Message: "平台订单号不存在",
 		}, nil
 	}
 
@@ -193,4 +207,89 @@ func (l *PayCallBackTranactionLogic) updateOrderAndBalance(db *gorm.DB, req *tra
 	}
 
 	return
+}
+
+func (l *PayCallBackTranactionLogic) PayCallBackTranactionForFailure(ctx context.Context, in *transactionclient.PayCallBackRequest) (resp *transactionclient.PayCallBackResponse, err error) {
+	var order *types.OrderX
+
+	/****     交易開始      ****/
+	txDB := l.svcCtx.MyDB.Begin()
+
+	if err = txDB.Table("tx_orders").
+		Where("order_no = ?", in.PayOrderNo).Take(&order).Error; err != nil {
+		txDB.Rollback()
+		return &transactionclient.PayCallBackResponse{
+			Code:    response.ORDER_NUMBER_NOT_EXIST,
+			Message: "平台订单号不存在",
+		}, nil
+	}
+
+	// 處理中的且非鎖定訂單 才能回調
+	if order.Status != "1" || order.IsLock == "1" {
+		txDB.Rollback()
+		return &transactionclient.PayCallBackResponse{
+			Code:    response.TRANSACTION_FAILURE,
+			Message: "交易失败 订单号已锁定 或 订单状态非处理中",
+		}, nil
+	}
+
+	order.TransAt = types.JsonTime{}.New()
+	order.ChannelOrderNo = in.ChannelOrderNo
+	order.Status = in.OrderStatus
+	order.CallBackStatus = "1"
+	order.TransferAmount = 0
+	order.TransferHandlingFee = 0
+
+	// 編輯訂單
+	if err = txDB.Select(
+		"trans_at",
+		"channel_order_no",
+		"status",
+		"callback_status",
+		"transfer_amount",
+		"transfer_handling_fee").
+		Table("tx_orders").Updates(&order).Error; err != nil {
+		txDB.Rollback()
+		return &transactionclient.PayCallBackResponse{
+			Code:    response.SYSTEM_ERROR,
+			Message: "訂單失敗狀態 編輯失败",
+		}, nil
+	}
+
+	if err = txDB.Commit().Error; err != nil {
+		txDB.Rollback()
+		logx.Errorf("支付回調失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
+		return &transactionclient.PayCallBackResponse{
+			Code:    response.DATABASE_FAILURE,
+			Message: "资料库错误 Commit失败",
+		}, nil
+	}
+	/****     交易結束      ****/
+
+	// 新單新增訂單歷程 (不抱錯)
+	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
+		OrderAction: types.OrderAction{
+			OrderNo:     order.OrderNo,
+			Action:      constants.ACTION_FAILURE,
+			UserAccount: order.MerchantCode,
+			Comment:     "",
+		},
+	}).Error; err4 != nil {
+		logx.WithContext(ctx).Error("紀錄訂單歷程出錯:%s", err4.Error())
+	}
+
+	return &transactionclient.PayCallBackResponse{
+		Code:                response.API_SUCCESS,
+		Message:             "操作成功",
+		MerchantCode:        order.MerchantCode,
+		MerchantOrderNo:     order.MerchantOrderNo,
+		OrderNo:             order.OrderNo,
+		OrderAmount:         order.OrderAmount,
+		ActualAmount:        order.ActualAmount,
+		TransferHandlingFee: order.TransferHandlingFee,
+		NotifyUrl:           order.NotifyUrl,
+		OrderTime:           order.CreatedAt.Format("20060102150405000"),
+		PayOrderTime:        order.TransAt.Time().Format("20060102150405000"),
+		Status:              order.Status,
+	}, nil
 }
