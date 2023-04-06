@@ -4,9 +4,8 @@ import (
 	"context"
 	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/response"
-	"github.com/copo888/transaction_service/common/utils"
+
 	"github.com/copo888/transaction_service/rpc/internal/model"
-	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"gorm.io/gorm"
@@ -32,13 +31,13 @@ func NewInternalOrderTransactionLogic(ctx context.Context, svcCtx *svc.ServiceCo
 func (l *InternalOrderTransactionLogic) InternalOrderTransaction(in *transactionclient.InternalOrderRequest) (resp *transactionclient.InternalOrderResponse, err error) {
 
 	var internalOrderReq = in.InternalOrder
-	var merchantOrderRateListView = in.MerchantOrderRateListView
+	//var merchantOrderRateListView = in.MerchantOrderRateListView
 
-	// 交易手續費總額 = 訂單金額 / 100 * 費率
-	transferHandling := utils.FloatMul(utils.FloatDiv(internalOrderReq.OrderAmount, 100), merchantOrderRateListView.MerFee)
-
-	// 計算實際交易金額 = 訂單金額 - 手續費
-	transferAmount := utils.FloatSub(internalOrderReq.OrderAmount, transferHandling)
+	//// 交易手續費總額 = 訂單金額 / 100 * 費率
+	//transferHandling := utils.FloatMul(utils.FloatDiv(internalOrderReq.OrderAmount, 100), merchantOrderRateListView.MerFee)
+	//
+	//// 計算實際交易金額 = 訂單金額 - 手續費
+	//transferAmount := utils.FloatSub(internalOrderReq.OrderAmount, transferHandling)
 
 	//初始化订单
 	txOrder := &types.Order{
@@ -52,10 +51,10 @@ func (l *InternalOrderTransactionLogic) InternalOrderTransaction(in *transaction
 		IsTest:                  constants.IS_TEST_NO, //是否測試單
 		PersonProcessStatus:     constants.PERSON_PROCESS_STATUS_NO_ROCESSING,
 		InternalChargeOrderPath: internalOrderReq.Imgurl,
-		BalanceType:             "DFB",
+		//BalanceType:             "DFB",
 		OrderAmount:             internalOrderReq.OrderAmount,
-		TransferHandlingFee:     transferHandling,
-		TransferAmount:          transferAmount,
+		//TransferHandlingFee:     transferHandling,
+		//TransferAmount:          transferAmount,
 		CreatedBy:               internalOrderReq.UserAccount,
 		UpdatedBy:               internalOrderReq.UserAccount,
 		IsLock:                  "0", //是否锁定状态 (0=否;1=是) 预设否
@@ -70,11 +69,11 @@ func (l *InternalOrderTransactionLogic) InternalOrderTransaction(in *transaction
 		ChannelAccountName:      internalOrderReq.ChannelAccountName,
 		ChannelBankAccount:      internalOrderReq.ChannelBankAccount,
 		ChannelBankNo:           internalOrderReq.ChannelBankNo,
-		ChannelCode:             merchantOrderRateListView.ChannelCode,
-		ChannelPayTypesCode:     merchantOrderRateListView.ChannelPayTypesCode,
-		PayTypeCode:             merchantOrderRateListView.PayTypeCode,
-		Fee:                     merchantOrderRateListView.MerFee,
-		HandlingFee:             merchantOrderRateListView.MerHandlingFee,
+		//ChannelCode:             merchantOrderRateListView.ChannelCode,
+		//ChannelPayTypesCode:     merchantOrderRateListView.ChannelPayTypesCode,
+		//PayTypeCode:             merchantOrderRateListView.PayTypeCode,
+		//Fee:                     merchantOrderRateListView.MerFee,
+		//HandlingFee:             merchantOrderRateListView.MerHandlingFee,
 	}
 
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
@@ -87,20 +86,20 @@ func (l *InternalOrderTransactionLogic) InternalOrderTransaction(in *transaction
 			return
 		}
 
-		// 計算利潤
-		if err = orderfeeprofitservice.CalculateOrderProfit(db, types.CalculateProfit{
-			MerchantCode:        txOrder.MerchantCode,
-			OrderNo:             txOrder.OrderNo,
-			Type:                txOrder.Type,
-			CurrencyCode:        txOrder.CurrencyCode,
-			BalanceType:         txOrder.BalanceType,
-			ChannelCode:         txOrder.ChannelCode,
-			ChannelPayTypesCode: txOrder.ChannelPayTypesCode,
-			OrderAmount:         txOrder.OrderAmount,
-		}); err != nil {
-			logx.Error("計算利潤出錯:%s", err.Error())
-			return err
-		}
+		//// 計算利潤 ,修改内充功能，利润改在审核才计算
+		//if err = orderfeeprofitservice.CalculateOrderProfit(db, types.CalculateProfit{
+		//	MerchantCode:        txOrder.MerchantCode,
+		//	OrderNo:             txOrder.OrderNo,
+		//	Type:                txOrder.Type,
+		//	CurrencyCode:        txOrder.CurrencyCode,
+		//	BalanceType:         txOrder.BalanceType,
+		//	ChannelCode:         txOrder.ChannelCode,
+		//	ChannelPayTypesCode: txOrder.ChannelPayTypesCode,
+		//	OrderAmount:         txOrder.OrderAmount,
+		//}); err != nil {
+		//	logx.Error("計算利潤出錯:%s", err.Error())
+		//	return err
+		//}
 
 		return nil
 	}); err != nil {

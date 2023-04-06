@@ -8,6 +8,7 @@ import (
 	"github.com/copo888/transaction_service/common/errorz"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
+	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"github.com/neccoys/go-zero-extension/redislock"
@@ -43,7 +44,7 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 				Message: "找不到资料，orderNo = " + in.OrderNo,
 			}, nil
 		}
-		return
+
 		return &transactionclient.InternalReviewSuccessResponse{
 			Code:    response.DATABASE_FAILURE,
 			Message: "找不到资料，orderNo = " + in.OrderNo,
@@ -79,7 +80,20 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 		if err = db.Table("tx_orders").Updates(&txOrder).Error; err != nil {
 			return
 		}
-
+		// 計算利潤 ,修改内充功能，利润改在审核才计算
+		if err = orderfeeprofitservice.CalculateOrderProfit(db, types.CalculateProfit{
+			MerchantCode:        txOrder.MerchantCode,
+			OrderNo:             txOrder.OrderNo,
+			Type:                txOrder.Type,
+			CurrencyCode:        txOrder.CurrencyCode,
+			BalanceType:         txOrder.BalanceType,
+			ChannelCode:         txOrder.ChannelCode,
+			ChannelPayTypesCode: txOrder.ChannelPayTypesCode,
+			OrderAmount:         txOrder.OrderAmount,
+		}); err != nil {
+			logx.Error("計算利潤出錯:%s", err.Error())
+			return err
+		}
 		return
 	}); err != nil {
 		return &transactionclient.InternalReviewSuccessResponse{
