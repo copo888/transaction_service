@@ -60,6 +60,7 @@ type (
 	ProxyPayFailRequest                      = transaction.ProxyPayFailRequest
 	ProxyPayFailResponse                     = transaction.ProxyPayFailResponse
 	ProxyPayOrderRequest                     = transaction.ProxyPayOrderRequest
+	Rates                                    = transaction.Rates
 	RecalculateCommissionMonthReportRequest  = transaction.RecalculateCommissionMonthReportRequest
 	RecalculateCommissionMonthReportResponse = transaction.RecalculateCommissionMonthReportResponse
 	RecalculateProfitRequest                 = transaction.RecalculateProfitRequest

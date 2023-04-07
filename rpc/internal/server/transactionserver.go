@@ -221,8 +221,7 @@ func (s *TransactionServer) PayCallBackTranaction(ctx context.Context, in *trans
 	})
 	return l.PayCallBackTranaction(ctx, in)
 }
-
-func (s *TransactionServer) InternalReviewSuccessTransaction(ctx context.Context, in *transactionclient.InternalReviewSuccessRequest) (*transactionclient.InternalReviewSuccessResponse, error) {
+func (s *TransactionServer) InternalReviewSuccessTransaction(ctx context.Context, in *transaction.InternalReviewSuccessRequest) (*transaction.InternalReviewSuccessResponse, error) {
 	l := logic.NewInternalReviewSuccessTransactionLogic(ctx, s.svcCtx)
 	span := trace.SpanFromContext(ctx)
 	defer span.End()

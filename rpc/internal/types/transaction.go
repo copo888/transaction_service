@@ -294,3 +294,8 @@ type WithdrawApiQueryRequestX struct {
 	WithdrawApiQueryRequest
 	MyIp string `json:"my_ip, optional"`
 }
+
+type Rate struct {
+	AgentLayerCode string `json:"agentLayerCode"`
+	Rate float64 `json:"rate"`
+}

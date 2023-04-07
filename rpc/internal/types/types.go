@@ -1964,3 +1964,4 @@ type ChannelBankQueryAllRequest struct {
 type ChannelBankQueryAllResponse struct {
 	ChannelBankList []ChannelBank `json:"channelBankList"`
 }
+

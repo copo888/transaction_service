@@ -76,12 +76,17 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 
 		txOrder.Status = constants.SUCCESS
 
+		rateMap := make(map[string]float64)
+		for _, l := range in.List {
+			rateMap[l.AgentLayerCode] = l.Rate
+		}
+
 		// 編輯訂單
 		if err = db.Table("tx_orders").Updates(&txOrder).Error; err != nil {
 			return
 		}
 		// 計算利潤 ,修改内充功能，利润改在审核才计算
-		if err = orderfeeprofitservice.CalculateOrderProfit(db, types.CalculateProfit{
+		if err = orderfeeprofitservice.CalculateNcOrderProfit(db, types.CalculateProfit{
 			MerchantCode:        txOrder.MerchantCode,
 			OrderNo:             txOrder.OrderNo,
 			Type:                txOrder.Type,
@@ -90,7 +95,7 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 			ChannelCode:         txOrder.ChannelCode,
 			ChannelPayTypesCode: txOrder.ChannelPayTypesCode,
 			OrderAmount:         txOrder.OrderAmount,
-		}); err != nil {
+		}, rateMap, in.ChnRate, in.IsProxy); err != nil {
 			logx.Error("計算利潤出錯:%s", err.Error())
 			return err
 		}

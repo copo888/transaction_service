@@ -260,6 +260,14 @@ message PayCallBackResponse {
 message InternalReviewSuccessRequest {
   string OrderNo = 1;
   string UserAccount = 2;
+  double ChnRate = 3;
+  repeated Rates list = 4;
+  string IsProxy = 5;
+}
+
+message Rates {
+  string AgentLayerCode = 1;
+  double rate = 2;
 }
 
 message InternalReviewSuccessResponse {
