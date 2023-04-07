@@ -289,16 +289,15 @@ func NcOrderCalculateProfitLoop(db *gorm.DB, calculateProfit *types.CalculatePro
 	}
 
 	// 3. 設置手續費
-	var merRate float64
-	if len(rates) > 0 {
-		v, exist := rates[agentLayerCode]
-		if !exist {
-			return errorz.New(response.INVALID_MERCHANT_AGENT)
-		}
-		merRate = v
-	}
-
 	if calculateProfit.MerchantCode != "00000000" {
+		var merRate float64
+		if len(rates) > 0 {
+			v, exist := rates[agentLayerCode]
+			if !exist {
+				return errorz.New(response.INVALID_MERCHANT_AGENT)
+			}
+			merRate = v
+		}
 		// MerchantCode 不是 00000000 要取商戶費率
 		if err = setNcMerchantFee(db, calculateProfit, &orderFeeProfit, merRate,isProxy); err != nil {
 			return
