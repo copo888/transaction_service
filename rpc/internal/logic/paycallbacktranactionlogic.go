@@ -32,12 +32,12 @@ func NewPayCallBackTranactionLogic(ctx context.Context, svcCtx *svc.ServiceConte
 	}
 }
 
-func (l *PayCallBackTranactionLogic) PayCallBackTranaction(ctx context.Context, in *transactionclient.PayCallBackRequest) (resp *transactionclient.PayCallBackResponse, err error) {
+func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transactionclient.PayCallBackRequest) (resp *transactionclient.PayCallBackResponse, err error) {
 
 	if in.OrderStatus == "20" {
-		return l.PayCallBackTranactionForSuccess(ctx, in)
+		return l.PayCallBackTranactionForSuccess(l.ctx, in)
 	} else if in.OrderStatus == "30" {
-		return l.PayCallBackTranactionForFailure(ctx, in)
+		return l.PayCallBackTranactionForFailure(l.ctx, in)
 	}
 	return &transactionclient.PayCallBackResponse{
 		Code:    response.ORDER_STATUS_WRONG,

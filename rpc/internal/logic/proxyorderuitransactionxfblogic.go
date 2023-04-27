@@ -30,7 +30,7 @@ func NewProxyOrderUITransactionXFBLogic(ctx context.Context, svcCtx *svc.Service
 	}
 }
 
-func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(ctx context.Context, in *transactionclient.ProxyOrderUIRequest) (resp *transactionclient.ProxyOrderUIResponse, err error) {
+func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(in *transactionclient.ProxyOrderUIRequest) (resp *transactionclient.ProxyOrderUIResponse, err error) {
 	req := in.ProxyOrderUI
 	rate := in.MerchantOrderRateListView
 	merchantBalanceRecord := types.MerchantBalanceRecord{}
@@ -98,14 +98,14 @@ func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(ctx contex
 	// 判断单笔最大最小金额
 	if txOrder.OrderAmount < rate.SingleMinCharge {
 		//金额超过上限
-		logx.WithContext(ctx).Errorf("錯誤:代付金額未達下限")
+		logx.WithContext(l.ctx).Errorf("錯誤:代付金額未達下限")
 		return &transactionclient.ProxyOrderUIResponse{
 			Code:    response.ORDER_AMOUNT_LIMIT_MIN,
 			Message: "代付金額未達下限，orderNo : " + txOrder.OrderNo,
 		}, nil
 	} else if txOrder.OrderAmount > rate.SingleMaxCharge {
 		//下发金额未达下限
-		logx.WithContext(ctx).Errorf("錯誤:代付金額超過上限")
+		logx.WithContext(l.ctx).Errorf("錯誤:代付金額超過上限")
 		return &transactionclient.ProxyOrderUIResponse{
 			Code:    response.ORDER_AMOUNT_LIMIT_MAX,
 			Message: "代付金額超过上限，orderNo : " + txOrder.OrderNo,
@@ -116,10 +116,10 @@ func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(ctx contex
 
 		//更新钱包且新增商户钱包异动记录
 		if merchantBalanceRecord, err = merchantbalanceservice.DoUpdateXFBalance_Debit(l.ctx, l.svcCtx, db, updateBalance); err != nil {
-			logx.WithContext(ctx).Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
+			logx.WithContext(l.ctx).Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
 			return errorz.New(response.SYSTEM_ERROR, err.Error())
 		} else {
-			logx.WithContext(ctx).Infof("代付UI提单 %s，錢包扣款成功", merchantBalanceRecord.OrderNo)
+			logx.WithContext(l.ctx).Infof("代付UI提单 %s，錢包扣款成功", merchantBalanceRecord.OrderNo)
 			txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance // 商戶錢包異動紀錄
 			txOrder.Balance = merchantBalanceRecord.AfterBalance
 		}
@@ -128,7 +128,7 @@ func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(ctx contex
 		if err = db.Table("tx_orders").Create(&types.OrderX{
 			Order: *txOrder,
 		}).Error; err != nil {
-			logx.WithContext(ctx).Errorf("新增代付UI提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err.Error())
+			logx.WithContext(l.ctx).Errorf("新增代付UI提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err.Error())
 			return
 		}
 
@@ -153,7 +153,7 @@ func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(ctx contex
 		OrderAmount:         txOrder.OrderAmount,
 		IsRate:              rate.IsRate,
 	}); err4 != nil {
-		logx.WithContext(ctx).Errorf("計算利潤出錯:%s", err4.Error())
+		logx.WithContext(l.ctx).Errorf("計算利潤出錯:%s", err4.Error())
 	}
 
 	// 新單新增訂單歷程 (不抱錯) TODO: 異步??
@@ -165,7 +165,7 @@ func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(ctx contex
 			Comment:     "",
 		},
 	}).Error; err4 != nil {
-		logx.WithContext(ctx).Errorf("紀錄訂單歷程出錯:%s", err4.Error())
+		logx.WithContext(l.ctx).Errorf("紀錄訂單歷程出錯:%s", err4.Error())
 	}
 
 	resp = &transactionclient.ProxyOrderUIResponse{
