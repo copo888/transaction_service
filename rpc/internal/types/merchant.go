@@ -176,6 +176,7 @@ type UpdateBalance struct {
 	TransferAmount  float64
 	Comment         string
 	CreatedBy       string
+	MerPtBalanceId  int64
 }
 
 type UpdateFrozenAmount struct {

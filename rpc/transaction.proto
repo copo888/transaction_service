@@ -118,6 +118,7 @@ message CorrespondMerChnRate{
   string CurrencyCode = 13;
   string ApiUrl = 14;
   string IsRate = 15;
+  double MerchantPtBalanceId = 16;
 }
 
 message PayOrderRequest {
