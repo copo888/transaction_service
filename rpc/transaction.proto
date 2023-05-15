@@ -226,6 +226,7 @@ message WithdrawOrderRequest {
   string PageUrl = 16;
   string Memo = 17;
   string ChangeType = 18;
+  int64  PtBalanceId = 19;
 }
 message WithdrawOrderResponse {
   string OrderNo = 1;
@@ -263,6 +264,7 @@ message InternalReviewSuccessRequest {
   double ChnRate = 3;
   repeated Rates list = 4;
   string IsProxy = 5;
+  int64 PtBalanceId = 6;
 }
 
 message Rates {

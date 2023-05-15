@@ -51,6 +51,11 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 		}, nil
 	}
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
+		// 异动子钱包
+		if in.PtBalanceId > 0 {
+			if
+		}
+
 		// 異動錢包
 		if merchantBalanceRecord, err = l.UpdateBalance(db, types.UpdateBalance{
 			MerchantCode:    txOrder.MerchantCode,
@@ -143,6 +148,11 @@ func (l InternalReviewSuccessTransactionLogic) UpdateBalance(db *gorm.DB, update
 	}
 	return
 }
+
+func (l InternalReviewSuccessTransactionLogic) UpdatePtBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantPtBalanceRecord types.MerchantPtBalanceRecord, err error) {
+	return 
+}
+
 
 // updateBalance
 func (l *InternalReviewSuccessTransactionLogic) doUpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
