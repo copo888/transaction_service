@@ -39,6 +39,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 	var isMerchantCallback string //0：否、1:是、2:不需回调
 	//var calBackStatus string //渠道回調狀態(0:處理中1:成功2:失敗)
 	merchantBalanceRecord := types.MerchantBalanceRecord{}
+	merchantPtBalanceRecord := types.MerchantPtBalanceRecord{}
 	if req.NotifyUrl != "" {
 		isMerchantCallback = constants.MERCHANT_CALL_BACK_NO
 	} else {
@@ -113,6 +114,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		BalanceType:     constants.DF_BALANCE,
 		CreatedBy:       txOrder.MerchantCode,
 		ChannelCode:     txOrder.ChannelCode,
+		MerPtBalanceId:  rate.MerchantPtBalanceId,
 	}
 
 	//判断是否是银行账号是否是黑名单
@@ -136,6 +138,12 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		txOrder.TransferAmount = utils.FloatAdd(txOrder.OrderAmount, txOrder.TransferHandlingFee)
 		updateBalance.TransferAmount = txOrder.TransferAmount //扣款依然傳正值
 
+		if rate.MerchantPtBalanceId != 0 {
+			if merchantPtBalanceRecord, err = merchantbalanceservice.DoUpdateDF_Pt_Balance_Debit(l.ctx, l.svcCtx, db, updateBalance); err != nil {
+				logx.WithContext(l.ctx).Errorf("商户:%s，幣別: %s，更新子錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, txOrder.CurrencyCode, err.Error(), updateBalance)
+				return err
+			}
+		}
 		//更新钱包且新增商户钱包异动记录
 		if merchantBalanceRecord, err = merchantbalanceservice.DoUpdateDFBalance_Debit(l.ctx, l.svcCtx, db, updateBalance); err != nil {
 			logx.WithContext(l.ctx).Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
