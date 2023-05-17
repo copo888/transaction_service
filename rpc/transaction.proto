@@ -283,6 +283,7 @@ message WithdrawReviewFailRequest {
   string OrderNo = 1;
   string UserAccount = 2;
   string Memo = 3;
+  int64  PtBalanceId = 4;
 }
 
 message WithdrawReviewFailResponse {

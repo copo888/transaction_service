@@ -53,7 +53,23 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 		// 异动子钱包
 		if in.PtBalanceId > 0 {
-			if
+			if err = l.UpdatePtBalance(db, types.UpdateBalance{
+				MerchantCode:    txOrder.MerchantCode,
+				CurrencyCode:    txOrder.CurrencyCode,
+				OrderNo:         txOrder.OrderNo,
+				MerchantOrderNo: txOrder.MerchantOrderNo,
+				OrderType:       txOrder.Type,
+				ChannelCode:     txOrder.ChannelCode,
+				PayTypeCode:     txOrder.PayTypeCode,
+				TransactionType: "1",
+				BalanceType:     txOrder.BalanceType,
+				TransferAmount:  txOrder.TransferAmount,
+				Comment:         txOrder.Memo,
+				CreatedBy:       in.UserAccount,
+				MerPtBalanceId:  in.PtBalanceId,
+			}); err != nil {
+				return err
+			}
 		}
 
 		// 異動錢包
@@ -149,8 +165,19 @@ func (l InternalReviewSuccessTransactionLogic) UpdateBalance(db *gorm.DB, update
 	return
 }
 
-func (l InternalReviewSuccessTransactionLogic) UpdatePtBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantPtBalanceRecord types.MerchantPtBalanceRecord, err error) {
-	return 
+func (l InternalReviewSuccessTransactionLogic) UpdatePtBalance(db *gorm.DB, updateBalance types.UpdateBalance) (err error) {
+	redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
+	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-pt-balance:")
+	redisLock.SetExpire(5)
+	if isOk, _ := redisLock.TryLockTimeout(5); isOk {
+		defer redisLock.Release()
+		if err = l.doUpdatePtBalance(db, updateBalance); err != nil {
+			return
+		}
+	} else {
+		return errorz.New(response.BALANCE_REDISLOCK_ERROR)
+	}
+	return
 }
 
 
@@ -210,6 +237,64 @@ func (l *InternalReviewSuccessTransactionLogic) doUpdateBalance(db *gorm.DB, upd
 		MerchantBalanceRecord: merchantBalanceRecord,
 	}).Error; err != nil {
 		return merchantBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
+	}
+
+	return
+}
+
+func (l *InternalReviewSuccessTransactionLogic) doUpdatePtBalance(db *gorm.DB, updateBalance types.UpdateBalance) (err error){
+	var beforeBalance float64
+	var afterBalance float64
+
+	// 1. 取得 商戶餘額表
+	var merchantPtBalance types.MerchantPtBalance
+	if err = db.Table("mc_merchant_pt_balances").
+		Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where("id = ?", updateBalance.MerPtBalanceId).
+		Take(&merchantPtBalance).Error; err != nil {
+		return errorz.New(response.DATABASE_FAILURE, err.Error())
+	}
+
+	// 2. 計算
+	var selectBalance string
+	if utils.FloatAdd(merchantPtBalance.Balance, updateBalance.TransferAmount) < 0 {
+		logx.Errorf("商户:%s，幣別: %s, 子錢包类型:%s ，余额:%s，交易金额:%s", merchantPtBalance.MerchantCode, merchantPtBalance.CurrencyCode, merchantPtBalance.PayTypeCode, fmt.Sprintf("%f", merchantPtBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount))
+		return errorz.New(response.MERCHANT_INSUFFICIENT_DF_BALANCE)
+	}
+	selectBalance = "balance"
+	beforeBalance = merchantPtBalance.Balance
+	afterBalance = utils.FloatAdd(beforeBalance, updateBalance.TransferAmount)
+	merchantPtBalance.Balance = afterBalance
+
+	// 3. 變更 商戶餘額
+	if err = db.Table("mc_merchant_pt_balances").Select(selectBalance).Updates(types.MerchantPtBalanceX{
+		MerchantPtBalance: merchantPtBalance,
+	}).Error; err != nil {
+		logx.Error(err.Error())
+		return errorz.New(response.DATABASE_FAILURE, err.Error())
+	}
+
+	// 4. 新增 餘額紀錄
+	merchantPtBalanceRecord := types.MerchantPtBalanceRecord{
+		MerchantPtBalanceId: merchantPtBalance.ID,
+		MerchantCode:      merchantPtBalance.MerchantCode,
+		CurrencyCode:      merchantPtBalance.CurrencyCode,
+		OrderNo:           updateBalance.OrderNo,
+		OrderType:         updateBalance.OrderType,
+		ChannelCode:       updateBalance.ChannelCode,
+		PayTypeCode:       updateBalance.PayTypeCode,
+		TransactionType:   updateBalance.TransactionType,
+		BeforeBalance:     beforeBalance,
+		TransferAmount:    updateBalance.TransferAmount,
+		AfterBalance:      afterBalance,
+		Comment:           updateBalance.Comment,
+		CreatedBy:         updateBalance.CreatedBy,
+	}
+
+	if err = db.Table("mc_merchant_balance_records").Create(&types.MerchantPtBalanceRecordX{
+		MerchantPtBalanceRecord: merchantPtBalanceRecord,
+	}).Error; err != nil {
+		return errorz.New(response.DATABASE_FAILURE, err.Error())
 	}
 
 	return

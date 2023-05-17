@@ -159,7 +159,7 @@ func UpdateDF_Pt_Balance_Debit(ctx context.Context, db *gorm.DB, updateBalance *
 
 	//判斷餘額是否不足 2. 計算 (依照 BalanceType 決定異動哪種餘額)
 	if utils.FloatAdd(merchantPtBalance.Balance, -updateBalance.TransferAmount) < 0 { //判斷餘額是否不足
-		logx.Errorf("商户:%s，幣別: %s, 子錢包类型:%s ，余额:%s，交易金额:%s", merchantPtBalance.MerchantCode, merchantPtBalance.CurrencyCode, merchantPtBalance.PayTypeCode, fmt.Sprintf("%f", merchantPtBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount))
+		logx.WithContext(ctx).Errorf("商户:%s，幣別: %s, 子錢包类型:%s ，余额:%s，交易金额:%s", merchantPtBalance.MerchantCode, merchantPtBalance.CurrencyCode, merchantPtBalance.PayTypeCode, fmt.Sprintf("%f", merchantPtBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount))
 		return merchantPtBalanceRecord, errorz.New(response.MERCHANT_INSUFFICIENT_DF_BALANCE)
 	}
 
@@ -171,7 +171,7 @@ func UpdateDF_Pt_Balance_Debit(ctx context.Context, db *gorm.DB, updateBalance *
 	if err = db.Table("mc_merchant_pt_balances").Select("balance").Updates(types.MerchantPtBalanceX{
 		MerchantPtBalance: *merchantPtBalance,
 	}).Error; err != nil {
-		logx.Error(err.Error())
+		logx.WithContext(ctx).Error(err.Error())
 		return merchantPtBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
 	}
 
@@ -217,7 +217,7 @@ func UpdateXF_Pt_Balance_Debit(ctx context.Context, db *gorm.DB, updateBalance *
 
 	//判斷餘額是否不足 2. 計算 (依照 BalanceType 決定異動哪種餘額)
 	if utils.FloatAdd(merchantPtBalance.Balance, -updateBalance.TransferAmount) < 0 { //判斷餘額是否不足
-		logx.Errorf("商户:%s，幣別: %s, 子錢包类型:%s ，余额:%s，交易金额:%s", merchantPtBalance.MerchantCode, merchantPtBalance.CurrencyCode, merchantPtBalance.PayTypeCode, fmt.Sprintf("%f", merchantPtBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount))
+		logx.WithContext(ctx).Errorf("商户:%s，幣別: %s, 子錢包类型:%s ，余额:%s，交易金额:%s", merchantPtBalance.MerchantCode, merchantPtBalance.CurrencyCode, merchantPtBalance.PayTypeCode, fmt.Sprintf("%f", merchantPtBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount))
 		return merchantPtBalanceRecord, errorz.New(response.MERCHANT_INSUFFICIENT_DF_BALANCE)
 	}
 
@@ -229,7 +229,7 @@ func UpdateXF_Pt_Balance_Debit(ctx context.Context, db *gorm.DB, updateBalance *
 	if err = db.Table("mc_merchant_pt_balances").Select("balance").Updates(types.MerchantPtBalanceX{
 		MerchantPtBalance: *merchantPtBalance,
 	}).Error; err != nil {
-		logx.Error(err.Error())
+		logx.WithContext(ctx).Error(err.Error())
 		return merchantPtBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
 	}
 
@@ -278,7 +278,7 @@ func UpdateXFBalance_Debit(ctx context.Context, db *gorm.DB, updateBalance *type
 	// 2. 計算 (依照 BalanceType 決定異動哪種餘額)
 	var selectBalance string
 	if utils.FloatAdd(merchantBalance.Balance, -updateBalance.TransferAmount) < 0 { //判斷餘額是否不足
-		logx.Errorf("商户:%s，余额类型:%s，余额:%s，交易金额:%s", merchantBalance.MerchantCode, merchantBalance.BalanceType, fmt.Sprintf("%f", merchantBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount))
+		logx.WithContext(ctx).Errorf("商户:%s，余额类型:%s，余额:%s，交易金额:%s", merchantBalance.MerchantCode, merchantBalance.BalanceType, fmt.Sprintf("%f", merchantBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount))
 		return merchantBalanceRecord, errorz.New(response.MERCHANT_INSUFFICIENT_DF_BALANCE)
 	}
 	selectBalance = "balance"
@@ -290,7 +290,7 @@ func UpdateXFBalance_Debit(ctx context.Context, db *gorm.DB, updateBalance *type
 	if err = db.Table("mc_merchant_balances").Select(selectBalance).Updates(types.MerchantBalanceX{
 		MerchantBalance: merchantBalance,
 	}).Error; err != nil {
-		logx.Error(err.Error())
+		logx.WithContext(ctx).Error(err.Error())
 		return merchantBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
 	}
 

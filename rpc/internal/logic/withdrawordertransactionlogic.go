@@ -41,7 +41,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 	if len(in.MerchantOrderNo) > 0 {
 		merchantOrderNo = in.MerchantOrderNo
 	}
-	logx.Infof("下发单交易初始化： %v, %v, %v", in.String())
+	logx.WithContext(l.ctx).Infof("下发单交易初始化： %v, %v, %v", in.String())
 	// 依商户是否给回调网址，决定是否回调商户flag
 	var isMerchantCallback string //0：否、1:是、2:不需回调
 	if len(in.NotifyUrl) > 0 {
@@ -98,12 +98,12 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		TransferAmount:  txOrder.TransferAmount,
 		CreatedBy:       in.UserAccount,
 		Comment:         txOrder.Memo,
-		PtBalanceId:     in.PtBalanceId,
+		MerPtBalanceId:     in.PtBalanceId,
 	}
 	if in.Source == constants.API {
 		isBlock, _ := model.NewBankBlockAccount(tx).CheckIsBlockAccount(txOrder.MerchantBankAccount)
 		if isBlock { //银行账号为黑名单
-			logx.Infof("交易账户%s-%s在黑名单内", txOrder.MerchantAccountName, txOrder.MerchantBankNo)
+			logx.WithContext(l.ctx).Infof("交易账户%s-%s在黑名单内", txOrder.MerchantAccountName, txOrder.MerchantBankNo)
 			updateBalance.TransferAmount = 0                           // 使用0元前往钱包扣款
 			txOrder.ErrorType = constants.ERROR6_BANK_ACCOUNT_IS_BLACK //交易账户为黑名单
 			txOrder.ErrorNote = constants.BANK_ACCOUNT_IS_BLACK        //失败原因：黑名单交易失败
@@ -111,13 +111,30 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 			txOrder.Fee = 0                                            //写入本次手续费(未发送到渠道的交易，都设为0元)
 			txOrder.HandlingFee = 0
 			//transAt = types.JsonTime{}.New()
-			logx.Infof("商户 %s，代付订单 %#v ，交易账户为黑名单", txOrder.MerchantCode, txOrder)
+			logx.WithContext(l.ctx).Infof("商户 %s，代付订单 %#v ，交易账户为黑名单", txOrder.MerchantCode, txOrder)
 		}
 	}
+
+	//更新子钱包且新增商户子钱包异动记录
+	if in.PtBalanceId > 0 {
+		merchantPtBalanceRecord, errS := merchantbalanceservice.UpdateXF_Pt_Balance_Debit(l.ctx, tx, &updateBalance)
+		if errS != nil {
+			logx.WithContext(l.ctx).Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, errS.Error(), updateBalance)
+			tx.Rollback()
+			return &transactionclient.WithdrawOrderResponse{
+				Code:    response.SYSTEM_ERROR,
+				Message: "钱包异动失败",
+				OrderNo: txOrder.OrderNo,
+			}, nil
+		} else {
+			logx.WithContext(l.ctx).Infof("下发提单 %s，子錢包扣款成功", merchantPtBalanceRecord.OrderNo)
+		}
+	}
+
 	//更新钱包且新增商户钱包异动记录
 	merchantBalanceRecord, err1 := merchantbalanceservice.DoUpdateXFBalance_Debit(l.ctx, l.svcCtx, tx, &updateBalance)
 	if err1 != nil {
-		logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err1.Error(), updateBalance)
+		logx.WithContext(l.ctx).Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err1.Error(), updateBalance)
 		//TODO  IF 更新钱包错误是response.DATABASE_FAILURE THEN return SYSTEM_ERROR
 		tx.Rollback()
 		return &transactionclient.WithdrawOrderResponse{
@@ -126,7 +143,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 			OrderNo: txOrder.OrderNo,
 		}, nil
 	} else {
-		logx.Infof("下发提单 %s，錢包扣款成功", merchantBalanceRecord.OrderNo)
+		logx.WithContext(l.ctx).Infof("下发提单 %s，錢包扣款成功", merchantBalanceRecord.OrderNo)
 		txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance // 商戶錢包異動紀錄
 		txOrder.Balance = merchantBalanceRecord.AfterBalance
 	}
@@ -135,7 +152,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 	if err3 := tx.Table("tx_orders").Create(&types.OrderX{
 		Order: *txOrder,
 	}).Error; err3 != nil {
-		logx.Errorf("新增下发提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err3.Error())
+		logx.WithContext(l.ctx).Errorf("新增下发提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err3.Error())
 		tx.Rollback()
 		return &transactionclient.WithdrawOrderResponse{
 			Code:    response.DATABASE_FAILURE,
@@ -154,11 +171,11 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		OrderAmount:  txOrder.ActualAmount,
 	}
 	if err4 := l.calculateOrderProfit(l.svcCtx.MyDB, calculateProfit, in.HandlingFee); err4 != nil {
-		logx.Errorf("计算下发利润失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err4.Error())
+		logx.WithContext(l.ctx).Errorf("计算下发利润失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err4.Error())
 	}
 
 	if err4 := tx.Commit().Error; err4 != nil {
-		logx.Errorf("最终新增下发提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err4.Error())
+		logx.WithContext(l.ctx).Errorf("最终新增下发提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err4.Error())
 		tx.Rollback()
 	}
 
@@ -171,7 +188,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 			Comment:     "",
 		},
 	}).Error; err5 != nil {
-		logx.Error("紀錄訂單歷程出錯:%s", err5.Error())
+		logx.WithContext(l.ctx).Error("紀錄訂單歷程出錯:%s", err5.Error())
 	}
 
 	return &transactionclient.WithdrawOrderResponse{
