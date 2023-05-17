@@ -291,7 +291,7 @@ func (l *InternalReviewSuccessTransactionLogic) doUpdatePtBalance(db *gorm.DB, u
 		CreatedBy:         updateBalance.CreatedBy,
 	}
 
-	if err = db.Table("mc_merchant_balance_records").Create(&types.MerchantPtBalanceRecordX{
+	if err = db.Table("mc_merchant_pt_balance_records").Create(&types.MerchantPtBalanceRecordX{
 		MerchantPtBalanceRecord: merchantPtBalanceRecord,
 	}).Error; err != nil {
 		return errorz.New(response.DATABASE_FAILURE, err.Error())

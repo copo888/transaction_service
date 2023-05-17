@@ -250,8 +250,8 @@ func (l WithdrawReviewFailTransactionLogic) doUpdatePtBalance(db *gorm.DB, ctx c
 	}
 
 	// 4. 新增 餘額紀錄
-	merchantBalanceRecord := types.MerchantBalanceRecord{
-		MerchantBalanceId: merchantPtBalance.ID,
+	merchantPtBalanceRecord := types.MerchantPtBalanceRecord{
+		MerchantPtBalanceId: merchantPtBalance.ID,
 		MerchantCode:      merchantPtBalance.MerchantCode,
 		CurrencyCode:      merchantPtBalance.CurrencyCode,
 		OrderNo:           updateBalance.OrderNo,
@@ -259,7 +259,6 @@ func (l WithdrawReviewFailTransactionLogic) doUpdatePtBalance(db *gorm.DB, ctx c
 		ChannelCode:       updateBalance.ChannelCode,
 		PayTypeCode:       updateBalance.PayTypeCode,
 		TransactionType:   updateBalance.TransactionType,
-		BalanceType:       updateBalance.BalanceType,
 		BeforeBalance:     beforeBalance,
 		TransferAmount:    updateBalance.TransferAmount,
 		AfterBalance:      afterBalance,
@@ -267,8 +266,8 @@ func (l WithdrawReviewFailTransactionLogic) doUpdatePtBalance(db *gorm.DB, ctx c
 		CreatedBy:         updateBalance.CreatedBy,
 	}
 
-	if err := db.Table("mc_merchant_balance_records").Create(&types.MerchantBalanceRecordX{
-		MerchantBalanceRecord: merchantBalanceRecord,
+	if err := db.Table("mc_merchant_pt_balance_records").Create(&types.MerchantPtBalanceRecordX{
+		MerchantPtBalanceRecord: merchantPtBalanceRecord,
 	}).Error; err != nil {
 		return errorz.New(response.DATABASE_FAILURE, err.Error())
 	}
