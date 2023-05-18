@@ -804,7 +804,9 @@ type MerchantPtBalanceRecord struct {
 	MerchantCode        string      `json:"merchantCode, optional"`
 	CurrencyCode        string      `json:"currencyCode, optional"`
 	OrderNo             string      `json:"orderNo"`
+	OrderType			string      `json:"orderType, optional"`
 	MerchantOrderNo     string      `json:"merchantOrderNo"`
+	OrderType           string      `json:"order_type"`
 	ChannelCode         string      `json:"channelCode"`
 	PayTypeCode         string      `json:"payTypeCode"`
 	TransactionType     string      `json:"transactionType"`
