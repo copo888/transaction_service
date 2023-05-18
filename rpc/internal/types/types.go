@@ -459,6 +459,7 @@ type MerchantPtBalance struct {
 	CurrencyCode string  `json:"currencyCode, optional"`
 	ChannelCode  string  `json:"channelCode, optional"`
 	PayTypeCode  string  `json:"payTypeCode, optional"`
+	Name         string  `json:"name, optional"`
 	Balance      float64 `json:"balance"`
 }
 
@@ -813,6 +814,7 @@ type MerchantPtBalanceRecord struct {
 	Comment             string      `json:"comment"`
 	CreatedBy           string      `json:"createdBy"`
 	CreatedAt           string      `json:"createdAt"`
+	OrderType           string      `json:"orderType, optional"`
 	PayTypeData         PayType     `json:"payTypeData, optional" gorm:"foreignKey:Code;references:PayTypeCode"`
 	ChannelData         ChannelData `json:"channelData, optional" gorm:"foreignKey:Code;references:ChannelCode"`
 }
@@ -1964,4 +1966,3 @@ type ChannelBankQueryAllRequest struct {
 type ChannelBankQueryAllResponse struct {
 	ChannelBankList []ChannelBank `json:"channelBankList"`
 }
-
