@@ -459,6 +459,7 @@ type MerchantPtBalance struct {
 	CurrencyCode string  `json:"currencyCode, optional"`
 	ChannelCode  string  `json:"channelCode, optional"`
 	PayTypeCode  string  `json:"payTypeCode, optional"`
+	Name         string  `json:"name, optional"`
 	Balance      float64 `json:"balance"`
 }
 
@@ -803,7 +804,7 @@ type MerchantPtBalanceRecord struct {
 	MerchantCode        string      `json:"merchantCode, optional"`
 	CurrencyCode        string      `json:"currencyCode, optional"`
 	OrderNo             string      `json:"orderNo"`
-	OrderType			string      `json:"orderType, optional"`
+	OrderType           string      `json:"orderType, optional"`
 	MerchantOrderNo     string      `json:"merchantOrderNo"`
 	ChannelCode         string      `json:"channelCode"`
 	PayTypeCode         string      `json:"payTypeCode"`
@@ -1965,4 +1966,3 @@ type ChannelBankQueryAllRequest struct {
 type ChannelBankQueryAllResponse struct {
 	ChannelBankList []ChannelBank `json:"channelBankList"`
 }
-

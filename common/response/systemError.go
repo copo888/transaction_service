@@ -30,4 +30,5 @@ var (
 	INVALID_CHANNEL_INFO                          = "1062123" //"無對應相關渠道資料"
 	RATE_SETTING_ERROR                            = "1062124" //"费率设定异常"
 	RATE_NOT_CONFIGURED_OR_CHANNEL_NOT_CONFIGURED = "1062125" //"未配置商户渠道费率或渠道配置错误"
+	PROXY_TRANSACTION_FAILURE                     = "1062126" //"代付交易錯誤"
 )
