@@ -279,12 +279,6 @@ func UpdateDF_Pt_Balance_Deposit(ctx context.Context, db *gorm.DB, updateBalance
 		return merchantPtBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
 	}
 
-	//判斷餘額是否不足 2. 計算 (依照 BalanceType 決定異動哪種餘額)
-	//if utils.FloatAdd(merchantPtBalance.Balance, -updateBalance.TransferAmount) < 0 { //判斷餘額是否不足
-	//	logx.WithContext(ctx).Errorf("商户:%s，幣別:%s, 子錢包类型:%s ，余额:%s，交易金额:%s", merchantPtBalance.MerchantCode, merchantPtBalance.CurrencyCode, merchantPtBalance.Name, fmt.Sprintf("%f", merchantPtBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount))
-	//	return merchantPtBalanceRecord, errorz.New(fmt.Sprintf("商户子錢包餘額不足:%s，幣別:%s, 子錢包类型:%s ，余额:%s，交易金额:%s", merchantPtBalance.MerchantCode, merchantPtBalance.CurrencyCode, merchantPtBalance.Name, fmt.Sprintf("%f", merchantPtBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount)))
-	//}
-
 	beforeBalance = merchantPtBalance.Balance
 	afterBalance = utils.FloatAdd(beforeBalance, updateBalance.TransferAmount)
 	merchantPtBalance.Balance = afterBalance
@@ -337,12 +331,6 @@ func UpdateXF_Pt_Balance_Deposit(ctx context.Context, db *gorm.DB, updateBalance
 		Take(&merchantPtBalance).Error; err != nil {
 		return merchantPtBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
 	}
-
-	//判斷餘額是否不足 2. 計算 (依照 BalanceType 決定異動哪種餘額)
-	//if utils.FloatAdd(merchantPtBalance.Balance, -updateBalance.TransferAmount) < 0 { //判斷餘額是否不足
-	//	logx.WithContext(ctx).Errorf("商户:%s，幣別:%s, 子錢包类型:%s ，余额:%s，交易金额:%s", merchantPtBalance.MerchantCode, merchantPtBalance.CurrencyCode, merchantPtBalance.Name, fmt.Sprintf("%f", merchantPtBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount))
-	//	return merchantPtBalanceRecord, errorz.New(fmt.Sprintf("商户子錢包餘額不足:%s，幣別:%s, 子錢包类型:%s ，余额:%s，交易金额:%s", merchantPtBalance.MerchantCode, merchantPtBalance.CurrencyCode, merchantPtBalance.Name, fmt.Sprintf("%f", merchantPtBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount)))
-	//}
 
 	beforeBalance = merchantPtBalance.Balance
 	afterBalance = utils.FloatAdd(beforeBalance, updateBalance.TransferAmount)
