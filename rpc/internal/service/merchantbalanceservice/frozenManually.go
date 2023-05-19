@@ -4,13 +4,14 @@ import (
 	"github.com/copo888/transaction_service/common/errorz"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
+	"github.com/copo888/transaction_service/rpc/internal/service/merchantPtBalanceService"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 // FrozenManually (手動調整凍結金額) FrozenAmount需正負(凍結正/解凍負), BalanceType:餘額類型 (DFB=代付餘額 XFB=下發餘額)
-func FrozenManually(db *gorm.DB, frozenManually types.FrozenManually) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
+func FrozenManually(db *gorm.DB, frozenManually types.FrozenManually, merchantPtBalanceId int64) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 	var beforeBalance float64
 	var afterBalance float64
 	var transactionType string
@@ -91,6 +92,28 @@ func FrozenManually(db *gorm.DB, frozenManually types.FrozenManually) (merchantB
 		MerchantFrozenRecord: merchantFrozenRecord,
 	}).Error; err != nil {
 		return merchantBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
+	}
+
+	// 若有啟用顯示子錢包
+	if merchantPtBalanceId != 0 {
+		// 變更 商戶子錢包餘額
+		_, err = merchantPtBalanceService.UpdateFrozenAmount(db, types.UpdateFrozenAmount{
+			MerchantCode:    frozenManually.MerchantCode,
+			CurrencyCode:    frozenManually.CurrencyCode,
+			OrderNo:         frozenManually.OrderNo,
+			MerchantOrderNo: "",
+			OrderType:       frozenManually.OrderType,
+			ChannelCode:     "",
+			PayTypeCode:     "",
+			TransactionType: frozenManually.TransactionType,
+			BalanceType:     frozenManually.BalanceType,
+			FrozenAmount:    frozenManually.FrozenAmount,
+			Comment:         frozenManually.Comment,
+			CreatedBy:       frozenManually.CreatedBy,
+		}, merchantPtBalanceId)
+		if err != nil {
+			return
+		}
 	}
 
 	return

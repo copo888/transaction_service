@@ -52,7 +52,7 @@ func (l *MerchantBalanceFreezeTranactionLogic) MerchantBalanceFreezeTranaction(r
 		FrozenAmount:    req.Amount,
 		Comment:         req.Comment,
 		CreatedBy:       req.UserAccount,
-	}); err != nil {
+	}, req.MerchantPtBalanceId); err != nil {
 		txDB.Rollback()
 		return &transactionclient.MerchantBalanceFreezeResponse{
 			Code:    response.DATABASE_FAILURE,

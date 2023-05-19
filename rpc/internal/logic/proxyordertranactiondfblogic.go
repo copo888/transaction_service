@@ -11,7 +11,6 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
-	"github.com/gioco-play/easy-i18n/i18n"
 	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
 )
@@ -39,7 +38,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 	var isMerchantCallback string //0：否、1:是、2:不需回调
 	//var calBackStatus string //渠道回調狀態(0:處理中1:成功2:失敗)
 	merchantBalanceRecord := types.MerchantBalanceRecord{}
-	merchantPtBalanceRecord := types.MerchantPtBalanceRecord{}
+
 	if req.NotifyUrl != "" {
 		isMerchantCallback = constants.MERCHANT_CALL_BACK_NO
 	} else {
@@ -58,7 +57,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 
 	merchant := &types.Merchant{}
 	if errMer := l.svcCtx.MyDB.Table("mc_merchants").Where("code = ?", rate.MerchantCode).Take(merchant); errMer != nil {
-		logx.Errorf("查尋商戶錯誤", errMer)
+		logx.Errorf("查尋商戶錯誤: %#v", errMer.Error)
 	}
 
 	var memo string
@@ -139,7 +138,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		updateBalance.TransferAmount = txOrder.TransferAmount //扣款依然傳正值
 
 		if rate.MerchantPtBalanceId != 0 {
-			if merchantPtBalanceRecord, err = merchantbalanceservice.DoUpdateDF_Pt_Balance_Debit(l.ctx, l.svcCtx, db, updateBalance); err != nil {
+			if _, err = merchantbalanceservice.DoUpdateDF_Pt_Balance_Debit(l.ctx, l.svcCtx, db, updateBalance); err != nil {
 				logx.WithContext(l.ctx).Errorf("商户:%s，幣別: %s，更新子錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, txOrder.CurrencyCode, err.Error(), updateBalance)
 				return err
 			}
@@ -165,8 +164,8 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		return nil
 	}); err != nil {
 		return &transactionclient.ProxyOrderResponse{
-			Code:         err.Error(),
-			Message:      i18n.Sprintf(err.Error()),
+			Code:         response.PROXY_TRANSACTION_FAILURE,
+			Message:      err.Error(),
 			ProxyOrderNo: req.OrderNo,
 		}, nil
 	}

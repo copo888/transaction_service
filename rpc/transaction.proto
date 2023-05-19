@@ -11,6 +11,7 @@ message MerchantBalanceFreezeRequest {
   string Comment = 4;
   double Amount = 5;
   string UserAccount = 6;
+  int64  MerchantPtBalanceId = 7;
 }
 
 message MerchantBalanceFreezeResponse {

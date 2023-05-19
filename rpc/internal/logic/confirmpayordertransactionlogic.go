@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/response"
-	"github.com/copo888/transaction_service/rpc/internal/service/merchantPtBalanceService"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/svc"
@@ -147,25 +146,8 @@ func (l *ConfirmPayOrderTransactionLogic) updateOrderAndBalance(db *gorm.DB, req
 		CreatedBy:       order.MerchantCode,
 	}
 	// 異動錢包
-	if merchantBalanceRecord, err = merchantbalanceservice.UpdateBalanceForZF(db, l.svcCtx.RedisClient, updateBalance); err != nil {
+	if merchantBalanceRecord, err = merchantbalanceservice.UpdateBalanceForZF(db, l.ctx, l.svcCtx.RedisClient, updateBalance); err != nil {
 		return
-	}
-
-	var isDisplayBalance string
-	err = db.Table("mc_merchant_channel_rate").
-		Select("is_display_balance").
-		Where("merchant_code = ? AND currency_code = ?", order.MerchantCode, order.CurrencyCode).
-		Where("channel_code = ? AND pay_type_code = ?", order.ChannelCode, order.PayTypeCode).
-		Find(&isDisplayBalance).Error
-
-	// 若有啟用顯示子錢包
-	if isDisplayBalance == "1" {
-		logx.WithContext(l.ctx).Infof("需異動子錢包: %s,%s,%s.%s", order.MerchantCode, order.CurrencyCode, order.ChannelCode, order.PayTypeCode)
-		// 變更 商戶子錢包餘額
-		_, err = merchantPtBalanceService.UpdatePtBalanceForZF(db, l.svcCtx.RedisClient, updateBalance)
-		if err != nil {
-			return
-		}
 	}
 
 	// 手動確認收款 實際金額 = 訂單金額

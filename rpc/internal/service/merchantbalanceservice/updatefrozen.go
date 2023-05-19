@@ -4,6 +4,7 @@ import (
 	"github.com/copo888/transaction_service/common/errorz"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
+	"github.com/copo888/transaction_service/rpc/internal/service/merchantPtBalanceService"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -91,6 +92,22 @@ func UpdateFrozenAmount(db *gorm.DB, updateFrozenAmount types.UpdateFrozenAmount
 		MerchantFrozenRecord: merchantFrozenRecord,
 	}).Error; err != nil {
 		return merchantBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
+	}
+
+	var merchantPtBalanceId int64
+	err = db.Table("mc_merchant_channel_rate").
+		Select("merchant_pt_balance_id").
+		Where("merchant_code = ?", updateFrozenAmount.MerchantCode).
+		Where("channel_code = ? AND pay_type_code = ?", updateFrozenAmount.ChannelCode, updateFrozenAmount.PayTypeCode).
+		Find(&merchantPtBalanceId).Error
+
+	// 若有啟用顯示子錢包
+	if merchantPtBalanceId != 0 {
+		// 變更 商戶子錢包餘額
+		_, err = merchantPtBalanceService.UpdateFrozenAmount(db, updateFrozenAmount, merchantPtBalanceId)
+		if err != nil {
+			return
+		}
 	}
 
 	return
