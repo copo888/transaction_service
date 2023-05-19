@@ -81,7 +81,7 @@ func (l *PersonalRebundTransactionDFBLogic) PersonalRebundTransaction_DFB(in *tr
 				return err
 			} else {
 				txOrder.RepaymentStatus = constants.REPAYMENT_SUCCESS
-				logx.WithContext(l.ctx).Infof("代付API提单失败 %s，代付錢包退款成功", merchantBalanceRecord.OrderNo)
+				logx.WithContext(l.ctx).Infof("代付单人工还款 %s，代付子錢包还款成功", merchantBalanceRecord.OrderNo)
 			}
 		}
 
@@ -89,7 +89,7 @@ func (l *PersonalRebundTransactionDFBLogic) PersonalRebundTransaction_DFB(in *tr
 			logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
 			return err
 		} else {
-			logx.Infof("代付API提单失败 %s，代付錢包退款成功", merchantBalanceRecord.OrderNo)
+			logx.Infof("代付单人工还款 %s，代付錢包还款成功", merchantBalanceRecord.OrderNo)
 		}
 
 		if err = db.Table("tx_orders").Updates(&types.OrderX{
