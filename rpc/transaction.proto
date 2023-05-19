@@ -206,6 +206,7 @@ message MerchantOrderRateListView {
   double CptFee = 17;
   double CptHandlingFee = 18;
   string IsRate = 19;
+  int64  PtBalanceId = 20;
 }
 
 message WithdrawOrderRequest {

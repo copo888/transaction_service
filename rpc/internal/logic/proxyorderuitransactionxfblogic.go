@@ -89,6 +89,7 @@ func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(in *transa
 		BalanceType:     constants.XF_BALANCE,
 		CreatedBy:       txOrder.MerchantCode,
 		ChannelCode:     txOrder.ChannelCode,
+		MerPtBalanceId:  rate.PtBalanceId,
 	}
 
 	//交易金额 = 订单金额 + 商户手续费
@@ -113,6 +114,14 @@ func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(in *transa
 	}
 
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
+
+		//更新商户子钱包且新增记录
+		if rate.PtBalanceId > 0 {
+			if _, err = merchantbalanceservice.DoUpdateXF_Pt_Balance_Debit(l.ctx, l.svcCtx, db, updateBalance); err != nil {
+				logx.WithContext(l.ctx).Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
+				return errorz.New(response.SYSTEM_ERROR, err.Error())
+			}
+		}
 
 		//更新钱包且新增商户钱包异动记录
 		if merchantBalanceRecord, err = merchantbalanceservice.DoUpdateXFBalance_Debit(l.ctx, l.svcCtx, db, updateBalance); err != nil {

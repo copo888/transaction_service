@@ -8,8 +8,6 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/logic"
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/transaction"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 

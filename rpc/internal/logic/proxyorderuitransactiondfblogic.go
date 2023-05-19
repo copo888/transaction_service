@@ -113,6 +113,27 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
+		//更新商户子钱包且新增记录
+		if rate.PtBalanceId > 0 {
+			if _, err = merchantbalanceservice.DoUpdateDF_Pt_Balance_Debit(l.ctx, l.svcCtx, db, &types.UpdateBalance{
+				MerchantCode:    txOrder.MerchantCode,
+				CurrencyCode:    txOrder.CurrencyCode,
+				OrderNo:         txOrder.OrderNo,
+				MerchantOrderNo: txOrder.MerchantOrderNo,
+				OrderType:       txOrder.Type,
+				PayTypeCode:     txOrder.PayTypeCode,
+				TransferAmount:  txOrder.TransferAmount,
+				TransactionType: "11", //異動類型 (1=收款; 2=解凍; 3=沖正; 11=出款 ; 12=凍結)
+				BalanceType:     constants.DF_BALANCE,
+				CreatedBy:       txOrder.MerchantCode,
+				ChannelCode:     txOrder.ChannelCode,
+				MerPtBalanceId:  rate.PtBalanceId,
+			}); err != nil {
+				logx.WithContext(l.ctx).Errorf("商户:%s，更新子錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
+				return errorz.New(response.SYSTEM_ERROR, err.Error())
+			}
+		}
+
 		//更新钱包且新增商户钱包异动记录
 		if merchantBalanceRecord, err = merchantbalanceservice.DoUpdateDFBalance_Debit(l.ctx, l.svcCtx, db, updateBalance); err != nil {
 			logx.WithContext(l.ctx).Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
@@ -134,7 +155,7 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 		return nil
 	}); err != nil {
 		return &transactionclient.ProxyOrderUIResponse{
-			Code:         response.DATABASE_FAILURE,
+			Code:         response.SYSTEM_ERROR,
 			Message:      "数据库错误 tx_orders Create，err : " + err.Error(),
 			ProxyOrderNo: txOrder.OrderNo,
 		}, nil

@@ -117,9 +117,9 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 
 	//更新子钱包且新增商户子钱包异动记录
 	if in.PtBalanceId > 0 {
-		merchantPtBalanceRecord, errS := merchantbalanceservice.UpdateXF_Pt_Balance_Debit(l.ctx, tx, &updateBalance)
+		merchantPtBalanceRecord, errS := merchantbalanceservice.DoUpdateXF_Pt_Balance_Debit(l.ctx, l.svcCtx, db, &updateBalance)
 		if errS != nil {
-			logx.WithContext(l.ctx).Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, errS.Error(), updateBalance)
+			logx.WithContext(l.ctx).Errorf("商户:%s，更新子錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, errS.Error(), updateBalance)
 			tx.Rollback()
 			return &transactionclient.WithdrawOrderResponse{
 				Code:    response.SYSTEM_ERROR,
