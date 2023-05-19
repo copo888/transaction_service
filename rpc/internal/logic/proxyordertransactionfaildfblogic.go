@@ -80,11 +80,11 @@ func (l *ProxyOrderTransactionFailDFBLogic) ProxyOrderTransactionFail_DFB(in *tr
 
 			if _, err = merchantbalanceservice.UpdateDF_Pt_Balance_Deposit(l.ctx, db, updateBalance); err != nil {
 				txOrder.RepaymentStatus = constants.REPAYMENT_FAIL
-				logx.WithContext(l.ctx).Errorf("商户:%s，更新子钱錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
+				logx.WithContext(l.ctx).Errorf("商户:%s，更新代付子钱錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
 				return err
 			} else {
 				txOrder.RepaymentStatus = constants.REPAYMENT_SUCCESS
-				logx.WithContext(l.ctx).Infof("代付API提单失败 %s，代付錢包退款成功", merchantBalanceRecord.OrderNo)
+				logx.WithContext(l.ctx).Infof("代付API提单失败 %s，代付子錢包退款成功", merchantBalanceRecord.OrderNo)
 			}
 		}
 
