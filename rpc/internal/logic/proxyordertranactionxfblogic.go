@@ -55,7 +55,7 @@ func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(in *transactionc
 	}
 
 	merchant := &types.Merchant{}
-	if errMer := l.svcCtx.MyDB.Table("mc_merchants").Where("code = ?", rate.MerchantCode).Take(merchant); errMer != nil {
+	if errMer := l.svcCtx.MyDB.Table("mc_merchants").Where("code = ?", rate.MerchantCode).Take(merchant).Error; errMer != nil {
 		logx.Errorf("查尋商戶錯誤", errMer.Error)
 	}
 
@@ -112,6 +112,7 @@ func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(in *transactionc
 		BalanceType:     constants.XF_BALANCE,
 		CreatedBy:       txOrder.MerchantCode,
 		ChannelCode:     txOrder.ChannelCode,
+		MerPtBalanceId:  rate.MerchantPtBalanceId,
 	}
 
 	//判断是否是银行账号是否是黑名单

@@ -69,6 +69,7 @@ func (l *ProxyTestToNormalXFBLogic) ProxyTestToNormal_XFB(in *transactionclient.
 			Comment:         "代付轉正式單",
 			CreatedBy:       txOrder.MerchantCode,
 			ChannelCode:     txOrder.ChannelCode,
+			MerPtBalanceId:  merchantPtBalanceId,
 		}
 
 		if merchantPtBalanceId != 0 {
