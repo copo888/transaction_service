@@ -55,7 +55,7 @@ func (l *MerchantBalanceFreezeTranactionLogic) MerchantBalanceFreezeTranaction(r
 	}, req.MerchantPtBalanceId); err != nil {
 		txDB.Rollback()
 		return &transactionclient.MerchantBalanceFreezeResponse{
-			Code:    response.DATABASE_FAILURE,
+			Code:    err.Error(),
 			Message: "凍結金額異動失敗",
 		}, nil
 	}

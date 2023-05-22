@@ -111,7 +111,7 @@ func UpdateFrozenAmount(db *gorm.DB, updateBalance types.UpdateFrozenAmount, mer
 
 	// 检查余额是否足够
 	if afterBalance < 0 {
-		return  merchantPtBalanceRecord, errorz.New(response.INSUFFICIENT_IN_AMOUNT, err.Error())
+		return  merchantPtBalanceRecord, errorz.New(response.INSUFFICIENT_IN_AMOUNT, "子錢包余额不足")
 	}
 
 	// 3. 變更 子錢包餘額
