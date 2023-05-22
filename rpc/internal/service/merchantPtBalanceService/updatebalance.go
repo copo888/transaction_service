@@ -108,6 +108,12 @@ func UpdateFrozenAmount(db *gorm.DB, updateBalance types.UpdateFrozenAmount, mer
 	afterBalance = utils.FloatSub(beforeBalance, updateBalance.FrozenAmount)
 	merchantPtBalance.Balance = afterBalance
 
+
+	// 检查余额是否足够
+	if afterBalance < 0 {
+		return  merchantPtBalanceRecord, errorz.New(response.INSUFFICIENT_IN_AMOUNT, err.Error())
+	}
+
 	// 3. 變更 子錢包餘額
 	if err = db.Table("mc_merchant_pt_balances").Select("balance").Updates(types.MerchantPtBalanceX{
 		MerchantPtBalance: merchantPtBalance,
