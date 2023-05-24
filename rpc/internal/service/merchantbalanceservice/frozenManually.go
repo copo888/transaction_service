@@ -39,7 +39,7 @@ func FrozenManually(db *gorm.DB, frozenManually types.FrozenManually, merchantPt
 	merchantBalance.Balance = afterBalance
 
 	if afterFrozen < 0 {
-		return  merchantBalanceRecord, errorz.New(response.INSUFFICIENT_IN_AMOUNT, err.Error())
+		return  merchantBalanceRecord, errorz.New(response.INSUFFICIENT_IN_AMOUNT, "總錢包余额不足")
 	}
 
 	// 3. 變更 商戶餘額&凍結金額
