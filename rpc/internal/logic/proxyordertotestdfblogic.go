@@ -69,6 +69,7 @@ func (l *ProxyOrderToTestDFBLogic) ProxyOrderToTest_DFB(in *transactionclient.Pr
 			Comment:         "代付轉測試單",
 			CreatedBy:       txOrder.MerchantCode,
 			ChannelCode:     txOrder.ChannelCode,
+			MerPtBalanceId:  merchantPtBalanceId,
 		}
 
 		//异动子钱包

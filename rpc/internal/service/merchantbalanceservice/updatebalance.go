@@ -646,6 +646,9 @@ func doUpdateBalanceForZF(db *gorm.DB, ctx context.Context, redisClient *redis.C
 	return
 }
 
+/*
+	更新子錢包餘額_下發失败退回
+*/
 // UpdateBalance TransferAmount需正負(收款传正值/扣款传負值), BalanceType:餘額類型 (DFB=代付餘額 XFB=下發餘額)
 func UpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 
