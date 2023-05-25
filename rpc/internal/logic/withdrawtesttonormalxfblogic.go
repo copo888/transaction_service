@@ -45,7 +45,7 @@ func (l *WithdrawTestToNormalXFBLogic) WithdrawTestToNormal_XFB(in *transactionc
 
 	//改非測試單
 	txOrder.IsTest = "0"
-	txOrder.Memo = "下发订单转正式单\n" + txOrder.Memo
+	txOrder.Memo = "下发订单转正式单:" + in.Remark + "\n" + txOrder.Memo
 
 	l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 

@@ -509,6 +509,7 @@ message   WithdrawCommissionOrderResponse {
 message WithdrawOrderTestRequest {
   string WithdrawOrderNo = 1;
   int64  PtBalanceId = 2;
+  string Remark = 3;
 }
 
 message  WithdrawOrderTestResponse {
