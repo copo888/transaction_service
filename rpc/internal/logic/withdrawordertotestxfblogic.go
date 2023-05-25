@@ -34,6 +34,7 @@ func NewWithdrawOrderToTestXFBLogic(ctx context.Context, svcCtx *svc.ServiceCont
 }
 
 func (l *WithdrawOrderToTestXFBLogic) WithdrawOrderToTest_XFB(in *transactionclient.WithdrawOrderTestRequest) (*transactionclient.WithdrawOrderTestResponse, error) {
+	merchantPtBalanceId := in.PtBalanceId
 	txOrder := &types.OrderX{}
 	var err error
 	if txOrder, err = model.QueryOrderByOrderNo(l.svcCtx.MyDB, in.WithdrawOrderNo, ""); err != nil {
@@ -47,15 +48,6 @@ func (l *WithdrawOrderToTestXFBLogic) WithdrawOrderToTest_XFB(in *transactioncli
 	txOrder.Memo = "下发订单转测试单\n" + txOrder.Memo
 
 	l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
-
-		var merchantPtBalanceId int64
-		if err = db.Table("mc_merchant_channel_rate").
-			Select("merchant_pt_balance_id").
-			Where("merchant_code = ? AND channel_pay_types_code = ?", txOrder.MerchantCode, txOrder.ChannelPayTypesCode).
-			Find(&merchantPtBalanceId).Error; err != nil {
-			logx.WithContext(l.ctx).Errorf("捞取子钱錢包錯誤，商户号:%s，ChannelPayTypesCode:%s，err:%s", txOrder.MerchantCode, txOrder.ChannelPayTypesCode, err.Error())
-			return err
-		}
 
 		merchantBalanceRecord := types.MerchantBalanceRecord{}
 
