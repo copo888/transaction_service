@@ -62,7 +62,7 @@ func (l *WithdrawOrderToTestXFBLogic) WithdrawOrderToTest_XFB(in *transactioncli
 			TransferAmount:  txOrder.TransferAmount,
 			TransactionType: constants.TRANSACTION_TYPE_REFUND, //異動類型 (1=收款 ; 2=解凍;  3=沖正 4=還款;  5=補單; 11=出款 ; 12=凍結 ; 13=追回; 20=調整)
 			BalanceType:     constants.XF_BALANCE,
-			Comment:         "下發轉測試單",
+			Comment:         "下发转测试單",
 			CreatedBy:       txOrder.MerchantCode,
 			ChannelCode:     txOrder.ChannelCode,
 			MerPtBalanceId:  merchantPtBalanceId,

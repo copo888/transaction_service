@@ -62,7 +62,7 @@ func (l *WithdrawTestToNormalXFBLogic) WithdrawTestToNormal_XFB(in *transactionc
 			TransferAmount:  txOrder.TransferAmount,
 			TransactionType: constants.TRANSACTION_TYPE_ISSUED, //異動類型 (1=收款 ; 2=解凍;  3=沖正 4=還款;  5=補單; 11=出款 ; 12=凍結 ; 13=追回; 20=調整)
 			BalanceType:     constants.XF_BALANCE,
-			Comment:         "下發轉正式單",
+			Comment:         "下发转正式單",
 			CreatedBy:       txOrder.MerchantCode,
 			ChannelCode:     txOrder.ChannelCode,
 			MerPtBalanceId:  merchantPtBalanceId,
@@ -85,7 +85,7 @@ func (l *WithdrawTestToNormalXFBLogic) WithdrawTestToNormal_XFB(in *transactionc
 			logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
 			return errorz.New(response.SYSTEM_ERROR, err.Error())
 		} else {
-			logx.Infof("下發API提单 %s，錢包出款成功", merchantBalanceRecord.OrderNo)
+			logx.Infof("API提单 %s，錢包出款成功", merchantBalanceRecord.OrderNo)
 			txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance // 商戶錢包異動紀錄
 			txOrder.Balance = merchantBalanceRecord.AfterBalance
 		}
