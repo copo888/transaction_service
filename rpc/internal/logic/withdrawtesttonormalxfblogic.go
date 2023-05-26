@@ -117,7 +117,10 @@ func (l *WithdrawTestToNormalXFBLogic) WithdrawTestToNormal_XFB(in *transactionc
 		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
 	}
 
-	return &transactionclient.WithdrawOrderTestResponse{}, nil
+	return &transactionclient.WithdrawOrderTestResponse{
+		Code:    response.API_SUCCESS,
+		Message: "操作成功",
+	}, nil
 }
 
 func (l WithdrawTestToNormalXFBLogic) UpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
