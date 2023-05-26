@@ -47,7 +47,7 @@ func (l *WithdrawOrderToTestXFBLogic) WithdrawOrderToTest_XFB(in *transactioncli
 	txOrder.IsTest = "1"
 	txOrder.Memo = "下发订单转测试单" + in.Remark + " \n" + txOrder.Memo
 
-	l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
+	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
 		merchantBalanceRecord := types.MerchantBalanceRecord{}
 
@@ -98,7 +98,12 @@ func (l *WithdrawOrderToTestXFBLogic) WithdrawOrderToTest_XFB(in *transactioncli
 		}
 
 		return nil
-	})
+	}); err != nil {
+		return &transactionclient.WithdrawOrderTestResponse{
+			Code:    response.WALLET_UPDATE_ERROR,
+			Message: err.Error(),
+		}, nil
+	}
 
 	// 新單新增訂單歷程 (不抱錯) TODO: 異步??
 	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
