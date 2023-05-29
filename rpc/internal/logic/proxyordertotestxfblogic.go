@@ -44,6 +44,15 @@ func (l *ProxyOrderToTestXFBLogic) ProxyOrderToTest_XFB(in *transactionclient.Pr
 
 	l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
+		var merchantPtBalanceId int64
+		if err = db.Table("mc_merchant_channel_rate").
+			Select("merchant_pt_balance_id").
+			Where("merchant_code = ? AND channel_pay_types_code = ?", txOrder.MerchantCode, txOrder.ChannelPayTypesCode).
+			Find(&merchantPtBalanceId).Error; err != nil {
+			logx.WithContext(l.ctx).Errorf("捞取子钱錢包錯誤，商户号:%s，ChannelPayTypesCode:%s，err:%s", txOrder.MerchantCode, txOrder.ChannelPayTypesCode, err.Error())
+			return err
+		}
+
 		merchantBalanceRecord := types.MerchantBalanceRecord{}
 
 		// 新增收支记录，与更新商户余额(商户账户号是黑名单，把交易金额为设为 0)
@@ -60,6 +69,19 @@ func (l *ProxyOrderToTestXFBLogic) ProxyOrderToTest_XFB(in *transactionclient.Pr
 			Comment:         "代付轉測試單",
 			CreatedBy:       txOrder.MerchantCode,
 			ChannelCode:     txOrder.ChannelCode,
+		}
+
+		//异动子钱包
+		if merchantPtBalanceId > 0 {
+			updateBalance.MerPtBalanceId = merchantPtBalanceId
+			if _, err = merchantbalanceservice.UpdateDF_Pt_Balance_Deposit(l.ctx, db, updateBalance); err != nil {
+				txOrder.RepaymentStatus = constants.REPAYMENT_FAIL
+				logx.WithContext(l.ctx).Errorf("商户:%s，更新子钱錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
+				return err
+			} else {
+				txOrder.RepaymentStatus = constants.REPAYMENT_SUCCESS
+				logx.WithContext(l.ctx).Infof("代付API提单失败 %s，代付錢包退款成功", merchantBalanceRecord.OrderNo)
+			}
 		}
 
 		if merchantBalanceRecord, err = merchantbalanceservice.UpdateXFBalance_Deposit(db, *updateBalance); err != nil {

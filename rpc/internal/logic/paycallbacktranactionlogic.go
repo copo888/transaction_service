@@ -6,7 +6,6 @@ import (
 	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
-	"github.com/copo888/transaction_service/rpc/internal/service/merchantPtBalanceService"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
@@ -32,12 +31,12 @@ func NewPayCallBackTranactionLogic(ctx context.Context, svcCtx *svc.ServiceConte
 	}
 }
 
-func (l *PayCallBackTranactionLogic) PayCallBackTranaction(ctx context.Context, in *transactionclient.PayCallBackRequest) (resp *transactionclient.PayCallBackResponse, err error) {
+func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transactionclient.PayCallBackRequest) (resp *transactionclient.PayCallBackResponse, err error) {
 
 	if in.OrderStatus == "20" {
-		return l.PayCallBackTranactionForSuccess(ctx, in)
+		return l.PayCallBackTranactionForSuccess(l.ctx, in)
 	} else if in.OrderStatus == "30" {
-		return l.PayCallBackTranactionForFailure(ctx, in)
+		return l.PayCallBackTranactionForFailure(l.ctx, in)
 	}
 	return &transactionclient.PayCallBackResponse{
 		Code:    response.ORDER_STATUS_WRONG,
@@ -171,25 +170,8 @@ func (l *PayCallBackTranactionLogic) updateOrderAndBalance(db *gorm.DB, req *tra
 		}
 
 		// 異動錢包
-		if merchantBalanceRecord, err = merchantbalanceservice.UpdateBalanceForZF(db, l.svcCtx.RedisClient, updateBalance); err != nil {
+		if merchantBalanceRecord, err = merchantbalanceservice.UpdateBalanceForZF(db, l.ctx, l.svcCtx.RedisClient, updateBalance); err != nil {
 			return
-		}
-
-		var isDisplayBalance string
-		err = db.Table("mc_merchant_channel_rate").
-			Select("is_display_balance").
-			Where("merchant_code = ? AND currency_code = ?", order.MerchantCode, order.CurrencyCode).
-			Where("channel_code = ? AND pay_type_code = ?", order.ChannelCode, order.PayTypeCode).
-			Find(&isDisplayBalance).Error
-
-		// 若有啟用顯示子錢包
-		if isDisplayBalance == "1" {
-			logx.WithContext(l.ctx).Infof("需異動子錢包: %s,%s,%s.%s", order.MerchantCode, order.CurrencyCode, order.ChannelCode, order.PayTypeCode)
-			// 變更 商戶子錢包餘額
-			_, err = merchantPtBalanceService.UpdatePtBalanceForZF(db, l.svcCtx.RedisClient, updateBalance)
-			if err != nil {
-				return
-			}
 		}
 
 		order.BeforeBalance = merchantBalanceRecord.BeforeBalance

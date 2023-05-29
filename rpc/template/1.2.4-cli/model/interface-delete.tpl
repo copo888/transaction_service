@@ -1,0 +1,1 @@
+Delete(req interface{}) error

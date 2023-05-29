@@ -44,6 +44,15 @@ func (l *ProxyTestToNormalXFBLogic) ProxyTestToNormal_XFB(in *transactionclient.
 
 	l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
+		var merchantPtBalanceId int64
+		if err = db.Table("mc_merchant_channel_rate").
+			Select("merchant_pt_balance_id").
+			Where("merchant_code = ? AND channel_pay_types_code = ?", txOrder.MerchantCode, txOrder.ChannelPayTypesCode).
+			Find(&merchantPtBalanceId).Error; err != nil {
+			logx.WithContext(l.ctx).Errorf("捞取子钱錢包錯誤，商户号:%s，ChannelPayTypesCode:%s，err:%s", txOrder.MerchantCode, txOrder.ChannelPayTypesCode, err.Error())
+			return err
+		}
+
 		merchantBalanceRecord := types.MerchantBalanceRecord{}
 
 		// 新增收支记录，与更新商户余额(商户账户号是黑名单，把交易金额为设为 0)
@@ -60,6 +69,14 @@ func (l *ProxyTestToNormalXFBLogic) ProxyTestToNormal_XFB(in *transactionclient.
 			Comment:         "代付轉正式單",
 			CreatedBy:       txOrder.MerchantCode,
 			ChannelCode:     txOrder.ChannelCode,
+			MerPtBalanceId:  merchantPtBalanceId,
+		}
+
+		if merchantPtBalanceId != 0 {
+			if _, err = merchantbalanceservice.DoUpdateXF_Pt_Balance_Debit(l.ctx, l.svcCtx, db, updateBalance); err != nil {
+				logx.WithContext(l.ctx).Errorf("商户:%s，幣別: %s，更新子錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, txOrder.CurrencyCode, err.Error(), updateBalance)
+				return err
+			}
 		}
 
 		if merchantBalanceRecord, err = merchantbalanceservice.DoUpdateXFBalance_Debit(l.ctx, l.svcCtx, db, updateBalance); err != nil {

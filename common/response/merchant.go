@@ -73,6 +73,11 @@ var (
 	SETTING_MERCHANT_PAY_TYPE_SUB_CODING_ERROR                 = "1052236" //"支付方式指定代码格式错误，请输入数字1-6"
 	SETTING_MERCHANT_PAY_TYPE_SUB_CODING_NULL_ERROR            = "1052237" //"支付方式指定代码不可为空值"
 
+	SUB_WALLET_ENABLED_THEREFORE_OPERATION_PROHIBITED     = "1052238" //"已启用子钱包,所以禁止操作"
+	SUB_WALLET_NOT_ENABLED_THEREFORE_OPERATION_PROHIBITED = "1052239" //"未启用子钱包,所以禁止操作"
+
+	MERCHANT_INSUFFICIENT_PT_BALANCE = "1052240" // 子錢包餘額不足
+
 	PAY_ORDER_CALLBACK                        = "1052250" //"此支付号已付款成功，不可再执行一次"
 	PAY_CONFIRM_AMOUNT_REQUIRE                = "1052251" //"此支付号为异常单，必须输入金额以确认"
 	SETTING_MERCHANT_PAY_CHARGE_TO_NULL_ERROR = "1052252" //"配置商户手续费不可为空值"
