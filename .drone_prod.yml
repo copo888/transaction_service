@@ -47,7 +47,7 @@ steps:
       - refs/tags/api02-tra*
       - refs/tags/api02-test*
 
-- name: docker-merchant-api01
+- name: docker-transaction-api01
   image: appleboy/drone-ssh
   settings:
     host:
@@ -77,7 +77,7 @@ steps:
     status:
       - success
 
-- name: docker-merchant-api02
+- name: docker-transaction-api02
   image: appleboy/drone-ssh
   settings:
     host:
