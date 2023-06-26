@@ -51,6 +51,19 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranactionForSuccess(ctx context
 	/****     交易開始      ****/
 	txDB := l.svcCtx.MyDB.Begin()
 
+	// 这里谨用于确认是否有设置费率
+	var merchantChannelRate *types.MerchantChannelRate
+	if err := txDB.Table("mc_merchant_channel_rate").
+		Where("merchant_code = ? AND channel_pay_types_code = ?", order.MerchantCode, order.ChannelPayTypesCode).
+		Take(&merchantChannelRate).Error; err != nil {
+		txDB.Rollback()
+		return &transactionclient.PayCallBackResponse{
+			Code:    response.RATE_NOT_CONFIGURED,
+			Message: "未配置商户渠道费率",
+		}, nil
+	}
+
+	// 取得tx_order
 	if err = txDB.Table("tx_orders").
 		Where("order_no = ?", in.PayOrderNo).Take(&order).Error; err != nil {
 		txDB.Rollback()
