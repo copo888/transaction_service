@@ -38,6 +38,17 @@ func (l *ProxyOrderTransactionFailXFBLogic) ProxyOrderTransactionFail_XFB(in *tr
 			Message: "查詢訂單資料錯誤，orderNo : " + in.OrderNo,
 		}, nil
 	}
+	// 确认是否有设置费率
+	var merchantChannelRate *types.MerchantChannelRate
+	if err := l.svcCtx.MyDB.Table("mc_merchant_channel_rate").
+		Where("merchant_code = ? AND channel_pay_types_code = ?", txOrder.MerchantCode, txOrder.ChannelPayTypesCode).
+		Take(&merchantChannelRate).Error; err != nil {
+		return &transactionclient.ProxyPayFailResponse{
+			Code:    response.RATE_NOT_CONFIGURED,
+			Message: "未配置商户渠道费率",
+		}, nil
+	}
+
 	//失败单
 	txOrder.Status = constants.FAIL
 	txOrder.TransAt = types.JsonTime{}.New()
@@ -54,24 +65,23 @@ func (l *ProxyOrderTransactionFailXFBLogic) ProxyOrderTransactionFail_XFB(in *tr
 		BalanceType:     constants.XF_BALANCE,
 		CreatedBy:       txOrder.MerchantCode,
 		ChannelCode:     txOrder.ChannelCode,
+		MerPtBalanceId:  merchantChannelRate.MerchantPtBalanceId,
 	}
 
 	//调整异动钱包，并更新订单
 	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
-		var merchantPtBalanceId int64
-		if err = db.Table("mc_merchant_channel_rate").
-			Select("merchant_pt_balance_id").
-			Where("merchant_code = ? AND channel_pay_types_code = ?", txOrder.MerchantCode, txOrder.ChannelPayTypesCode).
-			Find(&merchantPtBalanceId).Error; err != nil {
-			logx.WithContext(l.ctx).Errorf("捞取子钱錢包錯誤，商户号:%s，ChannelPayTypesCode:%s，err:%s", txOrder.MerchantCode, txOrder.ChannelPayTypesCode, err.Error())
-			return err
-		}
+		//var merchantPtBalanceId int64
+		//if err = db.Table("mc_merchant_channel_rate").
+		//	Select("merchant_pt_balance_id").
+		//	Where("merchant_code = ? AND channel_pay_types_code = ?", txOrder.MerchantCode, txOrder.ChannelPayTypesCode).
+		//	Find(&merchantPtBalanceId).Error; err != nil {
+		//	logx.WithContext(l.ctx).Errorf("捞取子钱錢包錯誤，商户号:%s，ChannelPayTypesCode:%s，err:%s", txOrder.MerchantCode, txOrder.ChannelPayTypesCode, err.Error())
+		//	return err
+		//}
 
 		//异动子钱包
-		if merchantPtBalanceId > 0 {
-
-			updateBalance.MerPtBalanceId = merchantPtBalanceId
+		if merchantChannelRate.MerchantPtBalanceId > 0 {
 
 			if _, err = merchantbalanceservice.UpdateXF_Pt_Balance_Deposit(l.ctx, db, updateBalance); err != nil {
 				txOrder.RepaymentStatus = constants.REPAYMENT_FAIL

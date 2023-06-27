@@ -519,6 +519,7 @@ type MerchantChannelRate struct {
 	Fee                 float64 `json:"fee"`
 	HandlingFee         float64 `json:"handlingFee"`
 	Status              string  `json:"status"`
+	MerchantPtBalanceId int64   `json:"merchantPtBalanceId"`
 }
 
 type MerchantChannelRateConfigureRequest struct {
