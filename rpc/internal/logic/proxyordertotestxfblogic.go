@@ -38,31 +38,20 @@ func (l *ProxyOrderToTestXFBLogic) ProxyOrderToTest_XFB(in *transactionclient.Pr
 		return nil, errorz.New(response.ORDER_NUMBER_NOT_EXIST)
 	}
 
-	// 确认是否有设置费率
-	var merchantChannelRate *types.MerchantChannelRate
-	if err := l.svcCtx.MyDB.Table("mc_merchant_channel_rate").
-		Where("merchant_code = ? AND channel_pay_types_code = ?", txOrder.MerchantCode, txOrder.ChannelPayTypesCode).
-		Take(&merchantChannelRate).Error; err != nil {
-		return &transactionclient.ProxyOrderTestResponse{
-			Code:    response.RATE_NOT_CONFIGURED,
-			Message: "未配置商户渠道费率",
-		}, nil
-	}
-
 	//如果月結傭金"已結算/確認報表無誤按鈕" : 不扣款
 	txOrder.IsTest = "1"
 	txOrder.Memo = "代付订单转测试单\n" + txOrder.Memo
 
 	l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
-		//var merchantPtBalanceId int64
-		//if err = db.Table("mc_merchant_channel_rate").
-		//	Select("merchant_pt_balance_id").
-		//	Where("merchant_code = ? AND channel_pay_types_code = ?", txOrder.MerchantCode, txOrder.ChannelPayTypesCode).
-		//	Find(&merchantPtBalanceId).Error; err != nil {
-		//	logx.WithContext(l.ctx).Errorf("捞取子钱錢包錯誤，商户号:%s，ChannelPayTypesCode:%s，err:%s", txOrder.MerchantCode, txOrder.ChannelPayTypesCode, err.Error())
-		//	return err
-		//}
+		var merchantPtBalanceId int64
+		if err = db.Table("mc_merchant_channel_rate").
+			Select("merchant_pt_balance_id").
+			Where("merchant_code = ? AND channel_pay_types_code = ?", txOrder.MerchantCode, txOrder.ChannelPayTypesCode).
+			Find(&merchantPtBalanceId).Error; err != nil {
+			logx.WithContext(l.ctx).Errorf("捞取子钱錢包錯誤，商户号:%s，ChannelPayTypesCode:%s，err:%s", txOrder.MerchantCode, txOrder.ChannelPayTypesCode, err.Error())
+			return err
+		}
 
 		merchantBalanceRecord := types.MerchantBalanceRecord{}
 
@@ -80,11 +69,11 @@ func (l *ProxyOrderToTestXFBLogic) ProxyOrderToTest_XFB(in *transactionclient.Pr
 			Comment:         "代付轉測試單",
 			CreatedBy:       txOrder.MerchantCode,
 			ChannelCode:     txOrder.ChannelCode,
-			MerPtBalanceId:  merchantChannelRate.MerchantPtBalanceId,
+			MerPtBalanceId:  merchantPtBalanceId,
 		}
 
 		//异动子钱包
-		if merchantChannelRate.MerchantPtBalanceId > 0 {
+		if merchantPtBalanceId > 0 {
 			if _, err = merchantbalanceservice.UpdateDF_Pt_Balance_Deposit(l.ctx, db, updateBalance); err != nil {
 				txOrder.RepaymentStatus = constants.REPAYMENT_FAIL
 				logx.WithContext(l.ctx).Errorf("商户:%s，更新子钱錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
