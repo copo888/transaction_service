@@ -188,7 +188,7 @@ func UpdateDF_Pt_Balance_Debit(ctx context.Context, db *gorm.DB, updateBalance *
 		PayTypeCode:         updateBalance.PayTypeCode,
 		TransactionType:     updateBalance.TransactionType,
 		BeforeBalance:       beforeBalance,
-		TransferAmount:      updateBalance.TransferAmount,
+		TransferAmount:      -updateBalance.TransferAmount,
 		AfterBalance:        afterBalance,
 		Comment:             updateBalance.Comment,
 		CreatedBy:           updateBalance.CreatedBy,
@@ -222,7 +222,7 @@ func UpdateXF_Pt_Balance_Debit(ctx context.Context, db *gorm.DB, updateBalance *
 	//判斷餘額是否不足 2. 計算 (依照 BalanceType 決定異動哪種餘額)
 	if utils.FloatAdd(merchantPtBalance.Balance, -updateBalance.TransferAmount) < 0 { //判斷餘額是否不足
 		logx.WithContext(ctx).Errorf("商户:%s，幣別: %s, 子錢包类型:%s ，余额:%s，交易金额:%s", merchantPtBalance.MerchantCode, merchantPtBalance.CurrencyCode, merchantPtBalance.PayTypeCode, fmt.Sprintf("%f", merchantPtBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount))
-		return merchantPtBalanceRecord, errorz.New(response.MERCHANT_INSUFFICIENT_DF_BALANCE)
+		return merchantPtBalanceRecord, errorz.New("子錢包餘額不足")
 	}
 
 	beforeBalance = merchantPtBalance.Balance
@@ -248,7 +248,7 @@ func UpdateXF_Pt_Balance_Debit(ctx context.Context, db *gorm.DB, updateBalance *
 		PayTypeCode:         updateBalance.PayTypeCode,
 		TransactionType:     updateBalance.TransactionType,
 		BeforeBalance:       beforeBalance,
-		TransferAmount:      updateBalance.TransferAmount,
+		TransferAmount:      -updateBalance.TransferAmount,
 		AfterBalance:        afterBalance,
 		Comment:             updateBalance.Comment,
 		CreatedBy:           updateBalance.CreatedBy,
@@ -646,6 +646,9 @@ func doUpdateBalanceForZF(db *gorm.DB, ctx context.Context, redisClient *redis.C
 	return
 }
 
+/*
+	更新子錢包餘額_下發失败退回
+*/
 // UpdateBalance TransferAmount需正負(收款传正值/扣款传負值), BalanceType:餘額類型 (DFB=代付餘額 XFB=下發餘額)
 func UpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 

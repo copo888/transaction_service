@@ -8,6 +8,7 @@ import (
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/model"
+	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"github.com/neccoys/go-zero-extension/redislock"
@@ -33,6 +34,7 @@ func NewWithdrawOrderToTestXFBLogic(ctx context.Context, svcCtx *svc.ServiceCont
 }
 
 func (l *WithdrawOrderToTestXFBLogic) WithdrawOrderToTest_XFB(in *transactionclient.WithdrawOrderTestRequest) (*transactionclient.WithdrawOrderTestResponse, error) {
+	merchantPtBalanceId := in.PtBalanceId
 	txOrder := &types.OrderX{}
 	var err error
 	if txOrder, err = model.QueryOrderByOrderNo(l.svcCtx.MyDB, in.WithdrawOrderNo, ""); err != nil {
@@ -43,9 +45,9 @@ func (l *WithdrawOrderToTestXFBLogic) WithdrawOrderToTest_XFB(in *transactioncli
 
 	//如果月結傭金"已結算/確認報表無誤按鈕" : 不扣款
 	txOrder.IsTest = "1"
-	txOrder.Memo = "下发订单转测试单\n" + txOrder.Memo
+	txOrder.Memo = "下发订单转测试单" + in.Remark + " \n" + txOrder.Memo
 
-	l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
+	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
 		merchantBalanceRecord := types.MerchantBalanceRecord{}
 
@@ -60,9 +62,23 @@ func (l *WithdrawOrderToTestXFBLogic) WithdrawOrderToTest_XFB(in *transactioncli
 			TransferAmount:  txOrder.TransferAmount,
 			TransactionType: constants.TRANSACTION_TYPE_REFUND, //異動類型 (1=收款 ; 2=解凍;  3=沖正 4=還款;  5=補單; 11=出款 ; 12=凍結 ; 13=追回; 20=調整)
 			BalanceType:     constants.XF_BALANCE,
-			Comment:         "下發轉測試單",
+			Comment:         "下发转测试單",
 			CreatedBy:       txOrder.MerchantCode,
 			ChannelCode:     txOrder.ChannelCode,
+			MerPtBalanceId:  merchantPtBalanceId,
+		}
+
+		//异动子钱包
+		if merchantPtBalanceId > 0 {
+			updateBalance.MerPtBalanceId = merchantPtBalanceId
+			if _, err = merchantbalanceservice.UpdateXF_Pt_Balance_Deposit(l.ctx, db, &updateBalance); err != nil {
+				txOrder.RepaymentStatus = constants.REPAYMENT_FAIL
+				logx.WithContext(l.ctx).Errorf("商户:%s，更新子钱錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
+				return err
+			} else {
+				txOrder.RepaymentStatus = constants.REPAYMENT_SUCCESS
+				logx.WithContext(l.ctx).Infof("代付API提单失败 %s，代付錢包退款成功", merchantBalanceRecord.OrderNo)
+			}
 		}
 
 		if merchantBalanceRecord, err = l.UpdateBalance(db, updateBalance); err != nil {
@@ -82,7 +98,12 @@ func (l *WithdrawOrderToTestXFBLogic) WithdrawOrderToTest_XFB(in *transactioncli
 		}
 
 		return nil
-	})
+	}); err != nil {
+		return &transactionclient.WithdrawOrderTestResponse{
+			Code:    response.WALLET_UPDATE_ERROR,
+			Message: err.Error(),
+		}, nil
+	}
 
 	// 新單新增訂單歷程 (不抱錯) TODO: 異步??
 	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
@@ -96,7 +117,10 @@ func (l *WithdrawOrderToTestXFBLogic) WithdrawOrderToTest_XFB(in *transactioncli
 		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
 	}
 
-	return &transactionclient.WithdrawOrderTestResponse{}, nil
+	return &transactionclient.WithdrawOrderTestResponse{
+		Code:    response.API_SUCCESS,
+		Message: "操作成功",
+	}, nil
 }
 
 func (l WithdrawOrderToTestXFBLogic) UpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {

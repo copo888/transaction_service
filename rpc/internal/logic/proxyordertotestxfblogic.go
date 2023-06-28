@@ -69,11 +69,11 @@ func (l *ProxyOrderToTestXFBLogic) ProxyOrderToTest_XFB(in *transactionclient.Pr
 			Comment:         "代付轉測試單",
 			CreatedBy:       txOrder.MerchantCode,
 			ChannelCode:     txOrder.ChannelCode,
+			MerPtBalanceId:  merchantPtBalanceId,
 		}
 
 		//异动子钱包
 		if merchantPtBalanceId > 0 {
-			updateBalance.MerPtBalanceId = merchantPtBalanceId
 			if _, err = merchantbalanceservice.UpdateDF_Pt_Balance_Deposit(l.ctx, db, updateBalance); err != nil {
 				txOrder.RepaymentStatus = constants.REPAYMENT_FAIL
 				logx.WithContext(l.ctx).Errorf("商户:%s，更新子钱錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)

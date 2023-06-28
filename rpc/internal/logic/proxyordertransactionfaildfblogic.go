@@ -43,6 +43,7 @@ func (l *ProxyOrderTransactionFailDFBLogic) ProxyOrderTransactionFail_DFB(in *tr
 			Message: "查詢訂單資料錯誤，orderNo : " + in.OrderNo,
 		}, nil
 	}
+
 	//失败单
 	txOrder.Status = constants.FAIL
 	txOrder.TransAt = types.JsonTime{}.New()
@@ -59,6 +60,7 @@ func (l *ProxyOrderTransactionFailDFBLogic) ProxyOrderTransactionFail_DFB(in *tr
 		BalanceType:     constants.DF_BALANCE,
 		CreatedBy:       txOrder.MerchantCode,
 		ChannelCode:     txOrder.ChannelCode,
+		//MerPtBalanceId:  merchantPtBalanceId,
 	}
 
 	//调整异动钱包，并更新订单
@@ -75,9 +77,7 @@ func (l *ProxyOrderTransactionFailDFBLogic) ProxyOrderTransactionFail_DFB(in *tr
 
 		//异动子钱包
 		if merchantPtBalanceId > 0 {
-
 			updateBalance.MerPtBalanceId = merchantPtBalanceId
-
 			if _, err = merchantbalanceservice.UpdateDF_Pt_Balance_Deposit(l.ctx, db, updateBalance); err != nil {
 				txOrder.RepaymentStatus = constants.REPAYMENT_FAIL
 				logx.WithContext(l.ctx).Errorf("商户:%s，更新代付子钱錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)

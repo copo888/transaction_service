@@ -67,6 +67,18 @@ func (l *ConfirmPayOrderTransactionLogic) ConfirmPayOrderTransaction(in *transac
 		}, nil
 	}
 
+	// 这里谨用于确认是否有设置费率
+	var merchantChannelRate *types.MerchantChannelRate
+	if err := txDB.Table("mc_merchant_channel_rate").
+		Where("merchant_code = ? AND channel_pay_types_code = ?", order.MerchantCode, order.ChannelPayTypesCode).
+		Take(&merchantChannelRate).Error; err != nil {
+		txDB.Rollback()
+		return &transactionclient.ConfirmPayOrderResponse{
+			Code:    response.RATE_NOT_CONFIGURED,
+			Message: "未配置商户渠道费率",
+		}, nil
+	}
+
 	// 編輯訂單 異動錢包和餘額
 	if err := l.updateOrderAndBalance(txDB, in, order); err != nil {
 		txDB.Rollback()

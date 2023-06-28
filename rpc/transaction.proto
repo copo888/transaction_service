@@ -78,7 +78,8 @@ message ProxyOrderTestRequest{
 }
 
 message ProxyOrderTestResponse{
-
+  string Code = 1;
+  string Message = 2;
 }
 
 message ProxyPayOrderRequest{
@@ -509,10 +510,13 @@ message   WithdrawCommissionOrderResponse {
 
 message WithdrawOrderTestRequest {
   string WithdrawOrderNo = 1;
+  int64  PtBalanceId = 2;
+  string Remark = 3;
 }
 
 message  WithdrawOrderTestResponse {
-
+  string Code = 1;
+  string Message = 2;
 }
 
 service Transaction {

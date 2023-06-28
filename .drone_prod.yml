@@ -1,39 +1,129 @@
+---
 kind: pipeline
-name: transaction_service
+type: docker
+name: transaction-deploy
 
 clone:
   disable: true
 
 steps:
-  - name: transaction.rpc
-    image: appleboy/drone-ssh
-    settings:
-      host:
-        - 172.28.222.65
-        - 172.28.164.3
-      username:
-        from_secret: user
-      password:
-        from_secret: pwd
-      port:
-        from_secret: port
-      script:
-        - cd /root/transaction_service
-        - git checkout master
-        - git checkout -- .
-        - git pull
-        - go mod tidy
-        - docker-compose -f docker-compose.yml down
-        - docker rmi -f $(docker images --filter="reference=transaction_service" --quiet)
-        - docker rmi -f $(docker images -qf "dangling=true")
-        - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o bin/transaction rpc/transaction.go
-        - docker build -t transaction_service -f rpc/Dockerfile .
-        - docker-compose -f docker-compose.yml up -d
-    when:
-      branch:
-        - master
-      event:
-        - push
-trigger:
-  branch:
-    - master
+- name: slb-before-api01
+  image: appleboy/drone-ssh
+  settings:
+    host:
+      from_secret: elk-host
+    username: 
+      from_secret: elk-user
+    password:
+      from_secret: elk-pwd
+    port:
+      from_secret: elk-port
+    command_timeout: 180m
+    script:
+      - cd /home/aliyun_deploy
+      - ./api01-before.sh
+  when:
+    ref:
+      - refs/tags/api01-tra-*
+      - refs/tags/api01-test-*
+
+- name: slb-before-api02
+  image: appleboy/drone-ssh
+  settings:
+    host:
+      from_secret: elk-host
+    username: 
+      from_secret: elk-user
+    password:
+      from_secret: elk-pwd
+    port:
+      from_secret: elk-port
+    command_timeout: 180m
+    script:
+      - cd /home/aliyun_deploy
+      - ./api02-before.sh
+  when:
+    ref:
+      - refs/tags/api02-tra-*
+      - refs/tags/api02-test-*
+
+- name: docker-transaction-api01
+  image: appleboy/drone-ssh
+  settings:
+    host:
+      from_secret: api01-host
+    username: 
+      from_secret: api01-user
+    password:
+      from_secret: api01-pwd
+    port:
+      from_secret: api01-port
+    command_timeout: 180m
+    script:
+      - cd /root/transaction_service
+      - git checkout -- .
+      - git pull origin master
+      - go mod tidy
+      - docker-compose down
+      - docker rmi transaction_service:latest
+      - docker image prune -f
+      - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags='-s -w' -o bin/transaction rpc/transaction.go
+      - DOCKER_BUILDKIT=1 docker build -t transaction_service -f rpc/Dockerfile .
+      - docker-compose up -d
+  when:
+    ref:
+      - refs/tags/api01-tra-*
+      - refs/tags/api01-test-*
+    status:
+      - success
+
+- name: docker-transaction-api02
+  image: appleboy/drone-ssh
+  settings:
+    host:
+      from_secret: api02-host
+    username: 
+      from_secret: api02-user
+    password:
+      from_secret: api02-pwd
+    port:
+      from_secret: api02-port
+    command_timeout: 180m
+    script:
+      - cd /root/transaction_service
+      - git checkout -- .
+      - git pull origin master
+      - go mod tidy
+      - docker-compose down
+      - docker rmi transaction_service:latest
+      - docker image prune -f
+      - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags='-s -w' -o bin/transaction rpc/transaction.go
+      - DOCKER_BUILDKIT=1 docker build -t transaction_service -f rpc/Dockerfile .
+      - docker-compose up -d
+  when:
+    ref:
+      - refs/tags/api02-tra-*
+      - refs/tags/api02-test-*
+    status:
+      - success
+
+- name: slb-after
+  image: appleboy/drone-ssh
+  settings:
+    host:
+      from_secret: elk-host
+    username: 
+      from_secret: elk-user
+    password:
+      from_secret: elk-pwd
+    port:
+      from_secret: elk-port
+    command_timeout: 180m
+    script:
+      - cd /home/aliyun_deploy
+      - ./api-after.sh
+  when:
+    ref:
+      - refs/tags/api01-tra-*
+      - refs/tags/api02-tra-*
+      - refs/tags/api-bal*

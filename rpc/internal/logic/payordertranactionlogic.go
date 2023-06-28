@@ -56,7 +56,7 @@ func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transactionclient.PayOr
 		PayTypeCode:         correspondMerChnRate.PayTypeCode,
 		CurrencyCode:        correspondMerChnRate.CurrencyCode,
 		MerchantBankNo:      payOrderReq.BankCode,
-		MerchantBankName:    payOrderReq.UserId,
+		MerchantAccountName: payOrderReq.UserId,
 		OrderAmount:         orderAmount,
 		Source:              constants.API,
 		CallBackStatus:      constants.CALL_BACK_STATUS_PROCESSING,

@@ -38,6 +38,7 @@ func (l *ProxyOrderTransactionFailXFBLogic) ProxyOrderTransactionFail_XFB(in *tr
 			Message: "查詢訂單資料錯誤，orderNo : " + in.OrderNo,
 		}, nil
 	}
+
 	//失败单
 	txOrder.Status = constants.FAIL
 	txOrder.TransAt = types.JsonTime{}.New()
@@ -70,9 +71,7 @@ func (l *ProxyOrderTransactionFailXFBLogic) ProxyOrderTransactionFail_XFB(in *tr
 
 		//异动子钱包
 		if merchantPtBalanceId > 0 {
-
 			updateBalance.MerPtBalanceId = merchantPtBalanceId
-
 			if _, err = merchantbalanceservice.UpdateXF_Pt_Balance_Deposit(l.ctx, db, updateBalance); err != nil {
 				txOrder.RepaymentStatus = constants.REPAYMENT_FAIL
 				logx.WithContext(l.ctx).Errorf("商户:%s，更新子钱錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
