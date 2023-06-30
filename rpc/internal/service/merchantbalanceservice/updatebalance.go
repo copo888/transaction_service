@@ -222,7 +222,7 @@ func UpdateXF_Pt_Balance_Debit(ctx context.Context, db *gorm.DB, updateBalance *
 	//判斷餘額是否不足 2. 計算 (依照 BalanceType 決定異動哪種餘額)
 	if utils.FloatAdd(merchantPtBalance.Balance, -updateBalance.TransferAmount) < 0 { //判斷餘額是否不足
 		logx.WithContext(ctx).Errorf("商户:%s，幣別: %s, 子錢包类型:%s ，余额:%s，交易金额:%s", merchantPtBalance.MerchantCode, merchantPtBalance.CurrencyCode, merchantPtBalance.PayTypeCode, fmt.Sprintf("%f", merchantPtBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount))
-		return merchantPtBalanceRecord, errorz.New("子錢包餘額不足")
+		return merchantPtBalanceRecord, errorz.New(response.MERCHANT_INSUFFICIENT_PT_BALANCE)
 	}
 
 	beforeBalance = merchantPtBalance.Balance
