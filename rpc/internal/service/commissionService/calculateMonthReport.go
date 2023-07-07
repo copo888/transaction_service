@@ -12,10 +12,12 @@ import (
 func CalculateMonthReport(db *gorm.DB, report types.CommissionMonthReportX, startAt, endAt string) error {
 
 	payTotalAmount := 0.0
+	payCommissionTotalAmount := 0.0
 	payCommission := 0.0
 	internalChargeTotalAmount := 0.0
 	internalChargeCommission := 0.0
 	proxyPayTotalAmount := 0.0
+	proxyCommissionTotalAmount := 0.0
 	proxyPayTotalNumber := 0.0
 	proxyPayCommission := 0.0
 	totalCommission := 0.0
@@ -51,6 +53,7 @@ func CalculateMonthReport(db *gorm.DB, report types.CommissionMonthReportX, star
 	// 保存 並 計算支付總額
 	for _, detail := range zfDetails {
 		payTotalAmount += detail.TotalAmount
+		payCommissionTotalAmount += detail.CommissionTotalAmount
 		payCommission += detail.TotalCommission
 		totalCommission += detail.TotalCommission
 		detail.CommissionMonthReportId = report.ID
@@ -77,6 +80,7 @@ func CalculateMonthReport(db *gorm.DB, report types.CommissionMonthReportX, star
 	// 保存 並 計算代付總額
 	for _, detail := range dfNoFeeDetails {
 		proxyPayTotalAmount += detail.TotalAmount
+		proxyCommissionTotalAmount += detail.CommissionTotalAmount
 		proxyPayTotalNumber += detail.TotalNumber
 		proxyPayCommission += detail.TotalCommission
 		totalCommission += detail.TotalCommission
@@ -91,6 +95,7 @@ func CalculateMonthReport(db *gorm.DB, report types.CommissionMonthReportX, star
 	// 保存 並 計算代付總額
 	for _, detail := range dfHasFeeDetails {
 		proxyPayTotalAmount += detail.TotalAmount
+		proxyCommissionTotalAmount += detail.CommissionTotalAmount
 		proxyPayTotalNumber += detail.TotalNumber
 		proxyPayCommission += detail.TotalCommission
 		totalCommission += detail.TotalCommission
@@ -142,7 +147,8 @@ func calculateMonthReportDetails(db *gorm.DB, report types.CommissionMonthReport
 
 	if orderType == "ZF" {
 		// 支付 使用實際付款金額
-		selectX += "sum(o.actual_amount) as total_amount"
+		selectX += "sum(o.actual_amount) as total_amount,"
+		selectX += "case when p.profit_amount != 0 then sum(o.order_amount) end as commission_total_amount"
 	} else {
 		// 內充 使用訂單金額
 		selectX += "sum(o.order_amount) as total_amount"
@@ -156,7 +162,7 @@ func calculateMonthReportDetails(db *gorm.DB, report types.CommissionMonthReport
 							Where("p.merchant_code = ? ", report.MerchantCode).
 							Where("o.currency_code = ? ", report.CurrencyCode).
 							Where("o.type = ? ", orderType).
-							Where("p.profit_amount != 0 ").
+							//Where("p.profit_amount != 0 ").
 							Where("(o.status = 20 || o.status = 31) ").
 							Where("o.is_test != 1 ").
 							Group("merchant_code, currency_code, pay_type_code, merchant_fee, agent_fee").
@@ -180,7 +186,8 @@ func calculateMonthReportDetailsForDF(db *gorm.DB, report types.CommissionMonthR
 		"count(o.order_no) as total_number," +
 		"sum(p.profit_amount) as total_commission," +
 		"o.pay_type_code as pay_type_code," +
-		"sum(o.order_amount) as total_amount"
+		"sum(o.order_amount) as total_amount," +
+		"COALESCE(case when p.profit_amount != 0 then sum(o.order_amount) end, 0 )as commission_total_amount"
 
 	txDb := db.Table("tx_orders_fee_profit m"). //下層商戶
 						Select(selectX).
@@ -190,7 +197,7 @@ func calculateMonthReportDetailsForDF(db *gorm.DB, report types.CommissionMonthR
 						Where("p.merchant_code = ? ", report.MerchantCode).
 						Where("o.currency_code = ? ", report.CurrencyCode).
 						Where("o.type = ? ", orderType).
-						Where("p.profit_amount != 0 ").
+						//Where("p.profit_amount != 0 ").
 						Where("(o.status = 20 || o.status = 31) ").
 						Where("o.is_test != 1 ")
 

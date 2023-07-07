@@ -45,6 +45,7 @@ type CommissionMonthReportDetail struct {
 	AgentHandlingFee        float64 `json:"agentHandlingFee"`
 	DiffHandlingFee         float64 `json:"diffHandlingFee"`
 	TotalAmount             float64 `json:"totalAmount"`
+	CommissionTotalAmount   float64 `json:"commissionTotalAmount"`
 	TotalNumber             float64 `json:"totalNumber"`
 	TotalCommission         float64 `json:"totalCommission"`
 }
