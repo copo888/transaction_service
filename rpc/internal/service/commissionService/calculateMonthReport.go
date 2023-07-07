@@ -110,11 +110,13 @@ func CalculateMonthReport(db *gorm.DB, report types.CommissionMonthReportX, star
 	// 編輯主表
 	report.PayTotalAmount = payTotalAmount
 	report.PayCommission = payCommission
+	report.PayCommissionTotalAmount = payCommissionTotalAmount
 	report.InternalChargeTotalAmount = internalChargeTotalAmount
 	report.InternalChargeCommission = internalChargeCommission
 	report.ProxyPayTotalAmount = proxyPayTotalAmount
 	report.ProxyPayTotalNumber = proxyPayTotalNumber
 	report.ProxyPayCommission = proxyPayCommission
+	report.ProxyCommissionTotalAmount = proxyCommissionTotalAmount
 	report.TotalCommission = totalCommission
 	if err = db.Table("cm_commission_month_reports").Updates(&report).Error; err != nil {
 		logx.Errorf("編輯傭金報表失敗: %#v, error: %s", report, err.Error())
@@ -148,7 +150,7 @@ func calculateMonthReportDetails(db *gorm.DB, report types.CommissionMonthReport
 	if orderType == "ZF" {
 		// 支付 使用實際付款金額
 		selectX += "sum(o.actual_amount) as total_amount,"
-		selectX += "case when p.profit_amount != 0 then sum(o.order_amount) end as commission_total_amount"
+		selectX += "case when p.profit_amount != 0 then sum(o.actual_amount) end as commission_total_amount"
 	} else {
 		// 內充 使用訂單金額
 		selectX += "sum(o.order_amount) as total_amount"

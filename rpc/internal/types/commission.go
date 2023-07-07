@@ -16,11 +16,13 @@ type CommissionMonthReport struct {
 	Status                    string  `json:"status"`
 	PayTotalAmount            float64 `json:"payTotalAmount"`
 	PayCommission             float64 `json:"payCommission"`
+	PayCommissionTotalAmount  float64 `json:"payCommissionTotalAmount"`
 	InternalChargeTotalAmount float64 `json:"internalChargeTotalAmount"`
 	InternalChargeCommission  float64 `json:"internalChargeCommission"`
 	ProxyPayTotalAmount       float64 `json:"proxyPayTotalAmount"`
 	ProxyPayTotalNumber       float64 `json:"proxyPayTotalNumber"`
 	ProxyPayCommission        float64 `json:"proxyPayCommission"`
+	ProxyCommissionTotalAmount float64 `json:"proxyCommissionTotalAmount"`
 	TotalCommission           float64 `json:"totalCommission"`
 	ChangeCommission          float64 `json:"changeCommission"`
 	Comment                   string  `json:"comment"`
