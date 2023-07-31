@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"github.com/copo888/transaction_service/common/constants"
+	"github.com/copo888/transaction_service/common/gormx"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
@@ -11,6 +12,7 @@ import (
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"github.com/zeromicro/go-zero/core/logx"
 	"strconv"
+	"time"
 )
 
 type PayOrderTranactionLogic struct {
@@ -85,7 +87,7 @@ func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transactionclient.PayOr
 	// 計算實際交易金額 = 訂單金額 - 手續費
 	order.TransferAmount = order.OrderAmount - order.TransferHandlingFee
 
-	if err = txDB.Table("tx_orders").Create(&types.OrderX{
+	if err = txDB.Scopes(gormx.GetPartition(time.Now().UTC().String(), "tx_orders", &types.OrderX{})).Create(&types.OrderX{
 		Order: *order,
 	}).Error; err != nil {
 		txDB.Rollback()

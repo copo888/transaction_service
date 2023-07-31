@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"github.com/copo888/transaction_service/common/constants"
+	"github.com/copo888/transaction_service/common/gormx"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
@@ -29,7 +30,7 @@ func NewPersonalRebundTransactionXFBLogic(ctx context.Context, svcCtx *svc.Servi
 
 func (l *PersonalRebundTransactionXFBLogic) PersonalRebundTransaction_XFB(in *transactionclient.PersonalRebundRequest) (resp *transactionclient.PersonalRebundResponse, err error) {
 	merchantBalanceRecord := types.MerchantBalanceRecord{}
-	var txOrder = types.Order{}
+	var txOrder = types.OrderX{}
 	if err = l.svcCtx.MyDB.Table("tx_orders").Where("order_no = ?", in.OrderNo).Take(&txOrder).Error; err != nil {
 		return &transactionclient.PersonalRebundResponse{
 			Code:    response.DATA_NOT_FOUND,
@@ -92,8 +93,8 @@ func (l *PersonalRebundTransactionXFBLogic) PersonalRebundTransaction_XFB(in *tr
 			logx.Infof("代付API提单失败 %s，代付錢包退款成功", merchantBalanceRecord.OrderNo)
 		}
 
-		if err = db.Table("tx_orders").Updates(&types.OrderX{
-			Order:   txOrder,
+		if err = db.Scopes(gormx.GetPartition(txOrder.CreatedAt.Format("2006-01-02 15:04:05"), "tx_orders", &types.OrderX{})).Updates(&types.OrderX{
+			Order:   txOrder.Order,
 			TransAt: jTime.New(),
 		}).Error; err != nil {
 			return

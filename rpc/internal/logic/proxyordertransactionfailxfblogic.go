@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"github.com/copo888/transaction_service/common/constants"
+	"github.com/copo888/transaction_service/common/gormx"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/rpc/internal/model"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
@@ -90,7 +91,7 @@ func (l *ProxyOrderTransactionFailXFBLogic) ProxyOrderTransactionFail_XFB(in *tr
 			logx.WithContext(l.ctx).Infof("代付API提单失败 %s，下發錢包退款成功", merchantBalanceRecord.OrderNo)
 		}
 
-		if err = db.Table("tx_orders").Updates(txOrder).Error; err != nil {
+		if err = db.Scopes(gormx.GetPartition(txOrder.CreatedAt.Format("2006-01-02 15:04:05"), "tx_orders", &types.OrderX{})).Updates(txOrder).Error; err != nil {
 			logx.WithContext(l.ctx).Errorf("代付出款失敗(下发餘額)_ %s 更新订单失败: %s", txOrder.OrderNo, err.Error())
 			return
 		}

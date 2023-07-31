@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/errorz"
+	"github.com/copo888/transaction_service/common/gormx"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/rpc/internal/model"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
@@ -95,7 +96,7 @@ func (l *ProxyOrderToTestDFBLogic) ProxyOrderToTest_DFB(in *transactionclient.Pr
 
 		// 更新订单
 		if txOrder != nil {
-			if errUpdate := l.svcCtx.MyDB.Table("tx_orders").Updates(txOrder).Error; errUpdate != nil {
+			if errUpdate := l.svcCtx.MyDB.Scopes(gormx.GetPartition(txOrder.CreatedAt.Format("2006-01-02 15:04:05"), "tx_orders", &types.OrderX{})).Updates(txOrder).Error; errUpdate != nil {
 				logx.Error("代付订单更新状态错误: ", errUpdate.Error())
 			}
 		}

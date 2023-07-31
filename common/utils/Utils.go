@@ -126,3 +126,13 @@ func FloatAdd(s float64, p float64, precisions ...int32) float64 {
 
 	return res
 }
+
+// ParseTime
+func ParseTimeAddOneSecond(t string) string {
+	timeString, err := time.Parse("2006-01-02 15:04:05", t)
+	if err != nil {
+	}
+	str := strings.Split(timeString.Add(time.Second*1).String(), " +")
+	res := str[0]
+	return res
+}
