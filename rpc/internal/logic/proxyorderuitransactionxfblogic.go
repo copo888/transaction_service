@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/errorz"
+	"github.com/copo888/transaction_service/common/gormx"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
@@ -11,6 +12,7 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"gorm.io/gorm"
+	"time"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -125,7 +127,7 @@ func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(in *transa
 		}
 
 		// 创建订单
-		if err = db.Table("tx_orders").Create(&types.OrderX{
+		if err = db.Scopes(gormx.GetPartition(time.Now().UTC().String(), "tx_orders", &types.OrderX{})).Create(&types.OrderX{
 			Order: *txOrder,
 		}).Error; err != nil {
 			logx.WithContext(l.ctx).Errorf("新增代付UI提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err.Error())

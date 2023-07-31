@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"github.com/copo888/transaction_service/common/constants"
+	"github.com/copo888/transaction_service/common/gormx"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/model"
@@ -14,6 +15,7 @@ import (
 	"github.com/gioco-play/easy-i18n/i18n"
 	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
+	"time"
 )
 
 type ProxyOrderTranactionXFBLogic struct {
@@ -154,7 +156,7 @@ func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(in *transactionc
 		}
 
 		// 创建订单
-		if err = db.Table("tx_orders").Create(&types.OrderX{
+		if err = db.Scopes(gormx.GetPartition(time.Now().UTC().String(), "tx_orders", &types.OrderX{})).Create(&types.OrderX{
 			Order: *txOrder,
 		}).Error; err != nil {
 			logx.WithContext(l.ctx).Errorf("新增代付API提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err.Error())

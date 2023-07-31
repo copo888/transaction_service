@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"github.com/copo888/transaction_service/common/constants"
+	"github.com/copo888/transaction_service/common/gormx"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/rpc/internal/model"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
@@ -90,8 +91,7 @@ func (l *PayOrderSwitchTestLogic) PayOrderSwitchTest(in *transactionclient.PayOr
 	txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance
 	txOrder.Balance = merchantBalanceRecord.AfterBalance
 
-
-	if err = txDB.Table("tx_orders").Updates(txOrder).Error; err != nil {
+	if err = txDB.Scopes(gormx.GetPartition(txOrder.CreatedAt.Format("2006-01-02 15:04:05"), "tx_orders", &types.OrderX{})).Updates(txOrder).Error; err != nil {
 		txDB.Rollback()
 		return &transactionclient.PayOrderSwitchTestResponse{
 			Code:    response.SYSTEM_ERROR,
