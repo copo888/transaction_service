@@ -82,7 +82,7 @@ func (l *ProxyOrderTransactionFailXFBLogic) ProxyOrderTransactionFail_XFB(in *tr
 			}
 		}
 
-		if merchantBalanceRecord, err = merchantbalanceservice.UpdateXFBalance_Deposit(db, *updateBalance); err != nil {
+		if merchantBalanceRecord, err = merchantbalanceservice.UpdateXFBalance_Deposit(l.ctx, db, *updateBalance); err != nil {
 			txOrder.RepaymentStatus = constants.REPAYMENT_FAIL
 			logx.WithContext(l.ctx).Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
 		} else {

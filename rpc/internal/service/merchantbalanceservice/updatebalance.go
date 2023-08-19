@@ -216,6 +216,7 @@ func UpdateXF_Pt_Balance_Debit(ctx context.Context, db *gorm.DB, updateBalance *
 		Clauses(clause.Locking{Strength: "UPDATE"}).
 		Where("id = ?", updateBalance.MerPtBalanceId).
 		Take(&merchantPtBalance).Error; err != nil {
+		logx.WithContext(ctx).Errorf("merchantPtBalance Err: %s", err.Error())
 		return nil, errorz.New(response.DATABASE_FAILURE, err.Error())
 	}
 
@@ -329,6 +330,7 @@ func UpdateXF_Pt_Balance_Deposit(ctx context.Context, db *gorm.DB, updateBalance
 		Clauses(clause.Locking{Strength: "UPDATE"}).
 		Where("id = ?", updateBalance.MerPtBalanceId).
 		Take(&merchantPtBalance).Error; err != nil {
+		logx.WithContext(ctx).Errorf("merchantPtBalance Err: %s", err.Error())
 		return merchantPtBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
 	}
 
@@ -385,6 +387,7 @@ func UpdateXFBalance_Debit(ctx context.Context, db *gorm.DB, updateBalance *type
 		Clauses(clause.Locking{Strength: "UPDATE"}).
 		Where("merchant_code = ? AND currency_code = ? AND balance_type = ?", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType).
 		Take(&merchantBalance).Error; err != nil {
+		logx.WithContext(ctx).Errorf("merchantBalance Err: %s", err.Error())
 		return merchantBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
 	}
 
@@ -439,7 +442,7 @@ func UpdateXFBalance_Debit(ctx context.Context, db *gorm.DB, updateBalance *type
 	更新代付余额_下發余额(代付失败退回)
 
 */
-func UpdateXFBalance_Deposit(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
+func UpdateXFBalance_Deposit(ctx context.Context, db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 	var beforeBalance float64
 	var afterBalance float64
 
@@ -449,6 +452,7 @@ func UpdateXFBalance_Deposit(db *gorm.DB, updateBalance types.UpdateBalance) (me
 		Clauses(clause.Locking{Strength: "UPDATE"}).
 		Where("merchant_code = ? AND currency_code = ? AND balance_type = ?", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType).
 		Take(&merchantBalance).Error; err != nil {
+		logx.WithContext(ctx).Errorf("merchantPtBalance Err: %s", err.Error())
 		return merchantBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
 	}
 

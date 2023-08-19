@@ -84,7 +84,7 @@ func (l *ProxyOrderToTestXFBLogic) ProxyOrderToTest_XFB(in *transactionclient.Pr
 			}
 		}
 
-		if merchantBalanceRecord, err = merchantbalanceservice.UpdateXFBalance_Deposit(db, *updateBalance); err != nil {
+		if merchantBalanceRecord, err = merchantbalanceservice.UpdateXFBalance_Deposit(l.ctx, db, *updateBalance); err != nil {
 			logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
 			return errorz.New(response.SYSTEM_ERROR, err.Error())
 		} else {
