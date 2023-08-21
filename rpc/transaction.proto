@@ -244,6 +244,9 @@ message PayCallBackRequest {
   double OrderAmount = 3;
   string OrderStatus = 4;
   string PayOrderNo = 5;
+  string MerchantCode = 6;
+  string CurrencyCode = 7;
+  string BalanceType = 8;
 }
 
 message PayCallBackResponse {

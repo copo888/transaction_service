@@ -466,7 +466,7 @@ func UpdateXFBalance_Deposit(ctx context.Context, db *gorm.DB, updateBalance typ
 	if err = db.Table("mc_merchant_balances").Select(selectBalance).Updates(types.MerchantBalanceX{
 		MerchantBalance: merchantBalance,
 	}).Error; err != nil {
-		logx.Error(err.Error())
+		logx.WithContext(ctx).Errorf("mc_merchant_balances Err: %s", err.Error())
 		return merchantBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
 	}
 
@@ -569,7 +569,7 @@ func UpdateBalanceForZF(db *gorm.DB, ctx context.Context, redisClient *redis.Cli
 
 	if isOK, _ := redisLock.TryLockTimeout(5); isOK {
 		defer redisLock.Release()
-		if merchantBalanceRecord, err = doUpdateBalanceForZF(db, ctx, redisClient, updateBalance); err != nil {
+		if merchantBalanceRecord, err = DoUpdateBalanceForZF(db, ctx, redisClient, updateBalance); err != nil {
 			return
 		}
 	} else {
@@ -579,7 +579,7 @@ func UpdateBalanceForZF(db *gorm.DB, ctx context.Context, redisClient *redis.Cli
 	return
 }
 
-func doUpdateBalanceForZF(db *gorm.DB, ctx context.Context, redisClient *redis.Client, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
+func DoUpdateBalanceForZF(db *gorm.DB, ctx context.Context, redisClient *redis.Client, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 
 	var beforeBalance float64
 	var afterBalance float64
