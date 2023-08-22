@@ -4,14 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/copo888/transaction_service/common/constants"
-	"github.com/copo888/transaction_service/common/errorz"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
-	"github.com/neccoys/go-zero-extension/redislock"
 	"gorm.io/gorm"
 	"math"
 
@@ -35,22 +33,8 @@ func NewPayCallBackTranactionLogic(ctx context.Context, svcCtx *svc.ServiceConte
 
 func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transactionclient.PayCallBackRequest) (resp *transactionclient.PayCallBackResponse, err error) {
 
-	//成功單回調會動用錢包，
 	if in.OrderStatus == "20" {
-		redisKey := fmt.Sprintf("%s-%s-%s", in.MerchantCode, in.CurrencyCode, in.BalanceType)
-		redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
-		redisLock.SetExpire(5)
-
-		if isOK, _ := redisLock.TryLockTimeout(5); isOK {
-			defer redisLock.Release()
-			if resp, err = l.PayCallBackTranactionForSuccess(l.ctx, in); err != nil {
-				return
-			}
-
-		} else {
-			return resp, errorz.New(response.BALANCE_REDISLOCK_ERROR)
-		}
-
+		return l.PayCallBackTranactionForSuccess(l.ctx, in)
 	} else if in.OrderStatus == "30" {
 		return l.PayCallBackTranactionForFailure(l.ctx, in)
 	}
@@ -199,7 +183,7 @@ func (l *PayCallBackTranactionLogic) updateOrderAndBalance(db *gorm.DB, req *tra
 		}
 
 		// 異動錢包
-		if merchantBalanceRecord, err = merchantbalanceservice.DoUpdateBalanceForZF(db, l.ctx, l.svcCtx.RedisClient, updateBalance); err != nil {
+		if merchantBalanceRecord, err = merchantbalanceservice.UpdateBalanceForZF(db, l.ctx, l.svcCtx.RedisClient, updateBalance); err != nil {
 			return
 		}
 
