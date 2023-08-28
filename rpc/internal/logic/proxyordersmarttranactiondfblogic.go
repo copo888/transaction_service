@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"fmt"
 	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/errorz"
 	"github.com/copo888/transaction_service/common/response"
@@ -11,6 +12,7 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
+	"github.com/neccoys/go-zero-extension/redislock"
 	"gorm.io/gorm"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
@@ -86,44 +88,54 @@ func (l *ProxyOrderSmartTranactionDFBLogic) ProxyOrderSmartTranaction_DFB(in *tr
 		//transAt = types.JsonTime{}.New()
 		logx.WithContext(l.ctx).Infof("商户 %s，代付订单 %#v ，交易账户为黑名单", txOrder.MerchantCode, txOrder)
 	}
+	redisKey := fmt.Sprintf("%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode)
+	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
+	redisLock.SetExpire(5)
+	if isOK, _ := redisLock.TryLockTimeout(5); isOK {
+		defer redisLock.Release()
 
-	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
+		if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
-		txOrder.ChannelCode = rate.ChannelCode
-		txOrder.Fee = rate.Fee
-		txOrder.HandlingFee = rate.HandlingFee
-		txOrder.ChannelPayTypesCode = rate.ChannelPayTypesCode
-		txOrder.PayTypeCode = rate.PayTypeCode
-		txOrder.TransferHandlingFee = transferHandlingFee
-		txOrder.TransferAmount = utils.FloatAdd(txOrder.OrderAmount, txOrder.TransferHandlingFee) //交易金额 = 订单金额 + 商户手续费
+			txOrder.ChannelCode = rate.ChannelCode
+			txOrder.Fee = rate.Fee
+			txOrder.HandlingFee = rate.HandlingFee
+			txOrder.ChannelPayTypesCode = rate.ChannelPayTypesCode
+			txOrder.PayTypeCode = rate.PayTypeCode
+			txOrder.TransferHandlingFee = transferHandlingFee
+			txOrder.TransferAmount = utils.FloatAdd(txOrder.OrderAmount, txOrder.TransferHandlingFee) //交易金额 = 订单金额 + 商户手续费
 
-		updateBalance.TransferAmount = txOrder.TransferAmount //扣款依然傳正值
-		//更新钱包且新增商户钱包异动记录
-		if merchantBalanceRecord, err = merchantbalanceservice.DoUpdateDFBalance_Debit(l.ctx, l.svcCtx, db, updateBalance); err != nil {
-			logx.WithContext(l.ctx).Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
-			return errorz.New(response.SYSTEM_ERROR, err.Error())
-		} else {
-			logx.WithContext(l.ctx).Infof("代付API提单 %s，錢包扣款成功", merchantBalanceRecord.OrderNo)
-			txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance // 商戶錢包異動紀錄
-			txOrder.Balance = merchantBalanceRecord.AfterBalance
+			updateBalance.TransferAmount = txOrder.TransferAmount //扣款依然傳正值
+			//更新钱包且新增商户钱包异动记录
+			if merchantBalanceRecord, err = merchantbalanceservice.DoUpdateDFBalance_Debit(l.ctx, l.svcCtx, db, updateBalance); err != nil {
+				logx.WithContext(l.ctx).Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
+				return errorz.New(response.SYSTEM_ERROR, err.Error())
+			} else {
+				logx.WithContext(l.ctx).Infof("代付API提单 %s，錢包扣款成功", merchantBalanceRecord.OrderNo)
+				txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance // 商戶錢包異動紀錄
+				txOrder.Balance = merchantBalanceRecord.AfterBalance
+			}
+
+			// 更新订单
+			if err = db.Table("tx_orders").Updates(txOrder).Error; err != nil {
+				logx.WithContext(l.ctx).Errorf("代付出款失敗(代付餘額)_ %s 更新订单失败: %s", txOrder.OrderNo, err.Error())
+				return
+			}
+			return nil
+		}); err != nil {
+			return &transactionclient.ProxyOrderResponse{
+				Code:    response.UPDATE_DATABASE_FAILURE,
+				Message: "異動錢包失敗，orderNo : " + req.OrderNo,
+			}, nil
 		}
 
-		// 更新订单
-		if err = db.Table("tx_orders").Updates(txOrder).Error; err != nil {
-			logx.WithContext(l.ctx).Errorf("代付出款失敗(代付餘額)_ %s 更新订单失败: %s", txOrder.OrderNo, err.Error())
-			return
+		// 刪除利潤紀錄
+		if err := orderfeeprofitservice.DeleteOrderProfit(l.svcCtx.MyDB, txOrder.OrderNo); err != nil {
+			logx.WithContext(l.ctx).Errorf("刪除利潤出錯:%s", err.Error())
 		}
-		return nil
-	}); err != nil {
-		return &transactionclient.ProxyOrderResponse{
-			Code:    response.UPDATE_DATABASE_FAILURE,
-			Message: "異動錢包失敗，orderNo : " + req.OrderNo,
-		}, nil
-	}
 
-	// 刪除利潤紀錄
-	if err := orderfeeprofitservice.DeleteOrderProfit(l.svcCtx.MyDB, txOrder.OrderNo); err != nil {
-		logx.WithContext(l.ctx).Errorf("刪除利潤出錯:%s", err.Error())
+		if errUpdate := l.svcCtx.MyDB.Table("tx_orders").Updates(txOrder).Error; errUpdate != nil {
+			logx.WithContext(l.ctx).Errorf("代付订单更新状态错误: %s", errUpdate.Error())
+		}
 	}
 
 	// 計算利潤(不報錯) TODO: 異步??
@@ -141,10 +153,6 @@ func (l *ProxyOrderSmartTranactionDFBLogic) ProxyOrderSmartTranaction_DFB(in *tr
 		logx.WithContext(l.ctx).Errorf("計算利潤出錯:%s", err4.Error())
 	} else {
 		txOrder.IsCalculateProfit = constants.IS_CALCULATE_PROFIT_YES
-	}
-
-	if errUpdate := l.svcCtx.MyDB.Table("tx_orders").Updates(txOrder).Error; errUpdate != nil {
-		logx.WithContext(l.ctx).Errorf("代付订单更新状态错误: %s", errUpdate.Error())
 	}
 
 	// 新單新增訂單歷程 (不抱錯) TODO: 異步??

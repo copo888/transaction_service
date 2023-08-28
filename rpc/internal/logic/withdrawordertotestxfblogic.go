@@ -11,6 +11,7 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
+	"github.com/gioco-play/easy-i18n/i18n"
 	"github.com/neccoys/go-zero-extension/redislock"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -43,65 +44,78 @@ func (l *WithdrawOrderToTestXFBLogic) WithdrawOrderToTest_XFB(in *transactioncli
 		return nil, errorz.New(response.ORDER_NUMBER_NOT_EXIST)
 	}
 
-	//如果月結傭金"已結算/確認報表無誤按鈕" : 不扣款
-	txOrder.IsTest = "1"
-	txOrder.Memo = "下发订单转测试单" + in.Remark + " \n" + txOrder.Memo
+	redisKey := fmt.Sprintf("%s-%s", txOrder.MerchantCode, txOrder.CurrencyCode)
+	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
+	redisLock.SetExpire(5)
+	if isOK, redisErr := redisLock.TryLockTimeout(5); isOK {
+		defer redisLock.Release()
 
-	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
+		//如果月結傭金"已結算/確認報表無誤按鈕" : 不扣款
+		txOrder.IsTest = "1"
+		txOrder.Memo = "下发订单转测试单" + in.Remark + " \n" + txOrder.Memo
 
-		merchantBalanceRecord := types.MerchantBalanceRecord{}
+		if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
-		// 新增收支记录，与更新商户余额(商户账户号是黑名单，把交易金额为设为 0)
-		updateBalance := types.UpdateBalance{
-			MerchantCode:    txOrder.MerchantCode,
-			CurrencyCode:    txOrder.CurrencyCode,
-			OrderNo:         txOrder.OrderNo,
-			MerchantOrderNo: txOrder.MerchantOrderNo,
-			OrderType:       txOrder.Type,
-			PayTypeCode:     txOrder.PayTypeCode,
-			TransferAmount:  txOrder.TransferAmount,
-			TransactionType: constants.TRANSACTION_TYPE_REFUND, //異動類型 (1=收款 ; 2=解凍;  3=沖正 4=還款;  5=補單; 11=出款 ; 12=凍結 ; 13=追回; 20=調整)
-			BalanceType:     constants.XF_BALANCE,
-			Comment:         "下发转测试單",
-			CreatedBy:       txOrder.MerchantCode,
-			ChannelCode:     txOrder.ChannelCode,
-			MerPtBalanceId:  merchantPtBalanceId,
-		}
+			merchantBalanceRecord := types.MerchantBalanceRecord{}
 
-		//异动子钱包
-		if merchantPtBalanceId > 0 {
-			updateBalance.MerPtBalanceId = merchantPtBalanceId
-			if _, err = merchantbalanceservice.UpdateXF_Pt_Balance_Deposit(l.ctx, db, &updateBalance); err != nil {
-				txOrder.RepaymentStatus = constants.REPAYMENT_FAIL
-				logx.WithContext(l.ctx).Errorf("商户:%s，更新子钱錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
-				return err
+			// 新增收支记录，与更新商户余额(商户账户号是黑名单，把交易金额为设为 0)
+			updateBalance := types.UpdateBalance{
+				MerchantCode:    txOrder.MerchantCode,
+				CurrencyCode:    txOrder.CurrencyCode,
+				OrderNo:         txOrder.OrderNo,
+				MerchantOrderNo: txOrder.MerchantOrderNo,
+				OrderType:       txOrder.Type,
+				PayTypeCode:     txOrder.PayTypeCode,
+				TransferAmount:  txOrder.TransferAmount,
+				TransactionType: constants.TRANSACTION_TYPE_REFUND, //異動類型 (1=收款 ; 2=解凍;  3=沖正 4=還款;  5=補單; 11=出款 ; 12=凍結 ; 13=追回; 20=調整)
+				BalanceType:     constants.XF_BALANCE,
+				Comment:         "下发转测试單",
+				CreatedBy:       txOrder.MerchantCode,
+				ChannelCode:     txOrder.ChannelCode,
+				MerPtBalanceId:  merchantPtBalanceId,
+			}
+
+			//异动子钱包
+			if merchantPtBalanceId > 0 {
+				updateBalance.MerPtBalanceId = merchantPtBalanceId
+				if _, err = merchantbalanceservice.UpdateXF_Pt_Balance_Deposit(l.ctx, db, &updateBalance); err != nil {
+					txOrder.RepaymentStatus = constants.REPAYMENT_FAIL
+					logx.WithContext(l.ctx).Errorf("商户:%s，更新子钱錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
+					return err
+				} else {
+					txOrder.RepaymentStatus = constants.REPAYMENT_SUCCESS
+					logx.WithContext(l.ctx).Infof("代付API提单失败 %s，代付錢包退款成功", merchantBalanceRecord.OrderNo)
+				}
+			}
+
+			if merchantBalanceRecord, err = l.UpdateBalance(db, updateBalance); err != nil {
+				logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
+				return errorz.New(response.SYSTEM_ERROR, err.Error())
 			} else {
-				txOrder.RepaymentStatus = constants.REPAYMENT_SUCCESS
-				logx.WithContext(l.ctx).Infof("代付API提单失败 %s，代付錢包退款成功", merchantBalanceRecord.OrderNo)
+				logx.Infof("下發API提单 %s，錢包還款成功", merchantBalanceRecord.OrderNo)
+				txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance // 商戶錢包異動紀錄
+				txOrder.Balance = merchantBalanceRecord.AfterBalance
 			}
-		}
 
-		if merchantBalanceRecord, err = l.UpdateBalance(db, updateBalance); err != nil {
-			logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
-			return errorz.New(response.SYSTEM_ERROR, err.Error())
-		} else {
-			logx.Infof("下發API提单 %s，錢包還款成功", merchantBalanceRecord.OrderNo)
-			txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance // 商戶錢包異動紀錄
-			txOrder.Balance = merchantBalanceRecord.AfterBalance
-		}
-
-		// 更新订单
-		if txOrder != nil {
-			if errUpdate := l.svcCtx.MyDB.Table("tx_orders").Updates(txOrder).Error; errUpdate != nil {
-				logx.Error("下發订单更新状态错误: ", errUpdate.Error())
+			// 更新订单
+			if txOrder != nil {
+				if errUpdate := l.svcCtx.MyDB.Table("tx_orders").Updates(txOrder).Error; errUpdate != nil {
+					logx.Error("下發订单更新状态错误: ", errUpdate.Error())
+				}
 			}
-		}
 
-		return nil
-	}); err != nil {
+			return nil
+		}); err != nil {
+			return &transactionclient.WithdrawOrderTestResponse{
+				Code:    response.WALLET_UPDATE_ERROR,
+				Message: err.Error(),
+			}, nil
+		}
+	} else {
+		logx.WithContext(l.ctx).Errorf("商户钱包处理中，Err:%s。 %s", redisErr.Error(), redisKey)
 		return &transactionclient.WithdrawOrderTestResponse{
-			Code:    response.WALLET_UPDATE_ERROR,
-			Message: err.Error(),
+			Code:    response.BALANCE_PROCESSING,
+			Message: i18n.Sprintf(response.BALANCE_PROCESSING),
 		}, nil
 	}
 
@@ -125,17 +139,19 @@ func (l *WithdrawOrderToTestXFBLogic) WithdrawOrderToTest_XFB(in *transactioncli
 
 func (l WithdrawOrderToTestXFBLogic) UpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 
-	redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
-	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
-	redisLock.SetExpire(5)
-	if isOk, _ := redisLock.TryLockTimeout(5); isOk {
-		defer redisLock.Release()
-		if merchantBalanceRecord, err = l.doUpdateBalance(db, updateBalance); err != nil {
-			return
-		}
-	} else {
-		return merchantBalanceRecord, errorz.New(response.BALANCE_REDISLOCK_ERROR)
-	}
+	//redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
+	//redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
+	//redisLock.SetExpire(5)
+	//if isOk, _ := redisLock.TryLockTimeout(5); isOk {
+	//	defer redisLock.Release()
+	//	if merchantBalanceRecord, err = l.doUpdateBalance(db, updateBalance); err != nil {
+	//		return
+	//	}
+	//} else {
+	//	return merchantBalanceRecord, errorz.New(response.BALANCE_REDISLOCK_ERROR)
+	//}
+	merchantBalanceRecord, err = l.doUpdateBalance(db, updateBalance)
+
 	return
 }
 

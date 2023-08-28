@@ -11,78 +11,100 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/go-redis/redis/v8"
-	"github.com/neccoys/go-zero-extension/redislock"
 	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 func DoUpdateDFBalance_Debit(ctx context.Context, svcCtx *svc.ServiceContext, db *gorm.DB, updateBalance *types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
+	//var resp *types.MerchantBalanceRecord
+	//redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
+	//redisLock := redislock.New(svcCtx.RedisClient, redisKey, "merchant-balance:")
+	//redisLock.SetExpire(5)
+	//if isOK, _ := redisLock.TryLockTimeout(5); isOK {
+	//	defer redisLock.Release()
+	//	if resp, err = UpdateDFBalance_Debit(ctx, db, updateBalance); err != nil {
+	//		return types.MerchantBalanceRecord{}, err
+	//	}
+	//} else {
+	//	return types.MerchantBalanceRecord{}, errorz.New(response.BALANCE_PROCESSING)
+	//}
+	//return *resp, nil
 	var resp *types.MerchantBalanceRecord
-	redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
-	redisLock := redislock.New(svcCtx.RedisClient, redisKey, "merchant-balance:")
-	redisLock.SetExpire(5)
-	if isOK, _ := redisLock.TryLockTimeout(5); isOK {
-		defer redisLock.Release()
-		if resp, err = UpdateDFBalance_Debit(ctx, db, updateBalance); err != nil {
-			return types.MerchantBalanceRecord{}, err
-		}
-	} else {
-		return types.MerchantBalanceRecord{}, errorz.New(response.BALANCE_PROCESSING)
-	}
-	return *resp, nil
+
+	resp, err = UpdateDFBalance_Debit(ctx, db, updateBalance)
+
+	return *resp, err
 }
 
 func DoUpdateXFBalance_Debit(ctx context.Context, svcCtx *svc.ServiceContext, db *gorm.DB, updateBalance *types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
+	//var resp *types.MerchantBalanceRecord
+	//redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
+	//redisLock := redislock.New(svcCtx.RedisClient, redisKey, "merchant-balance:")
+	//redisLock.SetExpire(5)
+	//if isOK, _ := redisLock.TryLockTimeout(5); isOK {
+	//	defer redisLock.Release()
+	//	if resp, err = UpdateXFBalance_Debit(ctx, db, updateBalance); err != nil {
+	//		return types.MerchantBalanceRecord{}, err
+	//	}
+	//} else {
+	//	return types.MerchantBalanceRecord{}, errorz.New(response.BALANCE_PROCESSING)
+	//}
+	//return *resp, nil
+
 	var resp *types.MerchantBalanceRecord
-	redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
-	redisLock := redislock.New(svcCtx.RedisClient, redisKey, "merchant-balance:")
-	redisLock.SetExpire(5)
-	if isOK, _ := redisLock.TryLockTimeout(5); isOK {
-		defer redisLock.Release()
-		if resp, err = UpdateXFBalance_Debit(ctx, db, updateBalance); err != nil {
-			return types.MerchantBalanceRecord{}, err
-		}
-	} else {
-		return types.MerchantBalanceRecord{}, errorz.New(response.BALANCE_PROCESSING)
-	}
-	return *resp, nil
+
+	resp, err = UpdateXFBalance_Debit(ctx, db, updateBalance)
+
+	return *resp, err
 }
 
 func DoUpdateDF_Pt_Balance_Debit(ctx context.Context, svcCtx *svc.ServiceContext, db *gorm.DB, updateBalance *types.UpdateBalance) (merchantBalanceRecord types.MerchantPtBalanceRecord, err error) {
+	//var resp types.MerchantPtBalanceRecord
+	//redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.PayTypeCode)
+	//redisLock := redislock.New(svcCtx.RedisClient, redisKey, "merchant-pt-balance:")
+	//redisLock.SetExpire(5)
+	//if isOK, _ := redisLock.TryLockTimeout(5); isOK {
+	//	defer redisLock.Release()
+	//	if resp, err = UpdateDF_Pt_Balance_Debit(ctx, db, updateBalance); err != nil {
+	//		return types.MerchantPtBalanceRecord{}, err
+	//	}
+	//} else {
+	//	return types.MerchantPtBalanceRecord{}, errorz.New(response.BALANCE_PROCESSING)
+	//}
+	//return resp, nil
+
 	var resp types.MerchantPtBalanceRecord
-	redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.PayTypeCode)
-	redisLock := redislock.New(svcCtx.RedisClient, redisKey, "merchant-pt-balance:")
-	redisLock.SetExpire(5)
-	if isOK, _ := redisLock.TryLockTimeout(5); isOK {
-		defer redisLock.Release()
-		if resp, err = UpdateDF_Pt_Balance_Debit(ctx, db, updateBalance); err != nil {
-			return types.MerchantPtBalanceRecord{}, err
-		}
-	} else {
-		return types.MerchantPtBalanceRecord{}, errorz.New(response.BALANCE_PROCESSING)
-	}
-	return resp, nil
+
+	resp, err = UpdateDF_Pt_Balance_Debit(ctx, db, updateBalance)
+
+	return resp, err
 }
 
 func DoUpdateXF_Pt_Balance_Debit(ctx context.Context, svcCtx *svc.ServiceContext, db *gorm.DB, updateBalance *types.UpdateBalance) (merchantBalanceRecord types.MerchantPtBalanceRecord, err error) {
+	//var resp *types.MerchantPtBalanceRecord
+	//redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.PayTypeCode)
+	//redisLock := redislock.New(svcCtx.RedisClient, redisKey, "merchant-pt-balance:")
+	//redisLock.SetExpire(5)
+	//if isOK, _ := redisLock.TryLockTimeout(5); isOK {
+	//	defer redisLock.Release()
+	//	if resp, err = UpdateXF_Pt_Balance_Debit(ctx, db, updateBalance); err != nil {
+	//		return types.MerchantPtBalanceRecord{}, err
+	//	}
+	//} else {
+	//	return types.MerchantPtBalanceRecord{}, errorz.New(response.BALANCE_PROCESSING)
+	//}
+	//return *resp, nil
+
 	var resp *types.MerchantPtBalanceRecord
-	redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.PayTypeCode)
-	redisLock := redislock.New(svcCtx.RedisClient, redisKey, "merchant-pt-balance:")
-	redisLock.SetExpire(5)
-	if isOK, _ := redisLock.TryLockTimeout(5); isOK {
-		defer redisLock.Release()
-		if resp, err = UpdateXF_Pt_Balance_Debit(ctx, db, updateBalance); err != nil {
-			return types.MerchantPtBalanceRecord{}, err
-		}
-	} else {
-		return types.MerchantPtBalanceRecord{}, errorz.New(response.BALANCE_PROCESSING)
-	}
-	return *resp, nil
+
+	resp, err = UpdateXF_Pt_Balance_Debit(ctx, db, updateBalance)
+
+	return *resp, err
 }
 
 /*
-	更新代付餘額_扣款(代付提單扣款)
+更新代付餘額_扣款(代付提單扣款)
 */
 func UpdateDFBalance_Debit(ctx context.Context, db *gorm.DB, updateBalance *types.UpdateBalance) (merchantBalanceRecord *types.MerchantBalanceRecord, err error) {
 	var beforeBalance float64
@@ -144,7 +166,7 @@ func UpdateDFBalance_Debit(ctx context.Context, db *gorm.DB, updateBalance *type
 	return
 }
 
-//更新子錢包餘額_扣款(代付提單扣款)
+// 更新子錢包餘額_扣款(代付提單扣款)
 func UpdateDF_Pt_Balance_Debit(ctx context.Context, db *gorm.DB, updateBalance *types.UpdateBalance) (merchantPtBalanceRecord types.MerchantPtBalanceRecord, err error) {
 	var beforeBalance float64
 	var afterBalance float64
@@ -205,7 +227,7 @@ func UpdateDF_Pt_Balance_Debit(ctx context.Context, db *gorm.DB, updateBalance *
 	return
 }
 
-//更新子錢包餘額_扣款(下發提單扣款)
+// 更新子錢包餘額_扣款(下發提單扣款)
 func UpdateXF_Pt_Balance_Debit(ctx context.Context, db *gorm.DB, updateBalance *types.UpdateBalance) (merchantPtBalanceRecord *types.MerchantPtBalanceRecord, err error) {
 	var beforeBalance float64
 	var afterBalance float64
@@ -265,7 +287,7 @@ func UpdateXF_Pt_Balance_Debit(ctx context.Context, db *gorm.DB, updateBalance *
 }
 
 /*
-	更新子錢包餘額_代付失败退回
+更新子錢包餘額_代付失败退回
 */
 func UpdateDF_Pt_Balance_Deposit(ctx context.Context, db *gorm.DB, updateBalance *types.UpdateBalance) (merchantPtBalanceRecord *types.MerchantPtBalanceRecord, err error) {
 	var beforeBalance float64
@@ -375,7 +397,7 @@ func UpdateXF_Pt_Balance_Deposit(ctx context.Context, db *gorm.DB, updateBalance
 }
 
 /*
-	更新下發餘額(支轉代)_扣款(代付提單扣款)
+更新下發餘額(支轉代)_扣款(代付提單扣款)
 */
 func UpdateXFBalance_Debit(ctx context.Context, db *gorm.DB, updateBalance *types.UpdateBalance) (merchantBalanceRecord *types.MerchantBalanceRecord, err error) {
 	var beforeBalance float64
@@ -439,8 +461,7 @@ func UpdateXFBalance_Debit(ctx context.Context, db *gorm.DB, updateBalance *type
 }
 
 /*
-	更新代付余额_下發余额(代付失败退回)
-
+更新代付余额_下發余额(代付失败退回)
 */
 func UpdateXFBalance_Deposit(ctx context.Context, db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 	var beforeBalance float64
@@ -499,8 +520,7 @@ func UpdateXFBalance_Deposit(ctx context.Context, db *gorm.DB, updateBalance typ
 }
 
 /*
-	更新代付余额_代付余额(代付失败退回)
-
+更新代付余额_代付余额(代付失败退回)
 */
 func UpdateDFBalance_Deposit(db *gorm.DB, updateBalance *types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 	var beforeBalance float64
@@ -559,22 +579,24 @@ func UpdateDFBalance_Deposit(db *gorm.DB, updateBalance *types.UpdateBalance) (m
 }
 
 /*
-	UpdateBalanceForZF 支付異動錢包
+UpdateBalanceForZF 支付異動錢包
 */
 func UpdateBalanceForZF(db *gorm.DB, ctx context.Context, redisClient *redis.Client, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 
-	redisKey := fmt.Sprintf("%s-%s-%s", merchantBalanceRecord.MerchantCode, merchantBalanceRecord.CurrencyCode, merchantBalanceRecord.BalanceType)
-	redisLock := redislock.New(redisClient, redisKey, "merchant-balance:")
-	redisLock.SetExpire(5)
+	//redisKey := fmt.Sprintf("%s-%s-%s", merchantBalanceRecord.MerchantCode, merchantBalanceRecord.CurrencyCode, merchantBalanceRecord.BalanceType)
+	//redisLock := redislock.New(redisClient, redisKey, "merchant-balance:")
+	//redisLock.SetExpire(5)
+	//
+	//if isOK, _ := redisLock.TryLockTimeout(5); isOK {
+	//	defer redisLock.Release()
+	//	if merchantBalanceRecord, err = DoUpdateBalanceForZF(db, ctx, redisClient, updateBalance); err != nil {
+	//		return
+	//	}
+	//} else {
+	//	return merchantBalanceRecord, errorz.New(response.BALANCE_REDISLOCK_ERROR)
+	//}
 
-	if isOK, _ := redisLock.TryLockTimeout(5); isOK {
-		defer redisLock.Release()
-		if merchantBalanceRecord, err = DoUpdateBalanceForZF(db, ctx, redisClient, updateBalance); err != nil {
-			return
-		}
-	} else {
-		return merchantBalanceRecord, errorz.New(response.BALANCE_REDISLOCK_ERROR)
-	}
+	merchantBalanceRecord, err = DoUpdateBalanceForZF(db, ctx, redisClient, updateBalance)
 
 	return
 }

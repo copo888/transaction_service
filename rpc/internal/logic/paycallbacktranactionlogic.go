@@ -10,6 +10,7 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
+	"github.com/neccoys/go-zero-extension/redislock"
 	"gorm.io/gorm"
 	"math"
 
@@ -48,13 +49,11 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranaction(in *transactionclient
 func (l *PayCallBackTranactionLogic) PayCallBackTranactionForSuccess(ctx context.Context, in *transactionclient.PayCallBackRequest) (resp *transactionclient.PayCallBackResponse, err error) {
 	var order *types.OrderX
 
-	/****     交易開始      ****/
-	txDB := l.svcCtx.MyDB.Begin()
+	myDB := l.svcCtx.MyDB
 
 	// 取得tx_order
-	if err = txDB.Table("tx_orders").
+	if err = myDB.Table("tx_orders").
 		Where("order_no = ?", in.PayOrderNo).Take(&order).Error; err != nil {
-		txDB.Rollback()
 		return &transactionclient.PayCallBackResponse{
 			Code:    response.ORDER_NUMBER_NOT_EXIST,
 			Message: "平台订单号不存在",
@@ -63,10 +62,9 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranactionForSuccess(ctx context
 
 	// 这里谨用于确认是否有设置费率
 	var merchantChannelRate *types.MerchantChannelRate
-	if err := txDB.Table("mc_merchant_channel_rate").
+	if err := myDB.Table("mc_merchant_channel_rate").
 		Where("merchant_code = ? AND channel_pay_types_code = ?", order.MerchantCode, order.ChannelPayTypesCode).
 		Take(&merchantChannelRate).Error; err != nil {
-		txDB.Rollback()
 		return &transactionclient.PayCallBackResponse{
 			Code:    response.RATE_NOT_CONFIGURED,
 			Message: "未配置商户渠道费率",
@@ -75,7 +73,6 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranactionForSuccess(ctx context
 
 	// 處理中的且非鎖定訂單 才能回調
 	if order.Status != "1" || order.IsLock == "1" {
-		txDB.Rollback()
 		return &transactionclient.PayCallBackResponse{
 			Code:    response.TRANSACTION_FAILURE,
 			Message: "交易失败 订单号已锁定 或 订单状态非处理中",
@@ -86,32 +83,38 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranactionForSuccess(ctx context
 	limit := utils.FloatMul(order.OrderAmount, 0.05)
 	diff := math.Abs(utils.FloatSub(order.OrderAmount, in.OrderAmount))
 	if diff > limit && diff > 1 {
-		txDB.Rollback()
 		return &transactionclient.PayCallBackResponse{
 			Code:    response.ORDER_AMOUNT_ERROR,
 			Message: "商户下单金额和回調金額不符" + fmt.Sprintf("(orderAmount/payAmount): %f/%f", order.OrderAmount, in.OrderAmount),
 		}, nil
 	}
 
-	// 編輯訂單 異動錢包和餘額
-	if err = l.updateOrderAndBalance(txDB, in, order); err != nil {
-		txDB.Rollback()
-		return &transactionclient.PayCallBackResponse{
-			Code:    response.SYSTEM_ERROR,
-			Message: "钱包异动失败",
-		}, nil
-	}
+	redisKey := fmt.Sprintf("%s-%s", order.MerchantCode, order.CurrencyCode)
+	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
+	redisLock.SetExpire(5)
+	if isOK, _ := redisLock.TryLockTimeout(5); isOK {
+		defer redisLock.Release()
+		/****     交易開始      ****/
+		txDB := l.svcCtx.MyDB.Begin()
+		// 編輯訂單 異動錢包和餘額
+		if err = l.updateOrderAndBalance(txDB, in, order); err != nil {
+			txDB.Rollback()
+			return &transactionclient.PayCallBackResponse{
+				Code:    response.SYSTEM_ERROR,
+				Message: "钱包异动失败",
+			}, nil
+		}
 
-	if err = txDB.Commit().Error; err != nil {
-		txDB.Rollback()
-		logx.Errorf("支付回調失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
-		return &transactionclient.PayCallBackResponse{
-			Code:    response.DATABASE_FAILURE,
-			Message: "资料库错误 Commit失败",
-		}, nil
+		if err = txDB.Commit().Error; err != nil {
+			txDB.Rollback()
+			logx.Errorf("支付回調失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
+			return &transactionclient.PayCallBackResponse{
+				Code:    response.DATABASE_FAILURE,
+				Message: "资料库错误 Commit失败",
+			}, nil
+		}
+		/****     交易結束      ****/
 	}
-	/****     交易結束      ****/
-
 	// 計算利潤 (不抱錯) TODO: 異步??
 	if err4 := orderfeeprofitservice.CalculateOrderProfit(l.svcCtx.MyDB, types.CalculateProfit{
 		MerchantCode:        order.MerchantCode,
@@ -207,12 +210,10 @@ func (l *PayCallBackTranactionLogic) updateOrderAndBalance(db *gorm.DB, req *tra
 func (l *PayCallBackTranactionLogic) PayCallBackTranactionForFailure(ctx context.Context, in *transactionclient.PayCallBackRequest) (resp *transactionclient.PayCallBackResponse, err error) {
 	var order *types.OrderX
 
-	/****     交易開始      ****/
-	txDB := l.svcCtx.MyDB.Begin()
+	myDB := l.svcCtx.MyDB
 
-	if err = txDB.Table("tx_orders").
+	if err = myDB.Table("tx_orders").
 		Where("order_no = ?", in.PayOrderNo).Take(&order).Error; err != nil {
-		txDB.Rollback()
 		return &transactionclient.PayCallBackResponse{
 			Code:    response.ORDER_NUMBER_NOT_EXIST,
 			Message: "平台订单号不存在",
@@ -221,45 +222,53 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranactionForFailure(ctx context
 
 	// 處理中的且非鎖定訂單 才能回調
 	if order.Status != "1" || order.IsLock == "1" {
-		txDB.Rollback()
 		return &transactionclient.PayCallBackResponse{
 			Code:    response.TRANSACTION_FAILURE,
 			Message: "交易失败 订单号已锁定 或 订单状态非处理中",
 		}, nil
 	}
 
-	order.TransAt = types.JsonTime{}.New()
-	order.ChannelOrderNo = in.ChannelOrderNo
-	order.Status = in.OrderStatus
-	order.CallBackStatus = "1"
-	order.TransferAmount = 0
-	order.TransferHandlingFee = 0
+	redisKey := fmt.Sprintf("%s-%s", order.MerchantCode, order.CurrencyCode)
+	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
+	redisLock.SetExpire(5)
+	if isOK, _ := redisLock.TryLockTimeout(5); isOK {
+		defer redisLock.Release()
+		/****     交易開始      ****/
+		txDB := myDB.Begin()
 
-	// 編輯訂單
-	if err = txDB.Select(
-		"trans_at",
-		"channel_order_no",
-		"status",
-		"callback_status",
-		"transfer_amount",
-		"transfer_handling_fee").
-		Table("tx_orders").Updates(&order).Error; err != nil {
-		txDB.Rollback()
-		return &transactionclient.PayCallBackResponse{
-			Code:    response.SYSTEM_ERROR,
-			Message: "訂單失敗狀態 編輯失败",
-		}, nil
-	}
+		order.TransAt = types.JsonTime{}.New()
+		order.ChannelOrderNo = in.ChannelOrderNo
+		order.Status = in.OrderStatus
+		order.CallBackStatus = "1"
+		order.TransferAmount = 0
+		order.TransferHandlingFee = 0
 
-	if err = txDB.Commit().Error; err != nil {
-		txDB.Rollback()
-		logx.Errorf("支付回調失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
-		return &transactionclient.PayCallBackResponse{
-			Code:    response.DATABASE_FAILURE,
-			Message: "资料库错误 Commit失败",
-		}, nil
+		// 編輯訂單
+		if err = txDB.Select(
+			"trans_at",
+			"channel_order_no",
+			"status",
+			"callback_status",
+			"transfer_amount",
+			"transfer_handling_fee").
+			Table("tx_orders").Updates(&order).Error; err != nil {
+			txDB.Rollback()
+			return &transactionclient.PayCallBackResponse{
+				Code:    response.SYSTEM_ERROR,
+				Message: "訂單失敗狀態 編輯失败",
+			}, nil
+		}
+
+		if err = txDB.Commit().Error; err != nil {
+			txDB.Rollback()
+			logx.Errorf("支付回調失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
+			return &transactionclient.PayCallBackResponse{
+				Code:    response.DATABASE_FAILURE,
+				Message: "资料库错误 Commit失败",
+			}, nil
+		}
+		/****     交易結束      ****/
 	}
-	/****     交易結束      ****/
 
 	// 新單新增訂單歷程 (不抱錯)
 	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{

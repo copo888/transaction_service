@@ -2,12 +2,14 @@ package logic
 
 import (
 	"context"
+	"fmt"
 	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/rpc/internal/model"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
+	"github.com/neccoys/go-zero-extension/redislock"
 	"gorm.io/gorm"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
@@ -45,14 +47,22 @@ func (l *MerchantBalanceUpdateTranactionLogic) MerchantBalanceUpdateTranaction(r
 		CreatedBy:       req.UserAccount,
 	}
 
-	if err := l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
-		_, err = merchantbalanceservice.UpdateBalance(db, updateBalance)
-		return
-	}); err != nil {
-		return &transactionclient.MerchantBalanceUpdateResponse{
-			Code:    response.SYSTEM_ERROR,
-			Message: "更新錢包失敗",
-		}, err
+	redisKey := fmt.Sprintf("%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode)
+	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
+	redisLock.SetExpire(5)
+	if isOK, _ := redisLock.TryLockTimeout(5); isOK {
+		defer redisLock.Release()
+
+		if err := l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
+			_, err = merchantbalanceservice.UpdateBalance(db, updateBalance)
+			return
+		}); err != nil {
+			return &transactionclient.MerchantBalanceUpdateResponse{
+				Code:    response.SYSTEM_ERROR,
+				Message: "更新錢包失敗",
+			}, err
+		}
+
 	}
 
 	return &transactionclient.MerchantBalanceUpdateResponse{

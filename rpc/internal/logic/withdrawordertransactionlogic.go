@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/errorz"
 	"github.com/copo888/transaction_service/common/response"
@@ -11,6 +12,8 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
+	"github.com/gioco-play/easy-i18n/i18n"
+	"github.com/neccoys/go-zero-extension/redislock"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
@@ -34,7 +37,7 @@ func NewWithdrawOrderTransactionLogic(ctx context.Context, svcCtx *svc.ServiceCo
 
 func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transactionclient.WithdrawOrderRequest) (*transactionclient.WithdrawOrderResponse, error) {
 
-	db := l.svcCtx.MyDB
+	myDB := l.svcCtx.MyDB
 
 	transferAmount := utils.FloatAdd(in.OrderAmount, in.HandlingFee)
 	merchantOrderNo := "COPO_" + in.OrderNo
@@ -84,103 +87,117 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 	if len(in.MerchantOrderNo) > 0 {
 		txOrder.MerchantOrderNo = in.MerchantOrderNo
 	}
+	redisKey := fmt.Sprintf("%s-%s", txOrder.MerchantCode, txOrder.CurrencyCode)
+	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
+	redisLock.SetExpire(5)
+	if isOK, redisErr := redisLock.TryLockTimeout(5); isOK {
+		defer redisLock.Release()
 
-	tx := db.Begin()
-	//新增收支记录，更新商户余额
-	updateBalance := types.UpdateBalance{
-		MerchantCode:    txOrder.MerchantCode,
-		CurrencyCode:    txOrder.CurrencyCode,
-		OrderNo:         txOrder.OrderNo,
-		MerchantOrderNo: txOrder.MerchantOrderNo,
-		OrderType:       txOrder.Type,
-		TransactionType: "15",
-		BalanceType:     txOrder.BalanceType,
-		TransferAmount:  txOrder.TransferAmount,
-		CreatedBy:       in.UserAccount,
-		Comment:         txOrder.Memo,
-		MerPtBalanceId:     in.PtBalanceId,
-	}
-	if in.Source == constants.API {
-		isBlock, _ := model.NewBankBlockAccount(tx).CheckIsBlockAccount(txOrder.MerchantBankAccount)
-		if isBlock { //银行账号为黑名单
-			logx.WithContext(l.ctx).Infof("交易账户%s-%s在黑名单内", txOrder.MerchantAccountName, txOrder.MerchantBankNo)
-			updateBalance.TransferAmount = 0                           // 使用0元前往钱包扣款
-			txOrder.ErrorType = constants.ERROR6_BANK_ACCOUNT_IS_BLACK //交易账户为黑名单
-			txOrder.ErrorNote = constants.BANK_ACCOUNT_IS_BLACK        //失败原因：黑名单交易失败
-			txOrder.Status = constants.FAIL                            //状态:失败
-			txOrder.Fee = 0                                            //写入本次手续费(未发送到渠道的交易，都设为0元)
-			txOrder.HandlingFee = 0
-			//transAt = types.JsonTime{}.New()
-			logx.WithContext(l.ctx).Infof("商户 %s，代付订单 %#v ，交易账户为黑名单", txOrder.MerchantCode, txOrder)
+		txDB := l.svcCtx.MyDB.Begin()
+		//新增收支记录，更新商户余额
+		updateBalance := types.UpdateBalance{
+			MerchantCode:    txOrder.MerchantCode,
+			CurrencyCode:    txOrder.CurrencyCode,
+			OrderNo:         txOrder.OrderNo,
+			MerchantOrderNo: txOrder.MerchantOrderNo,
+			OrderType:       txOrder.Type,
+			TransactionType: "15",
+			BalanceType:     txOrder.BalanceType,
+			TransferAmount:  txOrder.TransferAmount,
+			CreatedBy:       in.UserAccount,
+			Comment:         txOrder.Memo,
+			MerPtBalanceId:  in.PtBalanceId,
 		}
-	}
+		if in.Source == constants.API {
+			isBlock, _ := model.NewBankBlockAccount(txDB).CheckIsBlockAccount(txOrder.MerchantBankAccount)
+			if isBlock { //银行账号为黑名单
+				logx.WithContext(l.ctx).Infof("交易账户%s-%s在黑名单内", txOrder.MerchantAccountName, txOrder.MerchantBankNo)
+				updateBalance.TransferAmount = 0                           // 使用0元前往钱包扣款
+				txOrder.ErrorType = constants.ERROR6_BANK_ACCOUNT_IS_BLACK //交易账户为黑名单
+				txOrder.ErrorNote = constants.BANK_ACCOUNT_IS_BLACK        //失败原因：黑名单交易失败
+				txOrder.Status = constants.FAIL                            //状态:失败
+				txOrder.Fee = 0                                            //写入本次手续费(未发送到渠道的交易，都设为0元)
+				txOrder.HandlingFee = 0
+				//transAt = types.JsonTime{}.New()
+				logx.WithContext(l.ctx).Infof("商户 %s，代付订单 %#v ，交易账户为黑名单", txOrder.MerchantCode, txOrder)
+			}
+		}
 
-	//更新子钱包且新增商户子钱包异动记录
-	if in.PtBalanceId > 0 {
-		merchantPtBalanceRecord, errS := merchantbalanceservice.DoUpdateXF_Pt_Balance_Debit(l.ctx, l.svcCtx, db, &updateBalance)
-		if errS != nil {
-			logx.WithContext(l.ctx).Errorf("商户:%s，更新子錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, errS.Error(), updateBalance)
-			tx.Rollback()
+		//更新子钱包且新增商户子钱包异动记录
+		if in.PtBalanceId > 0 {
+			merchantPtBalanceRecord, errS := merchantbalanceservice.DoUpdateXF_Pt_Balance_Debit(l.ctx, l.svcCtx, txDB, &updateBalance)
+			if errS != nil {
+				logx.WithContext(l.ctx).Errorf("商户:%s，更新子錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, errS.Error(), updateBalance)
+				txDB.Rollback()
+				return &transactionclient.WithdrawOrderResponse{
+					Code:    response.SYSTEM_ERROR,
+					Message: "钱包异动失败",
+					OrderNo: txOrder.OrderNo,
+				}, nil
+			} else {
+				logx.WithContext(l.ctx).Infof("下发提单 %s，子錢包扣款成功", merchantPtBalanceRecord.OrderNo)
+			}
+		}
+
+		//更新钱包且新增商户钱包异动记录
+		merchantBalanceRecord, err1 := merchantbalanceservice.DoUpdateXFBalance_Debit(l.ctx, l.svcCtx, txDB, &updateBalance)
+		if err1 != nil {
+			logx.WithContext(l.ctx).Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err1.Error(), updateBalance)
+			//TODO  IF 更新钱包错误是response.DATABASE_FAILURE THEN return SYSTEM_ERROR
+			txDB.Rollback()
 			return &transactionclient.WithdrawOrderResponse{
 				Code:    response.SYSTEM_ERROR,
 				Message: "钱包异动失败",
 				OrderNo: txOrder.OrderNo,
 			}, nil
 		} else {
-			logx.WithContext(l.ctx).Infof("下发提单 %s，子錢包扣款成功", merchantPtBalanceRecord.OrderNo)
+			logx.WithContext(l.ctx).Infof("下发提单 %s，錢包扣款成功", merchantBalanceRecord.OrderNo)
+			txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance // 商戶錢包異動紀錄
+			txOrder.Balance = merchantBalanceRecord.AfterBalance
 		}
-	}
 
-	//更新钱包且新增商户钱包异动记录
-	merchantBalanceRecord, err1 := merchantbalanceservice.DoUpdateXFBalance_Debit(l.ctx, l.svcCtx, tx, &updateBalance)
-	if err1 != nil {
-		logx.WithContext(l.ctx).Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err1.Error(), updateBalance)
-		//TODO  IF 更新钱包错误是response.DATABASE_FAILURE THEN return SYSTEM_ERROR
-		tx.Rollback()
-		return &transactionclient.WithdrawOrderResponse{
-			Code:    response.SYSTEM_ERROR,
-			Message: "钱包异动失败",
-			OrderNo: txOrder.OrderNo,
-		}, nil
+		// 创建订单
+		if err3 := txDB.Table("tx_orders").Create(&types.OrderX{
+			Order: *txOrder,
+		}).Error; err3 != nil {
+			logx.WithContext(l.ctx).Errorf("新增下发提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err3.Error())
+			txDB.Rollback()
+			return &transactionclient.WithdrawOrderResponse{
+				Code:    response.DATABASE_FAILURE,
+				Message: "数据库错误 tx_orders Create",
+				OrderNo: txOrder.OrderNo,
+			}, nil
+		}
+
+		//計算商戶利潤（不报错）
+		calculateProfit := types.CalculateProfit{
+			MerchantCode: txOrder.MerchantCode,
+			OrderNo:      txOrder.OrderNo,
+			Type:         txOrder.Type,
+			CurrencyCode: txOrder.CurrencyCode,
+			BalanceType:  txOrder.BalanceType,
+			OrderAmount:  txOrder.ActualAmount,
+		}
+		// Xuan 這裡使用 tx or ？
+		if err4 := l.calculateOrderProfit(txDB, calculateProfit, in.HandlingFee); err4 != nil {
+			logx.WithContext(l.ctx).Errorf("计算下发利润失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err4.Error())
+		}
+
+		if err4 := txDB.Commit().Error; err4 != nil {
+			logx.WithContext(l.ctx).Errorf("最终新增下发提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err4.Error())
+			txDB.Rollback()
+		}
+
 	} else {
-		logx.WithContext(l.ctx).Infof("下发提单 %s，錢包扣款成功", merchantBalanceRecord.OrderNo)
-		txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance // 商戶錢包異動紀錄
-		txOrder.Balance = merchantBalanceRecord.AfterBalance
-	}
-
-	// 创建订单
-	if err3 := tx.Table("tx_orders").Create(&types.OrderX{
-		Order: *txOrder,
-	}).Error; err3 != nil {
-		logx.WithContext(l.ctx).Errorf("新增下发提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err3.Error())
-		tx.Rollback()
+		logx.WithContext(l.ctx).Errorf("商户钱包处理中，Err:%s。 %s", redisErr.Error(), redisKey)
 		return &transactionclient.WithdrawOrderResponse{
-			Code:    response.DATABASE_FAILURE,
-			Message: "数据库错误 tx_orders Create",
-			OrderNo: txOrder.OrderNo,
+			Code:    response.BALANCE_PROCESSING,
+			Message: i18n.Sprintf(response.BALANCE_PROCESSING),
 		}, nil
-	}
-
-	//計算商戶利潤（不报错）
-	calculateProfit := types.CalculateProfit{
-		MerchantCode: txOrder.MerchantCode,
-		OrderNo:      txOrder.OrderNo,
-		Type:         txOrder.Type,
-		CurrencyCode: txOrder.CurrencyCode,
-		BalanceType:  txOrder.BalanceType,
-		OrderAmount:  txOrder.ActualAmount,
-	}
-	if err4 := l.calculateOrderProfit(l.svcCtx.MyDB, calculateProfit, in.HandlingFee); err4 != nil {
-		logx.WithContext(l.ctx).Errorf("计算下发利润失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err4.Error())
-	}
-
-	if err4 := tx.Commit().Error; err4 != nil {
-		logx.WithContext(l.ctx).Errorf("最终新增下发提单失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err4.Error())
-		tx.Rollback()
 	}
 
 	// 新單新增訂單歷程 (不抱錯) TODO: 異步??
-	if err5 := db.Table("tx_order_actions").Create(&types.OrderActionX{
+	if err5 := myDB.Table("tx_order_actions").Create(&types.OrderActionX{
 		OrderAction: types.OrderAction{
 			OrderNo:     txOrder.OrderNo,
 			Action:      "PLACE_ORDER",

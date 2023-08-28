@@ -3,12 +3,14 @@ package logic
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/errorz"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
+	"github.com/neccoys/go-zero-extension/redislock"
 	"gorm.io/gorm"
 	"strconv"
 
@@ -40,85 +42,92 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 	if err = l.svcCtx.MyDB.Table("tx_orders").Where("order_no = ?", in.OrderNo).Take(&txOrder).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &transactionclient.WithdrawReviewSuccessResponse{
-				Code: response.DATA_NOT_FOUND,
-				Message: "下发订单查无资料，orderNo = "+ in.OrderNo,
+				Code:    response.DATA_NOT_FOUND,
+				Message: "下发订单查无资料，orderNo = " + in.OrderNo,
 			}, nil
 		}
 		return &transactionclient.WithdrawReviewSuccessResponse{
-			Code: response.DATABASE_FAILURE,
-			Message: "数据库错误，err : "+ err.Error(),
+			Code:    response.DATABASE_FAILURE,
+			Message: "数据库错误，err : " + err.Error(),
 		}, nil
 	}
+	redisKey := fmt.Sprintf("%s-%s", txOrder.MerchantCode, txOrder.CurrencyCode)
+	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
+	redisLock.SetExpire(5)
+	if isOK, _ := redisLock.TryLockTimeout(5); isOK {
+		defer redisLock.Release()
 
-	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
+		if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
-		perChannelWithdrawHandlingFee := utils.FloatDiv(txOrder.HandlingFee, l.intToFloat64(len(channelWithdraws)))
-		for _, channelWithdraw := range channelWithdraws {
-			if channelWithdraw.WithdrawAmount > 0 { // 下发金额不得为0
-				// 取得渠道下發手續費
-				var channelWithdrawHandlingFee float64
+			perChannelWithdrawHandlingFee := utils.FloatDiv(txOrder.HandlingFee, l.intToFloat64(len(channelWithdraws)))
+			for _, channelWithdraw := range channelWithdraws {
+				if channelWithdraw.WithdrawAmount > 0 { // 下发金额不得为0
+					// 取得渠道下發手續費
+					var channelWithdrawHandlingFee float64
 
-				if err1 := l.svcCtx.MyDB.Table("ch_channels").Select("channel_withdraw_charge").Where("code = ?", channelWithdraw.ChannelCode).
-					Take(&channelWithdrawHandlingFee).Error; err1 != nil {
-					if errors.Is(err, gorm.ErrRecordNotFound) {
-						return errorz.New(response.DATA_NOT_FOUND)
+					if err1 := l.svcCtx.MyDB.Table("ch_channels").Select("channel_withdraw_charge").Where("code = ?", channelWithdraw.ChannelCode).
+						Take(&channelWithdrawHandlingFee).Error; err1 != nil {
+						if errors.Is(err, gorm.ErrRecordNotFound) {
+							return errorz.New(response.DATA_NOT_FOUND)
+						}
+						return errorz.New(response.DATABASE_FAILURE, err1.Error())
 					}
-					return errorz.New(response.DATABASE_FAILURE, err1.Error())
-				}
 
-				// 记录下发记录
-				orderChannel := types.OrderChannelsX{
-					OrderChannels: types.OrderChannels{
-						OrderNo:             txOrder.OrderNo,
-						ChannelCode:         channelWithdraw.ChannelCode,
-						HandlingFee:         channelWithdrawHandlingFee,
-						OrderAmount:         channelWithdraw.WithdrawAmount,
-						TransferHandlingFee: perChannelWithdrawHandlingFee,
-					},
-				}
+					// 记录下发记录
+					orderChannel := types.OrderChannelsX{
+						OrderChannels: types.OrderChannels{
+							OrderNo:             txOrder.OrderNo,
+							ChannelCode:         channelWithdraw.ChannelCode,
+							HandlingFee:         channelWithdrawHandlingFee,
+							OrderAmount:         channelWithdraw.WithdrawAmount,
+							TransferHandlingFee: perChannelWithdrawHandlingFee,
+						},
+					}
 
-				orderChannels = append(orderChannels, orderChannel)
-				totalWithdrawAmount = utils.FloatAdd(totalWithdrawAmount, channelWithdraw.WithdrawAmount)
-				totalChannelHandlingFee = utils.FloatAdd(totalChannelHandlingFee, channelWithdrawHandlingFee)
+					orderChannels = append(orderChannels, orderChannel)
+					totalWithdrawAmount = utils.FloatAdd(totalWithdrawAmount, channelWithdraw.WithdrawAmount)
+					totalChannelHandlingFee = utils.FloatAdd(totalChannelHandlingFee, channelWithdrawHandlingFee)
+				}
 			}
-		}
-		// 判断渠道下发金额家总须等于订单的下发金额
-		if totalWithdrawAmount != txOrder.OrderAmount {
-			return errorz.New(response.MERCHANT_WITHDRAW_AUDIT_ERROR)
+			// 判断渠道下发金额家总须等于订单的下发金额
+			if totalWithdrawAmount != txOrder.OrderAmount {
+				return errorz.New(response.MERCHANT_WITHDRAW_AUDIT_ERROR)
+			}
+
+			// 儲存下發明細記錄
+			if err1 := db.Table("tx_order_channels").CreateInBatches(orderChannels, len(orderChannels)).Error; err1 != nil {
+				return errorz.New(response.DATABASE_FAILURE, err1.Error())
+			}
+			// 更新交易時間
+			txOrder.TransAt = types.JsonTime{}.New()
+			txOrder.Status = constants.SUCCESS
+			txOrder.ReviewedBy = in.UserAccount
+			txOrder.Memo = in.Memo
+			// 更新审核通过
+			if err2 := db.Table("tx_orders").Updates(txOrder).Error; err2 != nil {
+				return errorz.New(response.DATABASE_FAILURE, err2.Error())
+			}
+
+			// 更新下发利润
+			oldOrder := &types.Order{
+				OrderNo:             txOrder.OrderNo,
+				BalanceType:         txOrder.BalanceType,
+				TransferHandlingFee: txOrder.TransferHandlingFee,
+			}
+			if err = l.CalculateSystemProfit(db, oldOrder, totalChannelHandlingFee); err != nil {
+				logx.Errorf("审核通过，计算下发利润失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err.Error())
+				return err
+			}
+
+			return nil
+
+		}); err != nil {
+			return &transactionclient.WithdrawReviewSuccessResponse{
+				Code:    response.UPDATE_DATABASE_FAILURE,
+				Message: "下发审核更新失敗，orderNo = " + in.OrderNo + "，err : " + err.Error(),
+			}, nil
 		}
 
-		// 儲存下發明細記錄
-		if err1 := db.Table("tx_order_channels").CreateInBatches(orderChannels, len(orderChannels)).Error; err1 != nil {
-			return errorz.New(response.DATABASE_FAILURE, err1.Error())
-		}
-		// 更新交易時間
-		txOrder.TransAt = types.JsonTime{}.New()
-		txOrder.Status = constants.SUCCESS
-		txOrder.ReviewedBy = in.UserAccount
-		txOrder.Memo = in.Memo
-		// 更新审核通过
-		if err2 := db.Table("tx_orders").Updates(txOrder).Error; err2 != nil {
-			return errorz.New(response.DATABASE_FAILURE, err2.Error())
-		}
-
-		// 更新下发利润
-		oldOrder := &types.Order{
-			OrderNo:             txOrder.OrderNo,
-			BalanceType:         txOrder.BalanceType,
-			TransferHandlingFee: txOrder.TransferHandlingFee,
-		}
-		if err = l.CalculateSystemProfit(db, oldOrder, totalChannelHandlingFee); err != nil {
-			logx.Errorf("审核通过，计算下发利润失败，商户号: %s, 订单号: %s, err : %s", txOrder.MerchantCode, txOrder.OrderNo, err.Error())
-			return err
-		}
-
-		return nil
-
-	}); err != nil {
-		return &transactionclient.WithdrawReviewSuccessResponse{
-			Code: response.UPDATE_DATABASE_FAILURE,
-			Message: "下发审核更新失敗，orderNo = "+ in.OrderNo + "，err : "+ err.Error(),
-		}, nil
 	}
 
 	// 新單新增訂單歷程 (不抱錯)
@@ -135,7 +144,7 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 
 	resp = &transactionclient.WithdrawReviewSuccessResponse{
 		OrderNo: txOrder.OrderNo,
-		Code: response.API_SUCCESS,
+		Code:    response.API_SUCCESS,
 		Message: "操作成功",
 	}
 
