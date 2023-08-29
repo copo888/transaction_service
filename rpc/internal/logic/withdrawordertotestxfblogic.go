@@ -46,8 +46,8 @@ func (l *WithdrawOrderToTestXFBLogic) WithdrawOrderToTest_XFB(in *transactioncli
 
 	redisKey := fmt.Sprintf("%s-%s", txOrder.MerchantCode, txOrder.CurrencyCode)
 	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
-	redisLock.SetExpire(5)
-	if isOK, redisErr := redisLock.TryLockTimeout(5); isOK {
+	redisLock.SetExpire(8)
+	if isOK, redisErr := redisLock.TryLockTimeout(8); isOK {
 		defer redisLock.Release()
 
 		//如果月結傭金"已結算/確認報表無誤按鈕" : 不扣款
@@ -141,8 +141,8 @@ func (l WithdrawOrderToTestXFBLogic) UpdateBalance(db *gorm.DB, updateBalance ty
 
 	//redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
 	//redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
-	//redisLock.SetExpire(5)
-	//if isOk, _ := redisLock.TryLockTimeout(5); isOk {
+	//redisLock.SetExpire(8)
+	//if isOk, _ := redisLock.TryLockTimeout(8); isOk {
 	//	defer redisLock.Release()
 	//	if merchantBalanceRecord, err = l.doUpdateBalance(db, updateBalance); err != nil {
 	//		return

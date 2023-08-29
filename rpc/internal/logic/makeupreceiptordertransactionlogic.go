@@ -12,6 +12,7 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
+	"github.com/gioco-play/easy-i18n/i18n"
 	"github.com/neccoys/go-zero-extension/redislock"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -80,8 +81,8 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 
 	redisKey := fmt.Sprintf("%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode)
 	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
-	redisLock.SetExpire(5)
-	if isOK, _ := redisLock.TryLockTimeout(5); isOK {
+	redisLock.SetExpire(8)
+	if isOK, redisErr := redisLock.TryLockTimeout(8); isOK {
 		defer redisLock.Release()
 		/****     交易開始      ****/
 		txDB := myDB.Begin()
@@ -174,6 +175,12 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 			}, nil
 		}
 		/****     交易結束      ****/
+	} else {
+		logx.WithContext(l.ctx).Errorf("商户钱包处理中，Err:%s。 %s", redisErr.Error(), redisKey)
+		return &transactionclient.MakeUpReceiptOrderResponse{
+			Code:    response.BALANCE_PROCESSING,
+			Message: i18n.Sprintf(response.BALANCE_PROCESSING),
+		}, nil
 	}
 
 	// 舊單新增歷程

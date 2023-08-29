@@ -11,6 +11,7 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
+	"github.com/gioco-play/easy-i18n/i18n"
 	"github.com/neccoys/go-zero-extension/redislock"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -53,8 +54,8 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 
 	redisKey := fmt.Sprintf("%s-%s", txOrder.MerchantCode, txOrder.CurrencyCode)
 	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
-	redisLock.SetExpire(5)
-	if isOK, _ := redisLock.TryLockTimeout(5); isOK {
+	redisLock.SetExpire(8)
+	if isOK, redisErr := redisLock.TryLockTimeout(8); isOK {
 		defer redisLock.Release()
 
 		if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
@@ -148,6 +149,12 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 			logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
 		}
 
+	} else {
+		logx.WithContext(l.ctx).Errorf("商户钱包处理中，Err:%s。 %s", redisErr.Error(), redisKey)
+		return &transactionclient.InternalReviewSuccessResponse{
+			Code:    response.BALANCE_PROCESSING,
+			Message: i18n.Sprintf(response.BALANCE_PROCESSING),
+		}, nil
 	}
 
 	resp = &transactionclient.InternalReviewSuccessResponse{
@@ -162,8 +169,8 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 func (l InternalReviewSuccessTransactionLogic) UpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 	//redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
 	//redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
-	//redisLock.SetExpire(5)
-	//if isOk, _ := redisLock.TryLockTimeout(5); isOk {
+	//redisLock.SetExpire(8)
+	//if isOk, _ := redisLock.TryLockTimeout(8); isOk {
 	//	defer redisLock.Release()
 	//	if merchantBalanceRecord, err = l.doUpdateBalance(db, updateBalance); err != nil {
 	//		return
@@ -179,8 +186,8 @@ func (l InternalReviewSuccessTransactionLogic) UpdateBalance(db *gorm.DB, update
 func (l InternalReviewSuccessTransactionLogic) UpdatePtBalance(db *gorm.DB, updateBalance types.UpdateBalance) (err error) {
 	//redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
 	//redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-pt-balance:")
-	//redisLock.SetExpire(5)
-	//if isOk, _ := redisLock.TryLockTimeout(5); isOk {
+	//redisLock.SetExpire(8)
+	//if isOk, _ := redisLock.TryLockTimeout(8); isOk {
 	//	defer redisLock.Release()
 	//	if err = l.doUpdatePtBalance(db, updateBalance); err != nil {
 	//		return

@@ -10,6 +10,7 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
+	"github.com/gioco-play/easy-i18n/i18n"
 	"github.com/neccoys/go-zero-extension/redislock"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -41,8 +42,8 @@ func (l *MerchantBalanceFreezeTranactionLogic) MerchantBalanceFreezeTranaction(r
 
 	redisKey := fmt.Sprintf("%s-%s", req.MerchantCode, req.CurrencyCode)
 	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
-	redisLock.SetExpire(5)
-	if isOK, _ := redisLock.TryLockTimeout(5); isOK {
+	redisLock.SetExpire(8)
+	if isOK, redisErr := redisLock.TryLockTimeout(8); isOK {
 		defer redisLock.Release()
 		/****     交易開始      ****/
 		txDB := l.svcCtx.MyDB.Begin()
@@ -74,6 +75,12 @@ func (l *MerchantBalanceFreezeTranactionLogic) MerchantBalanceFreezeTranaction(r
 				Message: "资料库错误 Commit失败",
 			}, nil
 		}
+	} else {
+		logx.WithContext(l.ctx).Errorf("商户钱包处理中，Err:%s。 %s", redisErr.Error(), redisKey)
+		return &transactionclient.MerchantBalanceFreezeResponse{
+			Code:    response.BALANCE_PROCESSING,
+			Message: i18n.Sprintf(response.BALANCE_PROCESSING),
+		}, nil
 	}
 
 	return &transactionclient.MerchantBalanceFreezeResponse{

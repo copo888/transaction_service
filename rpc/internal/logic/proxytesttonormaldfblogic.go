@@ -47,8 +47,8 @@ func (l *ProxyTestToNormalDFBLogic) ProxyTestToNormal_DFB(in *transactionclient.
 
 	redisKey := fmt.Sprintf("%s-%s", txOrder.MerchantCode, txOrder.CurrencyCode)
 	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
-	redisLock.SetExpire(5)
-	if isOK, redisErr := redisLock.TryLockTimeout(5); isOK {
+	redisLock.SetExpire(8)
+	if isOK, redisErr := redisLock.TryLockTimeout(8); isOK {
 		defer redisLock.Release()
 
 		l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {

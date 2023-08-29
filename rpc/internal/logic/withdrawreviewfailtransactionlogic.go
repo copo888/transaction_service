@@ -10,6 +10,7 @@ import (
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
+	"github.com/gioco-play/easy-i18n/i18n"
 	"github.com/neccoys/go-zero-extension/redislock"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -51,8 +52,8 @@ func (l *WithdrawReviewFailTransactionLogic) WithdrawReviewFailTransaction(in *t
 
 	redisKey := fmt.Sprintf("%s-%s", txOrder.MerchantCode, txOrder.CurrencyCode)
 	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
-	redisLock.SetExpire(5)
-	if isOK, _ := redisLock.TryLockTimeout(5); isOK {
+	redisLock.SetExpire(8)
+	if isOK, redisErr := redisLock.TryLockTimeout(8); isOK {
 		defer redisLock.Release()
 
 		if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
@@ -111,6 +112,12 @@ func (l *WithdrawReviewFailTransactionLogic) WithdrawReviewFailTransaction(in *t
 				Message: "钱包异动失败，orderNo = " + in.OrderNo,
 			}, nil
 		}
+	} else {
+		logx.WithContext(l.ctx).Errorf("商户钱包处理中，Err:%s。 %s", redisErr.Error(), redisKey)
+		return &transactionclient.WithdrawReviewFailResponse{
+			Code:    response.BALANCE_PROCESSING,
+			Message: i18n.Sprintf(response.BALANCE_PROCESSING),
+		}, nil
 	}
 
 	// 新單新增訂單歷程 (不抱錯)
@@ -137,8 +144,8 @@ func (l *WithdrawReviewFailTransactionLogic) WithdrawReviewFailTransaction(in *t
 func (l WithdrawReviewFailTransactionLogic) UpdateBalance(db *gorm.DB, ctx context.Context, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
 	//redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
 	//redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
-	//redisLock.SetExpire(5)
-	//if isOk, _ := redisLock.TryLockTimeout(5); isOk {
+	//redisLock.SetExpire(8)
+	//if isOk, _ := redisLock.TryLockTimeout(8); isOk {
 	//	defer redisLock.Release()
 	//	if merchantBalanceRecord, err = l.doUpdateBalance(db, ctx, updateBalance); err != nil {
 	//		return
@@ -155,8 +162,8 @@ func (l WithdrawReviewFailTransactionLogic) UpdateBalance(db *gorm.DB, ctx conte
 func (l WithdrawReviewFailTransactionLogic) UpdatePtBalance(db *gorm.DB, ctx context.Context, updateBalance types.UpdateBalance) error {
 	//redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
 	//redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
-	//redisLock.SetExpire(5)
-	//if isOk, _ := redisLock.TryLockTimeout(5); isOk {
+	//redisLock.SetExpire(8)
+	//if isOk, _ := redisLock.TryLockTimeout(8); isOk {
 	//	defer redisLock.Release()
 	//	if err := l.doUpdatePtBalance(db, ctx, updateBalance); err != nil {
 	//		return err

@@ -12,15 +12,15 @@ import (
 )
 
 /*
-	UpdatePtBalanceForZF 支付異動子錢包
+UpdatePtBalanceForZF 支付異動子錢包
 */
 func UpdatePtBalanceForZF(db *gorm.DB, redisClient *redis.Client, updateBalance types.UpdateBalance, merchantPtBalanceId int64) (merchantPtBalanceRecord types.MerchantPtBalanceRecord, err error) {
 
 	//redisKey := fmt.Sprintf("%s-%s-%s-%s", merchantPtBalanceRecord.MerchantCode, merchantPtBalanceRecord.CurrencyCode, merchantPtBalanceRecord.ChannelCode, merchantPtBalanceRecord.PayTypeCode)
 	//redisLock := redislock.New(redisClient, redisKey, "merchant-pt-balance:")
-	//redisLock.SetExpire(5)
+	//redisLock.SetExpire(8)
 	//
-	//if isOK, _ := redisLock.TryLockTimeout(5); isOK {
+	//if isOK, _ := redisLock.TryLockTimeout(8); isOK {
 	//	defer redisLock.Release()
 	//	if merchantPtBalanceRecord, err = doUpdatePtBalanceForZF(db, updateBalance, merchantPtBalanceId); err != nil {
 	//		return
