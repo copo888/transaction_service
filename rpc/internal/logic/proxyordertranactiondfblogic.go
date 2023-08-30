@@ -56,8 +56,8 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 	}
 
 	merchant := &types.Merchant{}
-	if errMer := l.svcCtx.MyDB.Table("mc_merchants").Where("code = ?", rate.MerchantCode).Take(merchant); errMer != nil {
-		logx.Errorf("查尋商戶錯誤: %#v", errMer.Error)
+	if errMer := l.svcCtx.MyDB.Table("mc_merchants").Where("code = ?", rate.MerchantCode).Take(merchant).Error; errMer != nil {
+		logx.Errorf("查尋商戶錯誤: %#v,%#v,%#v", errMer, rate.MerchantCode, merchant.BillLadingType)
 	}
 
 	var memo string
