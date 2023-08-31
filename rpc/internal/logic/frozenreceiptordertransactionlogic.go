@@ -2,11 +2,14 @@ package logic
 
 import (
 	"context"
+	"fmt"
 	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
+	"github.com/gioco-play/easy-i18n/i18n"
+	"github.com/neccoys/go-zero-extension/redislock"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -29,12 +32,10 @@ func NewFrozenReceiptOrderTransactionLogic(ctx context.Context, svcCtx *svc.Serv
 func (l *FrozenReceiptOrderTransactionLogic) FrozenReceiptOrderTransaction(req *transactionclient.FrozenReceiptOrderRequest) (*transactionclient.FrozenReceiptOrderResponse, error) {
 	var order types.Order
 
-	/****     交易開始      ****/
-	txDB := l.svcCtx.MyDB.Begin()
+	myDB := l.svcCtx.MyDB
 
 	// 1. 取得訂單
-	if err := txDB.Table("tx_orders").Where("order_no = ?", req.OrderNo).Find(&order).Error; err != nil {
-		txDB.Rollback()
+	if err := myDB.Table("tx_orders").Where("order_no = ?", req.OrderNo).Find(&order).Error; err != nil {
 		return &transactionclient.FrozenReceiptOrderResponse{
 			Code:    response.DATABASE_FAILURE,
 			Message: "取得訂單失敗",
@@ -43,60 +44,75 @@ func (l *FrozenReceiptOrderTransactionLogic) FrozenReceiptOrderTransaction(req *
 
 	// 驗證
 	if errCode := l.verify(order, req); errCode != "" {
-		txDB.Rollback()
 		return &transactionclient.FrozenReceiptOrderResponse{
 			Code:    errCode,
 			Message: "驗證失敗: " + errCode,
 		}, nil
 	}
 
-	// 變更 商戶餘額&凍結金額 並記錄
-	if _, err := merchantbalanceservice.UpdateFrozenAmount(txDB, types.UpdateFrozenAmount{
-		MerchantCode:    order.MerchantCode,
-		CurrencyCode:    order.CurrencyCode,
-		OrderNo:         order.OrderNo,
-		MerchantOrderNo: order.MerchantOrderNo,
-		OrderType:       order.Type,
-		ChannelCode:     order.ChannelCode,
-		PayTypeCode:     order.PayTypeCode,
-		TransactionType: constants.TRANSACTION_TYPE_FREEZE,
-		BalanceType:     order.BalanceType,
-		FrozenAmount:    req.FrozenAmount,
-		Comment:         req.Comment,
-		CreatedBy:       req.UserAccount,
-	}); err != nil {
-		txDB.Rollback()
+	redisKey := fmt.Sprintf("%s-%s", order.MerchantCode, order.CurrencyCode)
+	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
+	redisLock.SetExpire(8)
+	if isOK, redisErr := redisLock.TryLockTimeout(8); isOK {
+		defer redisLock.Release()
+
+		/****     交易開始      ****/
+		txDB := l.svcCtx.MyDB.Begin()
+
+		// 變更 商戶餘額&凍結金額 並記錄
+		if _, err := merchantbalanceservice.UpdateFrozenAmount(txDB, types.UpdateFrozenAmount{
+			MerchantCode:    order.MerchantCode,
+			CurrencyCode:    order.CurrencyCode,
+			OrderNo:         order.OrderNo,
+			MerchantOrderNo: order.MerchantOrderNo,
+			OrderType:       order.Type,
+			ChannelCode:     order.ChannelCode,
+			PayTypeCode:     order.PayTypeCode,
+			TransactionType: constants.TRANSACTION_TYPE_FREEZE,
+			BalanceType:     order.BalanceType,
+			FrozenAmount:    req.FrozenAmount,
+			Comment:         req.Comment,
+			CreatedBy:       req.UserAccount,
+		}); err != nil {
+			txDB.Rollback()
+			return &transactionclient.FrozenReceiptOrderResponse{
+				Code:    response.DATABASE_FAILURE,
+				Message: "錢包異動失敗",
+			}, nil
+		}
+
+		// 變更訂單狀態
+		order.Status = constants.FROZEN
+		order.FrozenAmount = req.FrozenAmount
+		order.Memo = req.Comment + " \n" + order.Memo
+
+		if err := txDB.Table("tx_orders").Updates(&types.OrderX{
+			Order:    order,
+			FrozenAt: types.JsonTime{}.New(),
+		}).Error; err != nil {
+			txDB.Rollback()
+			return &transactionclient.FrozenReceiptOrderResponse{
+				Code:    response.DATABASE_FAILURE,
+				Message: "編輯訂單失敗",
+			}, nil
+		}
+
+		if err := txDB.Commit().Error; err != nil {
+			txDB.Rollback()
+			logx.Errorf("凍結收款膽Commit失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
+			return &transactionclient.FrozenReceiptOrderResponse{
+				Code:    response.DATABASE_FAILURE,
+				Message: "资料库错误 Commit失败",
+			}, nil
+		}
+		/****     交易結束      ****/
+	} else {
+		logx.WithContext(l.ctx).Errorf("商户钱包处理中，Err:%s。 %s", redisErr.Error(), redisKey)
 		return &transactionclient.FrozenReceiptOrderResponse{
-			Code:    response.DATABASE_FAILURE,
-			Message: "錢包異動失敗",
+			Code:    response.BALANCE_PROCESSING,
+			Message: i18n.Sprintf(response.BALANCE_PROCESSING),
 		}, nil
 	}
-
-	// 變更訂單狀態
-	order.Status = constants.FROZEN
-	order.FrozenAmount = req.FrozenAmount
-	order.Memo = req.Comment + " \n" + order.Memo
-
-	if err := txDB.Table("tx_orders").Updates(&types.OrderX{
-		Order:    order,
-		FrozenAt: types.JsonTime{}.New(),
-	}).Error; err != nil {
-		txDB.Rollback()
-		return &transactionclient.FrozenReceiptOrderResponse{
-			Code:    response.DATABASE_FAILURE,
-			Message: "編輯訂單失敗",
-		}, nil
-	}
-
-	if err := txDB.Commit().Error; err != nil {
-		txDB.Rollback()
-		logx.Errorf("凍結收款膽Commit失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
-		return &transactionclient.FrozenReceiptOrderResponse{
-			Code:    response.DATABASE_FAILURE,
-			Message: "资料库错误 Commit失败",
-		}, nil
-	}
-	/****     交易結束      ****/
 
 	// 新單新增訂單歷程 (不抱錯)
 	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{

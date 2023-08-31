@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"fmt"
 	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
@@ -9,6 +10,8 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
+	"github.com/gioco-play/easy-i18n/i18n"
+	"github.com/neccoys/go-zero-extension/redislock"
 	"github.com/zeromicro/go-zero/core/logx"
 	"strconv"
 )
@@ -74,38 +77,49 @@ func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transactionclient.PayOr
 	if order.BalanceType, err = merchantbalanceservice.GetBalanceType(l.svcCtx.MyDB, order.ChannelCode, order.Type); err != nil {
 		return
 	}
+	redisKey := fmt.Sprintf("%s-%s", order.MerchantCode, order.CurrencyCode)
+	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
+	redisLock.SetExpire(8)
+	if isOK, redisErr := redisLock.TryLockTimeout(8); isOK {
+		defer redisLock.Release()
+		/****     交易開始      ****/
+		txDB := l.svcCtx.MyDB.Begin()
 
-	/****     交易開始      ****/
-	txDB := l.svcCtx.MyDB.Begin()
+		order.Fee = correspondMerChnRate.Fee
+		order.HandlingFee = correspondMerChnRate.HandlingFee
+		// 交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
+		order.TransferHandlingFee = utils.FloatAdd(utils.FloatMul(utils.FloatDiv(order.OrderAmount, 100), order.Fee), order.HandlingFee)
+		// 計算實際交易金額 = 訂單金額 - 手續費
+		order.TransferAmount = order.OrderAmount - order.TransferHandlingFee
 
-	order.Fee = correspondMerChnRate.Fee
-	order.HandlingFee = correspondMerChnRate.HandlingFee
-	// 交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
-	order.TransferHandlingFee = utils.FloatAdd(utils.FloatMul(utils.FloatDiv(order.OrderAmount, 100), order.Fee), order.HandlingFee)
-	// 計算實際交易金額 = 訂單金額 - 手續費
-	order.TransferAmount = order.OrderAmount - order.TransferHandlingFee
+		if err = txDB.Table("tx_orders").Create(&types.OrderX{
+			Order: *order,
+		}).Error; err != nil {
+			txDB.Rollback()
+			return &transactionclient.PayOrderResponse{
+				Code:       response.DATABASE_FAILURE,
+				Message:    "数据库错误 tx_orders Create",
+				PayOrderNo: order.OrderNo,
+			}, nil
+		}
 
-	if err = txDB.Table("tx_orders").Create(&types.OrderX{
-		Order: *order,
-	}).Error; err != nil {
-		txDB.Rollback()
+		if err = txDB.Commit().Error; err != nil {
+			txDB.Rollback()
+			logx.WithContext(l.ctx).Errorf("支付提单失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
+			return &transactionclient.PayOrderResponse{
+				Code:       response.DATABASE_FAILURE,
+				Message:    "Commit 数据库错误",
+				PayOrderNo: order.OrderNo,
+			}, nil
+		}
+		/****     交易結束      ****/
+	} else {
+		logx.WithContext(l.ctx).Errorf("商户钱包处理中，Err:%s。 %s", redisErr.Error(), redisKey)
 		return &transactionclient.PayOrderResponse{
-			Code:       response.DATABASE_FAILURE,
-			Message:    "数据库错误 tx_orders Create",
-			PayOrderNo: order.OrderNo,
+			Code:    response.BALANCE_PROCESSING,
+			Message: i18n.Sprintf(response.BALANCE_PROCESSING),
 		}, nil
 	}
-
-	if err = txDB.Commit().Error; err != nil {
-		txDB.Rollback()
-		logx.WithContext(l.ctx).Errorf("支付提单失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
-		return &transactionclient.PayOrderResponse{
-			Code:       response.DATABASE_FAILURE,
-			Message:    "Commit 数据库错误",
-			PayOrderNo: order.OrderNo,
-		}, nil
-	}
-	/****     交易結束      ****/
 
 	// 新單新增訂單歷程 (不抱錯) TODO: 異步??
 	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{

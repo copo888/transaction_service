@@ -447,8 +447,6 @@ github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223/go.mod h1:qRW
 github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
 github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f/go.mod h1:ZdcZmHo+o7JKHSa8/e818NopupXU1YMK5fe1lsApnBw=
 github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32/go.mod h1:9wM+0iRr9ahx58uYLpLIr5fm8diHn0JbqRycJi6w0Ms=
-github.com/neccohuang/go-zero-template v0.0.0-20220323021310-64c46c474e7a h1:wefo0f3FwnXexc38qPM6o/1/ZDZ6cKapOvVeSK0F6sM=
-github.com/neccohuang/go-zero-template v0.0.0-20220323021310-64c46c474e7a/go.mod h1:uJN7cemvgvRWtL8ZFMAHOYKZ0LaKtVP4BcMKKJgVQGA=
 github.com/neccoys/go-driver v0.0.0-20220411064014-321cfa09a003 h1:WY1d7uduyeZtZ0TIykLQdW1lg22GRq6R5NCcDB81B8Q=
 github.com/neccoys/go-driver v0.0.0-20220411064014-321cfa09a003/go.mod h1:Ggc6ooGsk6BB6bIE6qlz6q7Sl0cmxk8rAHbzIVjhk3M=
 github.com/neccoys/go-zero-extension v0.0.0-20220411035408-307c413921de h1:fS8cbctgbPxDi5y6c9fk8o9TrkXd3Q3b54ywmTICUPg=

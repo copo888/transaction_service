@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"fmt"
 	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
@@ -9,6 +10,8 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
+	"github.com/gioco-play/easy-i18n/i18n"
+	"github.com/neccoys/go-zero-extension/redislock"
 	"gorm.io/gorm"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -31,12 +34,10 @@ func NewConfirmPayOrderTransactionLogic(ctx context.Context, svcCtx *svc.Service
 func (l *ConfirmPayOrderTransactionLogic) ConfirmPayOrderTransaction(in *transactionclient.ConfirmPayOrderRequest) (*transactionclient.ConfirmPayOrderResponse, error) {
 	var order *types.OrderX
 
-	/****     交易開始      ****/
-	txDB := l.svcCtx.MyDB.Begin()
+	myDB := l.svcCtx.MyDB
 
-	if err := txDB.Table("tx_orders").
+	if err := myDB.Table("tx_orders").
 		Where("order_no = ?", in.OrderNo).Take(&order).Error; err != nil {
-		txDB.Rollback()
 		return &transactionclient.ConfirmPayOrderResponse{
 			Code:    response.ORDER_NUMBER_NOT_EXIST,
 			Message: "商户订单号不存在 ",
@@ -53,14 +54,12 @@ func (l *ConfirmPayOrderTransactionLogic) ConfirmPayOrderTransaction(in *transac
 
 	// 處理中的且非鎖定訂單 才能確認收款
 	if order.Status != "1" {
-		txDB.Rollback()
 		return &transactionclient.ConfirmPayOrderResponse{
 			Code:    response.ORDER_STATUS_WRONG,
 			Message: "订单状态非处理中 ",
 		}, nil
 	}
 	if order.IsLock == "1" {
-		txDB.Rollback()
 		return &transactionclient.ConfirmPayOrderResponse{
 			Code:    response.ORDER_IS_STATUS_IS_LOCK,
 			Message: "订单号已锁定",
@@ -69,34 +68,47 @@ func (l *ConfirmPayOrderTransactionLogic) ConfirmPayOrderTransaction(in *transac
 
 	// 这里谨用于确认是否有设置费率
 	var merchantChannelRate *types.MerchantChannelRate
-	if err := txDB.Table("mc_merchant_channel_rate").
+	if err := myDB.Table("mc_merchant_channel_rate").
 		Where("merchant_code = ? AND channel_pay_types_code = ?", order.MerchantCode, order.ChannelPayTypesCode).
 		Take(&merchantChannelRate).Error; err != nil {
-		txDB.Rollback()
 		return &transactionclient.ConfirmPayOrderResponse{
 			Code:    response.RATE_NOT_CONFIGURED,
 			Message: "未配置商户渠道费率",
 		}, nil
 	}
+	redisKey := fmt.Sprintf("%s-%s", order.MerchantCode, order.CurrencyCode)
+	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
+	redisLock.SetExpire(8)
+	if isOK, redisErr := redisLock.TryLockTimeout(8); isOK {
+		defer redisLock.Release()
+		/****     交易開始      ****/
+		txDB := myDB.Begin()
 
-	// 編輯訂單 異動錢包和餘額
-	if err := l.updateOrderAndBalance(txDB, in, order); err != nil {
-		txDB.Rollback()
+		// 編輯訂單 異動錢包和餘額
+		if err := l.updateOrderAndBalance(txDB, in, order); err != nil {
+			txDB.Rollback()
+			return &transactionclient.ConfirmPayOrderResponse{
+				Code:    response.SYSTEM_ERROR,
+				Message: "updateOrderAndBalance 失败",
+			}, nil
+		}
+
+		if err := txDB.Commit().Error; err != nil {
+			txDB.Rollback()
+			logx.Errorf("支付確認收款Commit失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
+			return &transactionclient.ConfirmPayOrderResponse{
+				Code:    response.DATABASE_FAILURE,
+				Message: "资料库错误 Commit失败",
+			}, nil
+		}
+		/****     交易結束      ****/
+	} else {
+		logx.WithContext(l.ctx).Errorf("商户钱包处理中，Err:%s。 %s", redisErr.Error(), redisKey)
 		return &transactionclient.ConfirmPayOrderResponse{
-			Code:    response.SYSTEM_ERROR,
-			Message: "updateOrderAndBalance 失败",
+			Code:    response.BALANCE_PROCESSING,
+			Message: i18n.Sprintf(response.BALANCE_PROCESSING),
 		}, nil
 	}
-
-	if err := txDB.Commit().Error; err != nil {
-		txDB.Rollback()
-		logx.Errorf("支付確認收款Commit失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
-		return &transactionclient.ConfirmPayOrderResponse{
-			Code:    response.DATABASE_FAILURE,
-			Message: "资料库错误 Commit失败",
-		}, nil
-	}
-	/****     交易結束      ****/
 
 	// 計算利潤 (不抱錯) TODO: 異步??
 	if err4 := orderfeeprofitservice.CalculateOrderProfit(l.svcCtx.MyDB, types.CalculateProfit{

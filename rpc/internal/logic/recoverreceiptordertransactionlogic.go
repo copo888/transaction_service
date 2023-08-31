@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"fmt"
 	"github.com/copo888/transaction_service/common/constants"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
@@ -10,6 +11,8 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
+	"github.com/gioco-play/easy-i18n/i18n"
+	"github.com/neccoys/go-zero-extension/redislock"
 
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -34,12 +37,10 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 	var newOrder types.Order
 	var transferAmount float64
 
-	/****     交易開始      ****/
-	txDB := l.svcCtx.MyDB.Begin()
+	myDB := l.svcCtx.MyDB
 
 	// 取得訂單
-	if err := txDB.Table("tx_orders").Where("order_no = ?", req.OrderNo).Find(&order).Error; err != nil {
-		txDB.Rollback()
+	if err := myDB.Table("tx_orders").Where("order_no = ?", req.OrderNo).Find(&order).Error; err != nil {
 		return &transactionclient.RecoverReceiptOrderResponse{
 			Code:    response.DATABASE_FAILURE,
 			Message: "取得訂單失敗",
@@ -48,7 +49,6 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 
 	// 驗證
 	if errCode := l.verifyOrder(order, req); errCode != "" {
-		txDB.Rollback()
 		return &transactionclient.RecoverReceiptOrderResponse{
 			Code:    errCode,
 			Message: "驗證失敗: " + errCode,
@@ -77,90 +77,105 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 		CreatedBy:       req.UserAccount,
 	}
 
-	// 變更 商戶餘額並記錄
-	merchantBalanceRecord, err := merchantbalanceservice.UpdateBalanceForZF(txDB, l.ctx, l.svcCtx.RedisClient, updateBalance)
-	if err != nil {
-		txDB.Rollback()
-		logx.WithContext(l.ctx).Errorf("更新錢包失敗:%s", err.Error())
+	redisKey := fmt.Sprintf("%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode)
+	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
+	redisLock.SetExpire(8)
+	if isOK, redisErr := redisLock.TryLockTimeout(8); isOK {
+		defer redisLock.Release()
+		/****     交易開始      ****/
+		txDB := myDB.Begin()
+
+		// 變更 商戶餘額並記錄
+		merchantBalanceRecord, err := merchantbalanceservice.UpdateBalanceForZF(txDB, l.ctx, l.svcCtx.RedisClient, updateBalance)
+		if err != nil {
+			txDB.Rollback()
+			logx.WithContext(l.ctx).Errorf("更新錢包失敗:%s", err.Error())
+			return &transactionclient.RecoverReceiptOrderResponse{
+				Code:    response.SYSTEM_ERROR,
+				Message: "更新錢包失敗",
+			}, nil
+		}
+
+		// 新增訂單
+		newOrder = order
+		newOrder.ID = 0
+		newOrder.Status = constants.SUCCESS
+		newOrder.SourceOrderNo = order.OrderNo
+		newOrder.ChannelOrderNo = ""
+		newOrder.MerchantOrderNo = merchantOrderNo
+		newOrder.OrderNo = newOrderNo
+		newOrder.OrderAmount = order.OrderAmount
+		newOrder.ActualAmount = -req.Amount
+		newOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance
+		newOrder.TransferAmount = merchantBalanceRecord.TransferAmount
+		newOrder.Balance = merchantBalanceRecord.AfterBalance
+		newOrder.IsLock = constants.IS_LOCK_NO
+		newOrder.CallBackStatus = constants.CALL_BACK_STATUS_PROCESSING
+		newOrder.IsMerchantCallback = constants.IS_MERCHANT_CALLBACK_NOT_NEED
+		newOrder.ReasonType = "11"
+		newOrder.PersonProcessStatus = constants.PERSON_PROCESS_STATUS_NO_ROCESSING
+		newOrder.InternalChargeOrderPath = ""
+		newOrder.HandlingFee = order.HandlingFee
+		newOrder.Fee = order.Fee
+		newOrder.TransferHandlingFee = transferHandlingFee
+		newOrder.Memo = "原始单号:" + order.OrderNo + " \n" + req.Comment
+		newOrder.Source = constants.ORDER_SOURCE_BY_PLATFORM
+		newOrder.IsCalculateProfit = constants.IS_CALCULATE_PROFIT_YES
+
+		if err = txDB.Table("tx_orders").Create(&types.OrderX{
+			Order:   newOrder,
+			TransAt: types.JsonTime{}.New(),
+		}).Error; err != nil {
+			txDB.Rollback()
+			return &transactionclient.RecoverReceiptOrderResponse{
+				Code:    response.SYSTEM_ERROR,
+				Message: "新增訂單失敗",
+			}, nil
+		}
+
+		// 舊單鎖定
+		order.IsLock = "1"
+		order.Memo = "追回单号:" + newOrderNo + " \n" + order.Memo
+		if err = txDB.Table("tx_orders").Updates(&types.OrderX{
+			Order: order,
+		}).Error; err != nil {
+			txDB.Rollback()
+			return &transactionclient.RecoverReceiptOrderResponse{
+				Code:    response.SYSTEM_ERROR,
+				Message: "舊單鎖定失敗",
+			}, nil
+		}
+
+		// 追回單利潤計算方式不同 要放在交易裡
+		if err = orderfeeprofitservice.CalculateSubOrderProfit(txDB, types.CalculateSubOrderProfit{
+			OldOrderNo:            order.OrderNo,
+			NewOrderNo:            newOrderNo,
+			OrderAmount:           -req.Amount,
+			IsCalculateCommission: req.IsCalculateCommission,
+		}); err != nil {
+			txDB.Rollback()
+			return &transactionclient.RecoverReceiptOrderResponse{
+				Code:    response.SYSTEM_ERROR,
+				Message: "計算利潤出錯",
+			}, nil
+		}
+
+		if err := txDB.Commit().Error; err != nil {
+			txDB.Rollback()
+			logx.Errorf("支付追回失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
+			return &transactionclient.RecoverReceiptOrderResponse{
+				Code:    response.DATABASE_FAILURE,
+				Message: "资料库错误 Commit失败",
+			}, nil
+		}
+		/****     交易結束      ****/
+	} else {
+		logx.WithContext(l.ctx).Errorf("商户钱包处理中，Err:%s。 %s", redisErr.Error(), redisKey)
 		return &transactionclient.RecoverReceiptOrderResponse{
-			Code:    response.SYSTEM_ERROR,
-			Message: "更新錢包失敗",
+			Code:    response.BALANCE_PROCESSING,
+			Message: i18n.Sprintf(response.BALANCE_PROCESSING),
 		}, nil
 	}
-
-	// 新增訂單
-	newOrder = order
-	newOrder.ID = 0
-	newOrder.Status = constants.SUCCESS
-	newOrder.SourceOrderNo = order.OrderNo
-	newOrder.ChannelOrderNo = ""
-	newOrder.MerchantOrderNo = merchantOrderNo
-	newOrder.OrderNo = newOrderNo
-	newOrder.OrderAmount = order.OrderAmount
-	newOrder.ActualAmount = -req.Amount
-	newOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance
-	newOrder.TransferAmount = merchantBalanceRecord.TransferAmount
-	newOrder.Balance = merchantBalanceRecord.AfterBalance
-	newOrder.IsLock = constants.IS_LOCK_NO
-	newOrder.CallBackStatus = constants.CALL_BACK_STATUS_PROCESSING
-	newOrder.IsMerchantCallback = constants.IS_MERCHANT_CALLBACK_NOT_NEED
-	newOrder.ReasonType = "11"
-	newOrder.PersonProcessStatus = constants.PERSON_PROCESS_STATUS_NO_ROCESSING
-	newOrder.InternalChargeOrderPath = ""
-	newOrder.HandlingFee = order.HandlingFee
-	newOrder.Fee = order.Fee
-	newOrder.TransferHandlingFee = transferHandlingFee
-	newOrder.Memo = "原始单号:" + order.OrderNo + " \n" + req.Comment
-	newOrder.Source = constants.ORDER_SOURCE_BY_PLATFORM
-	newOrder.IsCalculateProfit = constants.IS_CALCULATE_PROFIT_YES
-
-	if err = txDB.Table("tx_orders").Create(&types.OrderX{
-		Order:   newOrder,
-		TransAt: types.JsonTime{}.New(),
-	}).Error; err != nil {
-		txDB.Rollback()
-		return &transactionclient.RecoverReceiptOrderResponse{
-			Code:    response.SYSTEM_ERROR,
-			Message: "新增訂單失敗",
-		}, nil
-	}
-
-	// 舊單鎖定
-	order.IsLock = "1"
-	order.Memo = "追回单号:" + newOrderNo + " \n" + order.Memo
-	if err = txDB.Table("tx_orders").Updates(&types.OrderX{
-		Order: order,
-	}).Error; err != nil {
-		txDB.Rollback()
-		return &transactionclient.RecoverReceiptOrderResponse{
-			Code:    response.SYSTEM_ERROR,
-			Message: "舊單鎖定失敗",
-		}, nil
-	}
-
-	// 追回單利潤計算方式不同 要放在交易裡
-	if err = orderfeeprofitservice.CalculateSubOrderProfit(txDB, types.CalculateSubOrderProfit{
-		OldOrderNo:            order.OrderNo,
-		NewOrderNo:            newOrderNo,
-		OrderAmount:           -req.Amount,
-		IsCalculateCommission: req.IsCalculateCommission,
-	}); err != nil {
-		txDB.Rollback()
-		return &transactionclient.RecoverReceiptOrderResponse{
-			Code:    response.SYSTEM_ERROR,
-			Message: "計算利潤出錯",
-		}, nil
-	}
-
-	if err := txDB.Commit().Error; err != nil {
-		txDB.Rollback()
-		logx.Errorf("支付追回失败，商户号: %s, 订单号: %s, err : %s", order.MerchantCode, order.OrderNo, err.Error())
-		return &transactionclient.RecoverReceiptOrderResponse{
-			Code:    response.DATABASE_FAILURE,
-			Message: "资料库错误 Commit失败",
-		}, nil
-	}
-	/****     交易結束      ****/
 
 	// 舊單新增歷程
 	if err := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{

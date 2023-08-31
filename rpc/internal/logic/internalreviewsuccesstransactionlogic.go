@@ -11,6 +11,7 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/service/orderfeeprofitservice"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
+	"github.com/gioco-play/easy-i18n/i18n"
 	"github.com/neccoys/go-zero-extension/redislock"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -50,10 +51,37 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 			Message: "找不到资料，orderNo = " + in.OrderNo,
 		}, nil
 	}
-	if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
-		// 异动子钱包
-		if in.PtBalanceId > 0 {
-			if err = l.UpdatePtBalance(db, types.UpdateBalance{
+
+	redisKey := fmt.Sprintf("%s-%s", txOrder.MerchantCode, txOrder.CurrencyCode)
+	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
+	redisLock.SetExpire(8)
+	if isOK, redisErr := redisLock.TryLockTimeout(8); isOK {
+		defer redisLock.Release()
+
+		if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
+			// 异动子钱包
+			if in.PtBalanceId > 0 {
+				if err = l.UpdatePtBalance(db, types.UpdateBalance{
+					MerchantCode:    txOrder.MerchantCode,
+					CurrencyCode:    txOrder.CurrencyCode,
+					OrderNo:         txOrder.OrderNo,
+					MerchantOrderNo: txOrder.MerchantOrderNo,
+					OrderType:       txOrder.Type,
+					ChannelCode:     txOrder.ChannelCode,
+					PayTypeCode:     txOrder.PayTypeCode,
+					TransactionType: "1",
+					BalanceType:     txOrder.BalanceType,
+					TransferAmount:  txOrder.TransferAmount,
+					Comment:         txOrder.Memo,
+					CreatedBy:       in.UserAccount,
+					MerPtBalanceId:  in.PtBalanceId,
+				}); err != nil {
+					return err
+				}
+			}
+
+			// 異動錢包
+			if merchantBalanceRecord, err = l.UpdateBalance(db, types.UpdateBalance{
 				MerchantCode:    txOrder.MerchantCode,
 				CurrencyCode:    txOrder.CurrencyCode,
 				OrderNo:         txOrder.OrderNo,
@@ -66,79 +94,67 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 				TransferAmount:  txOrder.TransferAmount,
 				Comment:         txOrder.Memo,
 				CreatedBy:       in.UserAccount,
-				MerPtBalanceId:  in.PtBalanceId,
 			}); err != nil {
+				return
+			}
+
+			txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance
+			txOrder.Balance = merchantBalanceRecord.AfterBalance
+			txOrder.TransAt = types.JsonTime{}.New()
+			txOrder.ActualAmount = txOrder.OrderAmount
+
+			txOrder.Status = constants.SUCCESS
+
+			rateMap := make(map[string]float64)
+			for _, l := range in.List {
+				rateMap[l.AgentLayerCode] = l.Rate
+			}
+
+			// 編輯訂單
+			if err = db.Table("tx_orders").Updates(&txOrder).Error; err != nil {
+				return
+			}
+			// 計算利潤 ,修改内充功能，利润改在审核才计算
+			if err = orderfeeprofitservice.CalculateNcOrderProfit(db, types.CalculateProfit{
+				MerchantCode:        txOrder.MerchantCode,
+				OrderNo:             txOrder.OrderNo,
+				Type:                txOrder.Type,
+				CurrencyCode:        txOrder.CurrencyCode,
+				BalanceType:         txOrder.BalanceType,
+				ChannelCode:         txOrder.ChannelCode,
+				ChannelPayTypesCode: txOrder.ChannelPayTypesCode,
+				OrderAmount:         txOrder.OrderAmount,
+			}, rateMap, in.ChnRate, in.IsProxy); err != nil {
+				logx.Error("計算利潤出錯:%s", err.Error())
 				return err
 			}
-		}
-
-		// 異動錢包
-		if merchantBalanceRecord, err = l.UpdateBalance(db, types.UpdateBalance{
-			MerchantCode:    txOrder.MerchantCode,
-			CurrencyCode:    txOrder.CurrencyCode,
-			OrderNo:         txOrder.OrderNo,
-			MerchantOrderNo: txOrder.MerchantOrderNo,
-			OrderType:       txOrder.Type,
-			ChannelCode:     txOrder.ChannelCode,
-			PayTypeCode:     txOrder.PayTypeCode,
-			TransactionType: "1",
-			BalanceType:     txOrder.BalanceType,
-			TransferAmount:  txOrder.TransferAmount,
-			Comment:         txOrder.Memo,
-			CreatedBy:       in.UserAccount,
+			return
 		}); err != nil {
-			return
+			return &transactionclient.InternalReviewSuccessResponse{
+				Code:    response.UPDATE_DATABASE_FAILURE,
+				Message: "数据库错误 tx_orders Update Internal Charge review， err : " + err.Error(),
+				OrderNo: in.OrderNo,
+			}, nil
 		}
 
-		txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance
-		txOrder.Balance = merchantBalanceRecord.AfterBalance
-		txOrder.TransAt = types.JsonTime{}.New()
-		txOrder.ActualAmount = txOrder.OrderAmount
-
-		txOrder.Status = constants.SUCCESS
-
-		rateMap := make(map[string]float64)
-		for _, l := range in.List {
-			rateMap[l.AgentLayerCode] = l.Rate
+		// 新單新增訂單歷程 (不抱錯)
+		if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
+			OrderAction: types.OrderAction{
+				OrderNo:     txOrder.OrderNo,
+				Action:      "REVIEW_SUCCESS",
+				UserAccount: in.UserAccount,
+				Comment:     "",
+			},
+		}).Error; err4 != nil {
+			logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
 		}
 
-		// 編輯訂單
-		if err = db.Table("tx_orders").Updates(&txOrder).Error; err != nil {
-			return
-		}
-		// 計算利潤 ,修改内充功能，利润改在审核才计算
-		if err = orderfeeprofitservice.CalculateNcOrderProfit(db, types.CalculateProfit{
-			MerchantCode:        txOrder.MerchantCode,
-			OrderNo:             txOrder.OrderNo,
-			Type:                txOrder.Type,
-			CurrencyCode:        txOrder.CurrencyCode,
-			BalanceType:         txOrder.BalanceType,
-			ChannelCode:         txOrder.ChannelCode,
-			ChannelPayTypesCode: txOrder.ChannelPayTypesCode,
-			OrderAmount:         txOrder.OrderAmount,
-		}, rateMap, in.ChnRate, in.IsProxy); err != nil {
-			logx.Error("計算利潤出錯:%s", err.Error())
-			return err
-		}
-		return
-	}); err != nil {
+	} else {
+		logx.WithContext(l.ctx).Errorf("商户钱包处理中，Err:%s。 %s", redisErr.Error(), redisKey)
 		return &transactionclient.InternalReviewSuccessResponse{
-			Code:    response.UPDATE_DATABASE_FAILURE,
-			Message: "数据库错误 tx_orders Update Internal Charge review， err : " + err.Error(),
-			OrderNo: in.OrderNo,
+			Code:    response.BALANCE_PROCESSING,
+			Message: i18n.Sprintf(response.BALANCE_PROCESSING),
 		}, nil
-	}
-
-	// 新單新增訂單歷程 (不抱錯)
-	if err4 := l.svcCtx.MyDB.Table("tx_order_actions").Create(&types.OrderActionX{
-		OrderAction: types.OrderAction{
-			OrderNo:     txOrder.OrderNo,
-			Action:      "REVIEW_SUCCESS",
-			UserAccount: in.UserAccount,
-			Comment:     "",
-		},
-	}).Error; err4 != nil {
-		logx.Error("紀錄訂單歷程出錯:%s", err4.Error())
 	}
 
 	resp = &transactionclient.InternalReviewSuccessResponse{
@@ -151,35 +167,39 @@ func (l *InternalReviewSuccessTransactionLogic) InternalReviewSuccessTransaction
 }
 
 func (l InternalReviewSuccessTransactionLogic) UpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
-	redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
-	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
-	redisLock.SetExpire(5)
-	if isOk, _ := redisLock.TryLockTimeout(5); isOk {
-		defer redisLock.Release()
-		if merchantBalanceRecord, err = l.doUpdateBalance(db, updateBalance); err != nil {
-			return
-		}
-	} else {
-		return merchantBalanceRecord, errorz.New(response.BALANCE_REDISLOCK_ERROR)
-	}
+	//redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
+	//redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-balance:")
+	//redisLock.SetExpire(8)
+	//if isOk, _ := redisLock.TryLockTimeout(8); isOk {
+	//	defer redisLock.Release()
+	//	if merchantBalanceRecord, err = l.doUpdateBalance(db, updateBalance); err != nil {
+	//		return
+	//	}
+	//} else {
+	//	return merchantBalanceRecord, errorz.New(response.BALANCE_REDISLOCK_ERROR)
+	//}
+	merchantBalanceRecord, err = l.doUpdateBalance(db, updateBalance)
+
 	return
 }
 
 func (l InternalReviewSuccessTransactionLogic) UpdatePtBalance(db *gorm.DB, updateBalance types.UpdateBalance) (err error) {
-	redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
-	redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-pt-balance:")
-	redisLock.SetExpire(5)
-	if isOk, _ := redisLock.TryLockTimeout(5); isOk {
-		defer redisLock.Release()
-		if err = l.doUpdatePtBalance(db, updateBalance); err != nil {
-			return
-		}
-	} else {
-		return errorz.New(response.BALANCE_REDISLOCK_ERROR)
-	}
+	//redisKey := fmt.Sprintf("%s-%s-%s", updateBalance.MerchantCode, updateBalance.CurrencyCode, updateBalance.BalanceType)
+	//redisLock := redislock.New(l.svcCtx.RedisClient, redisKey, "merchant-pt-balance:")
+	//redisLock.SetExpire(8)
+	//if isOk, _ := redisLock.TryLockTimeout(8); isOk {
+	//	defer redisLock.Release()
+	//	if err = l.doUpdatePtBalance(db, updateBalance); err != nil {
+	//		return
+	//	}
+	//} else {
+	//	return errorz.New(response.BALANCE_REDISLOCK_ERROR)
+	//}
+
+	err = l.doUpdatePtBalance(db, updateBalance)
+
 	return
 }
-
 
 // updateBalance
 func (l *InternalReviewSuccessTransactionLogic) doUpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBalanceRecord types.MerchantBalanceRecord, err error) {
@@ -242,7 +262,7 @@ func (l *InternalReviewSuccessTransactionLogic) doUpdateBalance(db *gorm.DB, upd
 	return
 }
 
-func (l *InternalReviewSuccessTransactionLogic) doUpdatePtBalance(db *gorm.DB, updateBalance types.UpdateBalance) (err error){
+func (l *InternalReviewSuccessTransactionLogic) doUpdatePtBalance(db *gorm.DB, updateBalance types.UpdateBalance) (err error) {
 	var beforeBalance float64
 	var afterBalance float64
 
@@ -277,18 +297,18 @@ func (l *InternalReviewSuccessTransactionLogic) doUpdatePtBalance(db *gorm.DB, u
 	// 4. 新增 餘額紀錄
 	merchantPtBalanceRecord := types.MerchantPtBalanceRecord{
 		MerchantPtBalanceId: merchantPtBalance.ID,
-		MerchantCode:      merchantPtBalance.MerchantCode,
-		CurrencyCode:      merchantPtBalance.CurrencyCode,
-		OrderNo:           updateBalance.OrderNo,
-		OrderType:         updateBalance.OrderType,
-		ChannelCode:       updateBalance.ChannelCode,
-		PayTypeCode:       updateBalance.PayTypeCode,
-		TransactionType:   updateBalance.TransactionType,
-		BeforeBalance:     beforeBalance,
-		TransferAmount:    updateBalance.TransferAmount,
-		AfterBalance:      afterBalance,
-		Comment:           updateBalance.Comment,
-		CreatedBy:         updateBalance.CreatedBy,
+		MerchantCode:        merchantPtBalance.MerchantCode,
+		CurrencyCode:        merchantPtBalance.CurrencyCode,
+		OrderNo:             updateBalance.OrderNo,
+		OrderType:           updateBalance.OrderType,
+		ChannelCode:         updateBalance.ChannelCode,
+		PayTypeCode:         updateBalance.PayTypeCode,
+		TransactionType:     updateBalance.TransactionType,
+		BeforeBalance:       beforeBalance,
+		TransferAmount:      updateBalance.TransferAmount,
+		AfterBalance:        afterBalance,
+		Comment:             updateBalance.Comment,
+		CreatedBy:           updateBalance.CreatedBy,
 	}
 
 	if err = db.Table("mc_merchant_pt_balance_records").Create(&types.MerchantPtBalanceRecordX{
