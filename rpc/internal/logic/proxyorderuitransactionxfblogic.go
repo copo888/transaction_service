@@ -36,7 +36,7 @@ func NewProxyOrderUITransactionXFBLogic(ctx context.Context, svcCtx *svc.Service
 func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(in *transactionclient.ProxyOrderUIRequest) (resp *transactionclient.ProxyOrderUIResponse, err error) {
 	req := in.ProxyOrderUI
 	rate := in.MerchantOrderRateListView
-	merchantBalanceRecord := types.MerchantBalanceRecord{}
+	merchantBalanceRecord := &types.MerchantBalanceRecord{}
 
 	var transferHandlingFee float64
 	if rate.IsRate == "1" { // 是否算費率，0:否 1:是
@@ -133,7 +133,7 @@ func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(in *transa
 			}
 
 			//更新钱包且新增商户钱包异动记录
-			if merchantBalanceRecord, err = merchantbalanceservice.DoUpdateXFBalance_Debit(l.ctx, l.svcCtx, db, updateBalance); err != nil {
+			if merchantBalanceRecord, err = merchantbalanceservice.UpdateXFBalance_Debit(l.ctx, db, updateBalance); err != nil {
 				logx.WithContext(l.ctx).Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
 				return errorz.New(response.SYSTEM_ERROR, err.Error())
 			} else {

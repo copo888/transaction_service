@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/copo888/transaction_service/common/constants"
-	"github.com/copo888/transaction_service/common/errorz"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/model"
@@ -38,7 +37,7 @@ func (l *ProxyOrderSmartTranactionXFBLogic) ProxyOrderSmartTranaction_XFB(in *tr
 	tx := l.svcCtx.MyDB
 	req := in.Req
 	rate := in.Rate
-	merchantBalanceRecord := types.MerchantBalanceRecord{}
+	merchantBalanceRecord := &types.MerchantBalanceRecord{}
 	//抓取訂單
 	var txOrder = &types.OrderX{}
 	var errQuery error
@@ -105,9 +104,9 @@ func (l *ProxyOrderSmartTranactionXFBLogic) ProxyOrderSmartTranaction_XFB(in *tr
 			txOrder.TransferAmount = utils.FloatAdd(txOrder.OrderAmount, txOrder.TransferHandlingFee) //交易金额 = 订单金额 + 商户手续费
 			updateBalance.TransferAmount = txOrder.TransferAmount                                     //扣款依然傳正值
 			//更新钱包且新增商户钱包异动记录
-			if merchantBalanceRecord, err = merchantbalanceservice.DoUpdateXFBalance_Debit(l.ctx, l.svcCtx, db, updateBalance); err != nil {
+			if merchantBalanceRecord, err = merchantbalanceservice.UpdateXFBalance_Debit(l.ctx, db, updateBalance); err != nil {
 				logx.WithContext(l.ctx).Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
-				return errorz.New(response.SYSTEM_ERROR, err.Error())
+				return
 			} else {
 				logx.WithContext(l.ctx).Infof("代付API提单 %s，錢包扣款成功", merchantBalanceRecord.OrderNo)
 				txOrder.BeforeBalance = merchantBalanceRecord.BeforeBalance // 商戶錢包異動紀錄
@@ -121,7 +120,7 @@ func (l *ProxyOrderSmartTranactionXFBLogic) ProxyOrderSmartTranaction_XFB(in *tr
 			return nil
 		}); err != nil {
 			return &transactionclient.ProxyOrderResponse{
-				Code:    response.UPDATE_DATABASE_FAILURE,
+				Code:    err.Error(),
 				Message: "異動錢包失敗，orderNo : " + req.OrderNo,
 			}, nil
 		}

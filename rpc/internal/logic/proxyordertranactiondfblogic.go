@@ -40,7 +40,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 	// 依商户是否给回调网址，决定是否回调商户flag
 	var isMerchantCallback string //0：否、1:是、2:不需回调
 	//var calBackStatus string //渠道回調狀態(0:處理中1:成功2:失敗)
-	merchantBalanceRecord := types.MerchantBalanceRecord{}
+	merchantBalanceRecord := &types.MerchantBalanceRecord{}
 
 	if req.NotifyUrl != "" {
 		isMerchantCallback = constants.MERCHANT_CALL_BACK_NO
@@ -152,7 +152,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 				}
 			}
 			//更新钱包且新增商户钱包异动记录
-			if merchantBalanceRecord, err = merchantbalanceservice.DoUpdateDFBalance_Debit(l.ctx, l.svcCtx, db, updateBalance); err != nil {
+			if merchantBalanceRecord, err = merchantbalanceservice.UpdateDFBalance_Debit(l.ctx, db, updateBalance); err != nil {
 				logx.WithContext(l.ctx).Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
 				return err
 			} else {
@@ -172,8 +172,8 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 			return nil
 		}); err != nil {
 			return &transactionclient.ProxyOrderResponse{
-				Code:         response.PROXY_TRANSACTION_FAILURE,
-				Message:      err.Error(),
+				Code:         err.Error(),
+				Message:      i18n.Sprintf(err.Error()),
 				ProxyOrderNo: req.OrderNo,
 			}, nil
 		}

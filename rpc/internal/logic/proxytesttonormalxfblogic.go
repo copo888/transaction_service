@@ -62,7 +62,7 @@ func (l *ProxyTestToNormalXFBLogic) ProxyTestToNormal_XFB(in *transactionclient.
 				return err
 			}
 
-			merchantBalanceRecord := types.MerchantBalanceRecord{}
+			merchantBalanceRecord := &types.MerchantBalanceRecord{}
 
 			// 新增收支记录，与更新商户余额(商户账户号是黑名单，把交易金额为设为 0)
 			updateBalance := &types.UpdateBalance{
@@ -88,7 +88,7 @@ func (l *ProxyTestToNormalXFBLogic) ProxyTestToNormal_XFB(in *transactionclient.
 				}
 			}
 
-			if merchantBalanceRecord, err = merchantbalanceservice.DoUpdateXFBalance_Debit(l.ctx, l.svcCtx, db, updateBalance); err != nil {
+			if merchantBalanceRecord, err = merchantbalanceservice.UpdateXFBalance_Debit(l.ctx, db, updateBalance); err != nil {
 				logx.Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
 				return errorz.New(response.SYSTEM_ERROR, err.Error())
 			} else {

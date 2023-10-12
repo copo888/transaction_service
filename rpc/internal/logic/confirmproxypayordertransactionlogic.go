@@ -114,7 +114,7 @@ func (l *ConfirmProxyPayOrderTransactionLogic) ConfirmProxyPayOrderTransaction(i
 				}
 			}
 
-			if _, err := merchantbalanceservice.DoUpdateDFBalance_Debit(l.ctx, l.svcCtx, txDB, updateBalance); err != nil {
+			if _, err := merchantbalanceservice.UpdateDFBalance_Debit(l.ctx, txDB, updateBalance); err != nil {
 				logx.WithContext(l.ctx).Errorf("商户:%s，单号:%s，更新錢包紀錄錯誤:%s", order.MerchantCode, order.OrderNo, err.Error())
 				txDB.Rollback()
 				return &transactionclient.ConfirmProxyPayOrderResponse{
@@ -134,7 +134,7 @@ func (l *ConfirmProxyPayOrderTransactionLogic) ConfirmProxyPayOrderTransaction(i
 				}
 			}
 
-			if _, err := merchantbalanceservice.DoUpdateXFBalance_Debit(l.ctx, l.svcCtx, txDB, updateBalance); err != nil {
+			if _, err := merchantbalanceservice.UpdateXFBalance_Debit(l.ctx, txDB, updateBalance); err != nil {
 				logx.WithContext(l.ctx).Errorf("商户:%s，单号:%s，更新錢包紀錄錯誤:%s", order.MerchantCode, order.OrderNo, err.Error())
 				txDB.Rollback()
 				return &transactionclient.ConfirmProxyPayOrderResponse{

@@ -140,7 +140,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		}
 
 		//更新钱包且新增商户钱包异动记录
-		merchantBalanceRecord, err1 := merchantbalanceservice.DoUpdateXFBalance_Debit(l.ctx, l.svcCtx, txDB, &updateBalance)
+		merchantBalanceRecord, err1 := merchantbalanceservice.UpdateXFBalance_Debit(l.ctx, txDB, &updateBalance)
 		if err1 != nil {
 			logx.WithContext(l.ctx).Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err1.Error(), updateBalance)
 			//TODO  IF 更新钱包错误是response.DATABASE_FAILURE THEN return SYSTEM_ERROR
