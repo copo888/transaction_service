@@ -231,6 +231,7 @@ message WithdrawOrderRequest {
   string Memo = 17;
   string ChangeType = 18;
   int64  PtBalanceId = 19;
+  string IsUsdt = 20;
 }
 message WithdrawOrderResponse {
   string OrderNo = 1;
