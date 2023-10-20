@@ -232,6 +232,7 @@ message WithdrawOrderRequest {
   string ChangeType = 18;
   int64  PtBalanceId = 19;
   string IsUsdt = 20;
+  double DefaultHandlingFee = 21;
 }
 message WithdrawOrderResponse {
   string OrderNo = 1;
@@ -304,6 +305,7 @@ message WithdrawReviewSuccessRequest {
   string UserAccount = 2;
   string Memo = 3;
   repeated ChannelWithdraw channelWithdraw = 4;
+  string IsCharged = 5;
 }
 
 message WithdrawReviewSuccessResponse {

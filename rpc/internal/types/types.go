@@ -945,6 +945,7 @@ type Order struct {
 	ReviewedBy              string  `json:"reviewedBy, optional"`
 	ChangeType              string  `json:"change_type, optional"`
 	IsUsdt                  string  `json:"is_usdt, optional"`
+	DefaultHandlingFee      float64 `json:"default_handling_fee, optional"`
 }
 
 type InternalChargeOrder struct {

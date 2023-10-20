@@ -38,8 +38,12 @@ func NewWithdrawOrderTransactionLogic(ctx context.Context, svcCtx *svc.ServiceCo
 func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transactionclient.WithdrawOrderRequest) (*transactionclient.WithdrawOrderResponse, error) {
 
 	myDB := l.svcCtx.MyDB
+	finalHandlingFee := in.HandlingFee
+	if in.IsUsdt == "1" {
+		finalHandlingFee = 0
+	}
 
-	transferAmount := utils.FloatAdd(in.OrderAmount, in.HandlingFee)
+	transferAmount := utils.FloatAdd(in.OrderAmount, finalHandlingFee)
 	merchantOrderNo := "COPO_" + in.OrderNo
 	if len(in.MerchantOrderNo) > 0 {
 		merchantOrderNo = in.MerchantOrderNo
@@ -52,6 +56,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 	} else {
 		isMerchantCallback = constants.MERCHANT_CALL_BACK_DONT_USE
 	}
+
 	// 初始化订单
 	txOrder := &types.Order{
 		MerchantCode:         in.MerchantCode,
@@ -69,8 +74,8 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		BalanceType:          "XFB",
 		TransferAmount:       transferAmount,
 		OrderAmount:          in.OrderAmount,
-		TransferHandlingFee:  in.HandlingFee,
-		HandlingFee:          in.HandlingFee,
+		TransferHandlingFee:  finalHandlingFee,
+		HandlingFee:          finalHandlingFee,
 		MerchantBankAccount:  in.MerchantBankeAccount,
 		MerchantBankNo:       in.MerchantBankNo,
 		MerchantBankProvince: in.MerchantBankProvince,
@@ -84,6 +89,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 		Memo:                 in.Memo,
 		ChangeType:           in.ChangeType,
 		IsUsdt:               in.IsUsdt,
+		DefaultHandlingFee:   in.HandlingFee,
 	}
 	if len(in.MerchantOrderNo) > 0 {
 		txOrder.MerchantOrderNo = in.MerchantOrderNo
