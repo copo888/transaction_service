@@ -58,7 +58,7 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 
 	if in.IsCharged == "1" {
 		if err = l.svcCtx.MyDB.Table("mc_merchant_pt_balance_records").
-			Select("merchant_pt_balance_id").Where("order_no = ?", txOrder.OrderNo).Take(merchantPtBalanceId).Error; err != nil {
+			Select("merchant_pt_balance_id").Where("order_no = ?", txOrder.OrderNo).Take(&merchantPtBalanceId).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return &transactionclient.WithdrawReviewSuccessResponse{
 				Code:    response.DATABASE_FAILURE,
 				Message: "数据库错误，查询子钱包错误，err : " + err.Error(),
