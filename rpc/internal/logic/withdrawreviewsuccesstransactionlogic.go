@@ -88,7 +88,7 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 					MerchantOrderNo: txOrder.MerchantOrderNo,
 					OrderType:       txOrder.Type,
 					PayTypeCode:     txOrder.PayTypeCode,
-					TransferAmount:  txOrder.TransferAmount,
+					TransferAmount:  txOrder.TransferHandlingFee,
 					TransactionType: constants.TRANSACTION_TYPE_ISSUED, //異動類型 (1=收款 ; 2=解凍;  3=沖正 4=還款;  5=補單; 11=出款 ; 12=凍結 ; 13=追回; 20=調整)
 					BalanceType:     constants.XF_BALANCE,
 					Comment:         "補扣下發手續費",
@@ -301,7 +301,7 @@ func (l WithdrawReviewSuccessTransactionLogic) doUpdateBalance(db *gorm.DB, upda
 		TransactionType:   updateBalance.TransactionType,
 		BalanceType:       updateBalance.BalanceType,
 		BeforeBalance:     beforeBalance,
-		TransferAmount:    updateBalance.TransferAmount,
+		TransferAmount:    -updateBalance.TransferAmount,
 		AfterBalance:      afterBalance,
 		Comment:           updateBalance.Comment,
 		CreatedBy:         updateBalance.CreatedBy,
