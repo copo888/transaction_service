@@ -82,7 +82,7 @@ func (l *ProxyTestToNormalDFBLogic) ProxyTestToNormal_DFB(in *transactionclient.
 			}
 
 			if merchantPtBalanceId > 0 {
-				if _, err = merchantbalanceservice.DoUpdateDF_Pt_Balance_Debit(l.ctx, l.svcCtx, db, updateBalance); err != nil {
+				if _, err = merchantbalanceservice.UpdateDF_Pt_Balance_Debit(l.ctx, db, updateBalance); err != nil {
 					logx.WithContext(l.ctx).Errorf("商户:%s，幣別: %s，更新子錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, txOrder.CurrencyCode, err.Error(), updateBalance)
 					return err
 				}

@@ -124,7 +124,7 @@ func (l *ProxyOrderUITransactionDFBLogic) ProxyOrderUITransaction_DFB(in *transa
 
 			//更新商户子钱包且新增记录
 			if rate.PtBalanceId > 0 {
-				if _, err = merchantbalanceservice.DoUpdateDF_Pt_Balance_Debit(l.ctx, l.svcCtx, db, &types.UpdateBalance{
+				if _, err = merchantbalanceservice.UpdateDF_Pt_Balance_Debit(l.ctx, db, &types.UpdateBalance{
 					MerchantCode:    txOrder.MerchantCode,
 					CurrencyCode:    txOrder.CurrencyCode,
 					OrderNo:         txOrder.OrderNo,

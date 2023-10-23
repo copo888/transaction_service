@@ -74,10 +74,10 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 
 		if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
-			//下發審核若低於金額，則需要收手續費
+			//下發審核若低於金額，則需還收手續費(因維手續費是預先扣除)
 			if in.IsCharged == "1" {
-				txOrder.HandlingFee = txOrder.DefaultHandlingFee
-				txOrder.TransferHandlingFee = txOrder.DefaultHandlingFee
+				txOrder.HandlingFee = 0
+				txOrder.TransferHandlingFee = 0
 				merchantBalanceRecord := types.MerchantBalanceRecord{}
 
 				// 新增收支记录，与更新商户余额(商户账户号是黑名单，把交易金额为设为 0)
@@ -89,9 +89,9 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 					OrderType:       txOrder.Type,
 					PayTypeCode:     txOrder.PayTypeCode,
 					TransferAmount:  txOrder.TransferHandlingFee,
-					TransactionType: constants.TRANSACTION_TYPE_ISSUED, //異動類型 (1=收款 ; 2=解凍;  3=沖正 4=還款;  5=補單; 11=出款 ; 12=凍結 ; 13=追回; 20=調整)
+					TransactionType: constants.TRANSACTION_TYPE_REFUND, //異動類型 (1=收款 ; 2=解凍;  3=沖正 4=還款;  5=補單; 11=出款 ; 12=凍結 ; 13=追回; 20=調整)
 					BalanceType:     constants.XF_BALANCE,
-					Comment:         "補扣下發手續費",
+					Comment:         "還款下發手續費",
 					CreatedBy:       txOrder.MerchantCode,
 					ChannelCode:     txOrder.ChannelCode,
 					MerPtBalanceId:  merchantPtBalanceId,
@@ -100,7 +100,7 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 				//异动子钱包
 				if merchantPtBalanceId > 0 {
 					updateBalance.MerPtBalanceId = merchantPtBalanceId
-					if _, err = merchantbalanceservice.UpdateXF_Pt_Balance_Debit(l.ctx, db, &updateBalance); err != nil {
+					if _, err = merchantbalanceservice.UpdateXF_Pt_Balance_Deposit(l.ctx, db, &updateBalance); err != nil {
 						txOrder.RepaymentStatus = constants.REPAYMENT_FAIL
 						logx.WithContext(l.ctx).Errorf("商户:%s，更新子钱錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
 						return err
@@ -271,21 +271,16 @@ func (l WithdrawReviewSuccessTransactionLogic) doUpdateBalance(db *gorm.DB, upda
 	}
 
 	// 2. 計算
-	var selectBalance string
-	if utils.FloatAdd(merchantBalance.Balance, updateBalance.TransferAmount) < 0 {
-		logx.Errorf("商户:%s，余额类型:%s，余额:%s，交易金额:%s", merchantBalance.MerchantCode, merchantBalance.BalanceType, fmt.Sprintf("%f", merchantBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount))
-		return merchantBalanceRecord, errorz.New(response.MERCHANT_INSUFFICIENT_DF_BALANCE)
-	}
-	selectBalance = "balance"
+	selectBalance := "balance"
 	beforeBalance = merchantBalance.Balance
-	afterBalance = utils.FloatAdd(beforeBalance, -updateBalance.TransferAmount)
+	afterBalance = utils.FloatAdd(beforeBalance, updateBalance.TransferAmount)
 	merchantBalance.Balance = afterBalance
 
 	// 3. 變更 商戶餘額
 	if err = db.Table("mc_merchant_balances").Select(selectBalance).Updates(types.MerchantBalanceX{
 		MerchantBalance: merchantBalance,
 	}).Error; err != nil {
-		logx.Error(err.Error())
+		logx.WithContext(l.ctx).Errorf("mc_merchant_balances Err: %s", err.Error())
 		return merchantBalanceRecord, errorz.New(response.DATABASE_FAILURE, err.Error())
 	}
 
@@ -301,7 +296,7 @@ func (l WithdrawReviewSuccessTransactionLogic) doUpdateBalance(db *gorm.DB, upda
 		TransactionType:   updateBalance.TransactionType,
 		BalanceType:       updateBalance.BalanceType,
 		BeforeBalance:     beforeBalance,
-		TransferAmount:    -updateBalance.TransferAmount,
+		TransferAmount:    updateBalance.TransferAmount,
 		AfterBalance:      afterBalance,
 		Comment:           updateBalance.Comment,
 		CreatedBy:         updateBalance.CreatedBy,

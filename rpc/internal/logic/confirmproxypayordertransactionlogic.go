@@ -105,7 +105,7 @@ func (l *ConfirmProxyPayOrderTransactionLogic) ConfirmProxyPayOrderTransaction(i
 		if order.BalanceType == constants.DF_BALANCE {
 			//异动子钱包
 			if merchantChannelRate.MerchantPtBalanceId > 0 {
-				if _, err := merchantbalanceservice.DoUpdateDF_Pt_Balance_Debit(l.ctx, l.svcCtx, txDB, updateBalance); err != nil {
+				if _, err := merchantbalanceservice.UpdateDF_Pt_Balance_Debit(l.ctx, txDB, updateBalance); err != nil {
 					logx.WithContext(l.ctx).Errorf("商户:%s，幣別: %s，更新子錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, order.CurrencyCode, err.Error(), updateBalance)
 					return &transactionclient.ConfirmProxyPayOrderResponse{
 						Code:    response.SYSTEM_ERROR,
@@ -125,7 +125,7 @@ func (l *ConfirmProxyPayOrderTransactionLogic) ConfirmProxyPayOrderTransaction(i
 		} else if order.BalanceType == constants.XF_BALANCE {
 
 			if merchantChannelRate.MerchantPtBalanceId > 0 {
-				if _, err := merchantbalanceservice.DoUpdateXF_Pt_Balance_Debit(l.ctx, l.svcCtx, txDB, updateBalance); err != nil {
+				if _, err := merchantbalanceservice.UpdateXF_Pt_Balance_Debit(l.ctx, txDB, updateBalance); err != nil {
 					logx.WithContext(l.ctx).Errorf("商户:%s，幣別: %s，更新子錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, order.CurrencyCode, err.Error(), updateBalance)
 					return &transactionclient.ConfirmProxyPayOrderResponse{
 						Code:    response.SYSTEM_ERROR,

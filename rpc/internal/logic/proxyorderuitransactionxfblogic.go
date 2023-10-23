@@ -126,7 +126,7 @@ func (l *ProxyOrderUITransactionXFBLogic) ProxyOrderUITransaction_XFB(in *transa
 
 			//更新商户子钱包且新增记录
 			if rate.PtBalanceId > 0 {
-				if _, err = merchantbalanceservice.DoUpdateXF_Pt_Balance_Debit(l.ctx, l.svcCtx, db, updateBalance); err != nil {
+				if _, err = merchantbalanceservice.UpdateXF_Pt_Balance_Debit(l.ctx, db, updateBalance); err != nil {
 					logx.WithContext(l.ctx).Errorf("商户:%s，更新錢包紀錄錯誤:%s, updateBalance:%#v", updateBalance.MerchantCode, err.Error(), updateBalance)
 					return errorz.New(response.SYSTEM_ERROR, err.Error())
 				}
