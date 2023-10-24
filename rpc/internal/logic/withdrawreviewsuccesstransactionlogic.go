@@ -88,7 +88,7 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 					MerchantOrderNo: txOrder.MerchantOrderNo,
 					OrderType:       txOrder.Type,
 					PayTypeCode:     txOrder.PayTypeCode,
-					TransferAmount:  txOrder.TransferHandlingFee,
+					TransferAmount:  txOrder.DefaultHandlingFee,
 					TransactionType: constants.TRANSACTION_TYPE_REFUND, //異動類型 (1=收款 ; 2=解凍;  3=沖正 4=還款;  5=補單; 11=出款 ; 12=凍結 ; 13=追回; 20=調整)
 					BalanceType:     constants.XF_BALANCE,
 					Comment:         "還款下發手續費",
