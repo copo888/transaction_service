@@ -36,14 +36,14 @@ func NewWithdrawReviewSuccessTransactionLogic(ctx context.Context, svcCtx *svc.S
 }
 
 func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction(in *transactionclient.WithdrawReviewSuccessRequest) (resp *transactionclient.WithdrawReviewSuccessResponse, err error) {
-	var txOrder types.OrderX
+	var txOrder = &types.OrderX{}
 	var merchantPtBalanceId int64
 	var totalWithdrawAmount float64 = 0.0
 	var totalChannelHandlingFee float64
 	var orderChannels []types.OrderChannelsX
 	channelWithdraws := in.ChannelWithdraw
 
-	if err = l.svcCtx.MyDB.Table("tx_orders").Where("order_no = ?", in.OrderNo).Take(&txOrder).Error; err != nil {
+	if err = l.svcCtx.MyDB.Table("tx_orders").Where("order_no = ?", in.OrderNo).Take(txOrder).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &transactionclient.WithdrawReviewSuccessResponse{
 				Code:    response.DATA_NOT_FOUND,
@@ -76,8 +76,11 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 
 			//下發審核若低於金額，則需還收手續費(因維手續費是預先扣除)
 			if in.IsCharged == "1" {
-				txOrder.HandlingFee = 0
-				txOrder.TransferHandlingFee = 0
+				txOrder.Fee = 0.0
+				txOrder.HandlingFee = 0.0
+				txOrder.TransferHandlingFee = 0.0
+				txOrder.TransferAmount = txOrder.OrderAmount
+
 				merchantBalanceRecord := types.MerchantBalanceRecord{}
 
 				// 新增收支记录，与更新商户余额(商户账户号是黑名单，把交易金额为设为 0)
@@ -164,9 +167,10 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 			txOrder.Status = constants.SUCCESS
 			txOrder.ReviewedBy = in.UserAccount
 			txOrder.Memo = in.Memo
-			// 更新审核通过
-			if err2 := db.Table("tx_orders").Updates(txOrder).Error; err2 != nil {
-				return errorz.New(response.DATABASE_FAILURE, err2.Error())
+
+			if err = db.Table("tx_orders").Where("id = ?", txOrder.ID).Updates(txOrder).
+				Updates(map[string]interface{}{"transfer_handling_fee": 0.0, "handling_fee": 0.0, "fee": 0.0}).Error; err != nil {
+				return errorz.New(response.DATABASE_FAILURE, err.Error())
 			}
 
 			// 更新下发利润
