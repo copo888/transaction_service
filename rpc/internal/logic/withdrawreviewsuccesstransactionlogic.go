@@ -168,14 +168,13 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 			txOrder.ReviewedBy = in.UserAccount
 			txOrder.Memo = in.Memo
 
-			if err = db.Table("tx_orders").Where("id = ?", txOrder.ID).Updates(txOrder).
-				Updates(map[string]interface{}{"transfer_handling_fee": 0.0, "fee": 0.0}).Error; err != nil {
+			if err = db.Table("tx_orders").Where("id = ?", txOrder.ID).Updates(txOrder).Error; err != nil {
 				return errorz.New(response.DATABASE_FAILURE, err.Error())
 			}
 			//下發回U還商戶手續費
 			if in.IsCharged == "1" {
 				if err = db.Table("tx_orders").Where("id = ?", txOrder.ID).
-					Updates(map[string]interface{}{"transfer_handling_fee": 0.0, "handling_fee": 0.0, "fee": 0.0}).Error; err != nil {
+					Updates(map[string]interface{}{"transfer_handling_fee": 0.0, "fee": 0.0}).Error; err != nil {
 					return errorz.New(response.DATABASE_FAILURE, err.Error())
 				}
 			}
