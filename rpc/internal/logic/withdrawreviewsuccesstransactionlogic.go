@@ -173,6 +173,13 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 				return errorz.New(response.DATABASE_FAILURE, err.Error())
 			}
 
+			if in.IsCharged == "1" {
+				if err = db.Table("tx_orders").Where("id = ?", txOrder.ID).
+					Updates(map[string]interface{}{"transfer_handling_fee": 0.0, "handling_fee": 0.0, "fee": 0.0}).Error; err != nil {
+					return errorz.New(response.DATABASE_FAILURE, err.Error())
+				}
+			}
+
 			// 更新下发利润
 			oldOrder := &types.Order{
 				OrderNo:             txOrder.OrderNo,
