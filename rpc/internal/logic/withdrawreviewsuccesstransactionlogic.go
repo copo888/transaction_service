@@ -77,7 +77,7 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 			//下發審核若低於金額，則需還收手續費(因維手續費是預先扣除)
 			if in.IsCharged == "1" {
 				txOrder.Fee = 0.0
-				txOrder.HandlingFee = 0.0
+				//txOrder.HandlingFee = 0.0
 				txOrder.TransferHandlingFee = 0.0
 				txOrder.TransferAmount = txOrder.OrderAmount
 
@@ -169,10 +169,10 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 			txOrder.Memo = in.Memo
 
 			if err = db.Table("tx_orders").Where("id = ?", txOrder.ID).Updates(txOrder).
-				Updates(map[string]interface{}{"transfer_handling_fee": 0.0, "handling_fee": 0.0, "fee": 0.0}).Error; err != nil {
+				Updates(map[string]interface{}{"transfer_handling_fee": 0.0, "fee": 0.0}).Error; err != nil {
 				return errorz.New(response.DATABASE_FAILURE, err.Error())
 			}
-
+			//下發回U還商戶手續費
 			if in.IsCharged == "1" {
 				if err = db.Table("tx_orders").Where("id = ?", txOrder.ID).
 					Updates(map[string]interface{}{"transfer_handling_fee": 0.0, "handling_fee": 0.0, "fee": 0.0}).Error; err != nil {
