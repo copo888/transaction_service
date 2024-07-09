@@ -378,6 +378,7 @@ message ConfirmPayOrderResponse {
   string OrderTime = 10;
   string PayOrderTime = 11;
   string Status = 12;
+  string Currency = 13;
 }
 
 message ConfirmProxyPayOrderRequest {
@@ -388,6 +389,7 @@ message ConfirmProxyPayOrderRequest {
 message ConfirmProxyPayOrderResponse {
   string Code = 1;
   string Message = 2;
+
 }
 
 message RecoverReceiptOrderRequest {

@@ -149,6 +149,7 @@ func (l *ConfirmPayOrderTransactionLogic) ConfirmPayOrderTransaction(in *transac
 		OrderTime:           order.CreatedAt.Format("20060102150405000"),
 		PayOrderTime:        order.TransAt.Time().Format("20060102150405000"),
 		Status:              order.Status,
+		Currency:            order.CurrencyCode,
 	}, nil
 }
 
