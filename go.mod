@@ -1,6 +1,6 @@
 module github.com/copo888/transaction_service
 
-go 1.17
+go 1.20
 
 require (
 	github.com/gioco-play/easy-i18n v0.0.0-20211230163059-f5ca29729c30
