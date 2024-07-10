@@ -58,7 +58,7 @@ func Contain(obj interface{}, target interface{}) bool {
 	return false
 }
 
-//FloatMul 浮點數乘法 (precision=4)
+// FloatMul 浮點數乘法 (precision=4)
 func FloatMul(s float64, p float64, precisions ...int32) float64 {
 
 	f1 := decimal.NewFromFloat(s)
@@ -68,7 +68,7 @@ func FloatMul(s float64, p float64, precisions ...int32) float64 {
 	if len(precisions) > 0 {
 		precision = precisions[0]
 	} else {
-		precision = 3
+		precision = 7
 	}
 
 	res, _ := f1.Mul(f2).Truncate(precision).Float64()
@@ -76,7 +76,7 @@ func FloatMul(s float64, p float64, precisions ...int32) float64 {
 	return res
 }
 
-//FloatDiv 浮點數除法 (precision=4)
+// FloatDiv 浮點數除法 (precision=4)
 func FloatDiv(s float64, p float64, precisions ...int32) float64 {
 
 	f1 := decimal.NewFromFloat(s)
@@ -86,14 +86,14 @@ func FloatDiv(s float64, p float64, precisions ...int32) float64 {
 	if len(precisions) > 0 {
 		precision = precisions[0]
 	} else {
-		precision = 3
+		precision = 7
 	}
 	res, _ := f1.Div(f2).Truncate(precision).Float64()
 
 	return res
 }
 
-//FloatSub 浮點數減法 (precision=4)
+// FloatSub 浮點數減法 (precision=4)
 func FloatSub(s float64, p float64, precisions ...int32) float64 {
 
 	f1 := decimal.NewFromFloat(s)
@@ -103,14 +103,14 @@ func FloatSub(s float64, p float64, precisions ...int32) float64 {
 	if len(precisions) > 0 {
 		precision = precisions[0]
 	} else {
-		precision = 3
+		precision = 7
 	}
 	res, _ := f1.Sub(f2).Truncate(precision).Float64()
 
 	return res
 }
 
-//FloatAdd 浮點數加法 (precision=4)
+// FloatAdd 浮點數加法 (precision=4)
 func FloatAdd(s float64, p float64, precisions ...int32) float64 {
 
 	f1 := decimal.NewFromFloat(s)
@@ -120,7 +120,7 @@ func FloatAdd(s float64, p float64, precisions ...int32) float64 {
 	if len(precisions) > 0 {
 		precision = precisions[0]
 	} else {
-		precision = 3
+		precision = 7
 	}
 	res, _ := f1.Add(f2).Truncate(precision).Float64()
 
