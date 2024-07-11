@@ -68,7 +68,7 @@ func FloatMul(s float64, p float64, precisions ...int32) float64 {
 	if len(precisions) > 0 {
 		precision = precisions[0]
 	} else {
-		precision = 7 //因應Crypto所需的位數。
+		precision = 7 //因應Crypto所需的位數。。
 	}
 
 	res, _ := f1.Mul(f2).Truncate(precision).Float64()
