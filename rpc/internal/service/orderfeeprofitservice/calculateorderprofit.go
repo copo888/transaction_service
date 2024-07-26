@@ -88,6 +88,7 @@ func CalculateNcOrderProfit(db *gorm.DB, calculateProfit types.CalculateProfit, 
 		return
 	})
 }
+
 // CalculateOrderProfitForIsCommission 可決定是否計算代理傭金
 func CalculateOrderProfitForIsCommission(db *gorm.DB, calculateProfit types.CalculateProfit, isCalculateCommission bool) (err error) {
 	return db.Transaction(func(db *gorm.DB) (err error) {
@@ -213,7 +214,7 @@ func setMerchantFee(db *gorm.DB, calculateProfit *types.CalculateProfit, orderFe
 
 	//  交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
 	orderFeeProfit.TransferHandlingFee =
-		utils.FloatAdd(utils.FloatMul(utils.FloatDiv(calculateProfit.OrderAmount, 100), orderFeeProfit.Fee), orderFeeProfit.HandlingFee)
+		utils.FloatAddC(utils.FloatMulC(utils.FloatDivC(calculateProfit.OrderAmount, 100, calculateProfit.CurrencyCode), orderFeeProfit.Fee, calculateProfit.CurrencyCode), orderFeeProfit.HandlingFee, calculateProfit.CurrencyCode)
 
 	return
 }
@@ -249,7 +250,7 @@ func setChannelFee(db *gorm.DB, calculateProfit *types.CalculateProfit, orderFee
 
 	//  交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
 	orderFeeProfit.TransferHandlingFee =
-		utils.FloatAdd(utils.FloatMul(utils.FloatDiv(calculateProfit.OrderAmount, 100), orderFeeProfit.Fee), orderFeeProfit.HandlingFee)
+		utils.FloatAddC(utils.FloatMulC(utils.FloatDivC(calculateProfit.OrderAmount, 100, calculateProfit.CurrencyCode), orderFeeProfit.Fee, calculateProfit.CurrencyCode), orderFeeProfit.HandlingFee, calculateProfit.CurrencyCode)
 
 	return
 }
@@ -259,7 +260,6 @@ func updateOrderByIsCalculateProfit(db *gorm.DB, orderNo string) error {
 		Where("order_no = ?", orderNo).
 		Updates(map[string]interface{}{"is_calculate_profit": constants.IS_CALCULATE_PROFIT_YES}).Error
 }
-
 
 func NcOrderCalculateProfitLoop(db *gorm.DB, calculateProfit *types.CalculateProfit, orderFeeProfits *[]types.OrderFeeProfit, rates map[string]float64, chnRate float64, isProxy string, isCalculateCommission bool) (err error) {
 	var merchant *types.Merchant
@@ -299,12 +299,12 @@ func NcOrderCalculateProfitLoop(db *gorm.DB, calculateProfit *types.CalculatePro
 			merRate = v
 		}
 		// MerchantCode 不是 00000000 要取商戶費率
-		if err = setNcMerchantFee(db, calculateProfit, &orderFeeProfit, merRate,isProxy); err != nil {
+		if err = setNcMerchantFee(db, calculateProfit, &orderFeeProfit, merRate, isProxy); err != nil {
 			return
 		}
 	} else {
 		// MerchantCode 是 00000000 要取渠道費率
-		if err = setNcChannelFee(db, calculateProfit, &orderFeeProfit, chnRate,isProxy); err != nil {
+		if err = setNcChannelFee(db, calculateProfit, &orderFeeProfit, chnRate, isProxy); err != nil {
 			return
 		}
 	}
@@ -330,16 +330,16 @@ func NcOrderCalculateProfitLoop(db *gorm.DB, calculateProfit *types.CalculatePro
 	} else if agentParentCode != "" && isCalculateCommission {
 		// 有上層代理 且 需計算傭金 要接下去算代理傭金
 		calculateProfit.MerchantCode = agentParentCode
-		return NcOrderCalculateProfitLoop(db, calculateProfit, orderFeeProfits, rates, chnRate, isProxy,isCalculateCommission)
+		return NcOrderCalculateProfitLoop(db, calculateProfit, orderFeeProfits, rates, chnRate, isProxy, isCalculateCommission)
 	} else {
 		// 沒上層代理 開始計算系統利潤
 		calculateProfit.MerchantCode = "00000000"
-		return NcOrderCalculateProfitLoop(db, calculateProfit, orderFeeProfits, rates, chnRate, isProxy,isCalculateCommission)
+		return NcOrderCalculateProfitLoop(db, calculateProfit, orderFeeProfits, rates, chnRate, isProxy, isCalculateCommission)
 	}
 }
 
 // 設置費率
-func setNcMerchantFee(db *gorm.DB,calculateProfit *types.CalculateProfit, orderFeeProfit *types.OrderFeeProfit, merRate float64,isProxy string) (err error) {
+func setNcMerchantFee(db *gorm.DB, calculateProfit *types.CalculateProfit, orderFeeProfit *types.OrderFeeProfit, merRate float64, isProxy string) (err error) {
 	if isProxy != constants.ISPROXY {
 		var merchantChannelRate *types.MerchantChannelRate
 
@@ -352,21 +352,20 @@ func setNcMerchantFee(db *gorm.DB,calculateProfit *types.CalculateProfit, orderF
 		}
 		// "内充" 收計算費率
 		orderFeeProfit.Fee = merchantChannelRate.Fee
-	}else {
+	} else {
 		// "内充" 收計算費率
 		orderFeeProfit.Fee = merRate
 	}
 
-
 	//  交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
 	orderFeeProfit.TransferHandlingFee =
-		utils.FloatAdd(utils.FloatMul(utils.FloatDiv(calculateProfit.OrderAmount, 100), orderFeeProfit.Fee), orderFeeProfit.HandlingFee)
+		utils.FloatAddC(utils.FloatMulC(utils.FloatDivC(calculateProfit.OrderAmount, 100, calculateProfit.CurrencyCode), orderFeeProfit.Fee, calculateProfit.CurrencyCode), orderFeeProfit.HandlingFee, calculateProfit.CurrencyCode)
 
 	return
 }
 
 // 設置費率
-func setNcChannelFee(db *gorm.DB,calculateProfit *types.CalculateProfit, orderFeeProfit *types.OrderFeeProfit, chnRate float64,isProxy string) (err error) {
+func setNcChannelFee(db *gorm.DB, calculateProfit *types.CalculateProfit, orderFeeProfit *types.OrderFeeProfit, chnRate float64, isProxy string) (err error) {
 
 	if isProxy != constants.ISPROXY {
 		var channelPayType *types.ChannelPayType
@@ -385,7 +384,7 @@ func setNcChannelFee(db *gorm.DB,calculateProfit *types.CalculateProfit, orderFe
 
 	//  交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
 	orderFeeProfit.TransferHandlingFee =
-		utils.FloatAdd(utils.FloatMul(utils.FloatDiv(calculateProfit.OrderAmount, 100), orderFeeProfit.Fee), orderFeeProfit.HandlingFee)
+		utils.FloatAddC(utils.FloatMulC(utils.FloatDivC(calculateProfit.OrderAmount, 100, calculateProfit.CurrencyCode), orderFeeProfit.Fee, calculateProfit.CurrencyCode), orderFeeProfit.HandlingFee, calculateProfit.CurrencyCode)
 
 	return
 }

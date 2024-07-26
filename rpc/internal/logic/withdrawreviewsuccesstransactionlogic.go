@@ -123,7 +123,7 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 				}
 			}
 
-			perChannelWithdrawHandlingFee := utils.FloatDiv(txOrder.HandlingFee, l.intToFloat64(len(channelWithdraws)))
+			perChannelWithdrawHandlingFee := utils.FloatDivC(txOrder.HandlingFee, l.intToFloat64(len(channelWithdraws)), txOrder.CurrencyCode)
 			for _, channelWithdraw := range channelWithdraws {
 				if channelWithdraw.WithdrawAmount > 0 { // 下发金额不得为0
 					// 取得渠道下發手續費
@@ -149,8 +149,8 @@ func (l *WithdrawReviewSuccessTransactionLogic) WithdrawReviewSuccessTransaction
 					}
 
 					orderChannels = append(orderChannels, orderChannel)
-					totalWithdrawAmount = utils.FloatAdd(totalWithdrawAmount, channelWithdraw.WithdrawAmount)
-					totalChannelHandlingFee = utils.FloatAdd(totalChannelHandlingFee, channelWithdrawHandlingFee)
+					totalWithdrawAmount = utils.FloatAddC(totalWithdrawAmount, channelWithdraw.WithdrawAmount, txOrder.CurrencyCode)
+					totalChannelHandlingFee = utils.FloatAddC(totalChannelHandlingFee, channelWithdrawHandlingFee, txOrder.CurrencyCode)
 				}
 			}
 			// 判断渠道下发金额家总须等于订单的下发金额
@@ -244,7 +244,7 @@ func (l *WithdrawReviewSuccessTransactionLogic) CalculateSystemProfit(db *gorm.D
 		HandlingFee:         TransferHandlingFee,
 		TransferHandlingFee: TransferHandlingFee,
 		// 商戶手續費 - 渠道總手續費 = 利潤 (有可能是負的)
-		ProfitAmount: utils.FloatSub(order.TransferHandlingFee, TransferHandlingFee),
+		ProfitAmount: utils.FloatSubC(order.TransferHandlingFee, TransferHandlingFee, order.CurrencyCode),
 	}
 
 	// 保存系統利潤
@@ -283,7 +283,7 @@ func (l WithdrawReviewSuccessTransactionLogic) doUpdateBalance(db *gorm.DB, upda
 	// 2. 計算
 	selectBalance := "balance"
 	beforeBalance = merchantBalance.Balance
-	afterBalance = utils.FloatAdd(beforeBalance, updateBalance.TransferAmount)
+	afterBalance = utils.FloatAddC(beforeBalance, updateBalance.TransferAmount, updateBalance.CurrencyCode)
 	merchantBalance.Balance = afterBalance
 
 	// 3. 變更 商戶餘額

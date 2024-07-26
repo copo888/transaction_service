@@ -81,8 +81,8 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranactionForSuccess(ctx context
 	}
 
 	// 下單金額及實付金額差異風控 (差異超過5% 且 超過1元)
-	limit := utils.FloatMul(order.OrderAmount, 0.05)
-	diff := math.Abs(utils.FloatSub(order.OrderAmount, in.OrderAmount))
+	limit := utils.FloatMulC(order.OrderAmount, 0.05, order.CurrencyCode)
+	diff := math.Abs(utils.FloatSubC(order.OrderAmount, in.OrderAmount, order.CurrencyCode))
 	if diff > limit && diff > 1 {
 		return &transactionclient.PayCallBackResponse{
 			Code:    response.ORDER_AMOUNT_ERROR,
@@ -174,7 +174,7 @@ func (l *PayCallBackTranactionLogic) updateOrderAndBalance(db *gorm.DB, req *tra
 		// 回调金额 才是实际收款金额
 		order.ActualAmount = req.OrderAmount
 		// (更改为实际收款金额) 交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
-		order.TransferHandlingFee = utils.FloatAdd(utils.FloatMul(utils.FloatDiv(order.ActualAmount, 100), order.Fee), order.HandlingFee)
+		order.TransferHandlingFee = utils.FloatAddC(utils.FloatMulC(utils.FloatDivC(order.ActualAmount, 100, order.CurrencyCode), order.Fee, order.CurrencyCode), order.HandlingFee, order.CurrencyCode)
 		// (更改为实际收款金额) 計算實際交易金額 = 訂單金額 - 手續費
 		order.TransferAmount = order.ActualAmount - order.TransferHandlingFee
 

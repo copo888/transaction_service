@@ -57,7 +57,7 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 
 	newOrderNo := model.GenerateOrderNo(order.Type)
 	// 計算交易手續費 (金額 / 100 * 費率 + 手續費)
-	transferHandlingFee := -utils.FloatAdd(utils.FloatMul(utils.FloatDiv(req.Amount, 100), order.Fee), order.HandlingFee)
+	transferHandlingFee := -utils.FloatAddC(utils.FloatMulC(utils.FloatDivC(req.Amount, 100), order.Fee), order.HandlingFee)
 	// 計算實際交易金額 = 訂單金額 + 手續費
 	transferAmount = -req.Amount - transferHandlingFee
 	merchantOrderNo := order.MerchantOrderNo + "#R"
@@ -152,7 +152,7 @@ func (l *RecoverReceiptOrderTransactionLogic) RecoverReceiptOrderTransaction(req
 			NewOrderNo:            newOrderNo,
 			OrderAmount:           -req.Amount,
 			IsCalculateCommission: req.IsCalculateCommission,
-		}); err != nil {
+		}, order.CurrencyCode); err != nil {
 			txDB.Rollback()
 			return &transactionclient.RecoverReceiptOrderResponse{
 				Code:    response.SYSTEM_ERROR,

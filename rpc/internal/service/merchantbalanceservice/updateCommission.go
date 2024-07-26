@@ -25,7 +25,7 @@ func UpdateCommissionAmount(db *gorm.DB, updateCommissionAmount types.UpdateComm
 	}
 
 	beforeCommission = merchantBalance.Balance
-	afterCommission = utils.FloatAdd(beforeCommission, updateCommissionAmount.TransferAmount)
+	afterCommission = utils.FloatAddC(beforeCommission, updateCommissionAmount.TransferAmount, updateCommissionAmount.CurrencyCode)
 	merchantBalance.Balance = afterCommission
 
 	// 3. 變更 商戶佣金

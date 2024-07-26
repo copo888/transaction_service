@@ -9,7 +9,7 @@ import (
 )
 
 // CalculateSubOrderProfit 從舊單產生新單時 計算利潤要沿用舊單費率 (EX: 補單,追回)
-func CalculateSubOrderProfit(db *gorm.DB, calculateProfit types.CalculateSubOrderProfit) (err error) {
+func CalculateSubOrderProfit(db *gorm.DB, calculateProfit types.CalculateSubOrderProfit, currency string) (err error) {
 	var oldFeeProfits []types.OrderFeeProfit
 	newFeeProfits := make([]types.OrderFeeProfit, 2)
 	// 取得舊單費率列表 按 agent_layer_no 降序排序 (第一筆是自己 中間幾筆代理 最後一筆系統利潤)
@@ -36,7 +36,7 @@ func CalculateSubOrderProfit(db *gorm.DB, calculateProfit types.CalculateSubOrde
 		newFeeProfits[i].OrderNo = calculateProfit.NewOrderNo
 
 		// 交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
-		newFeeProfits[i].TransferHandlingFee = utils.FloatAdd(utils.FloatMul(utils.FloatDiv(calculateProfit.OrderAmount, 100), profit.Fee), profit.HandlingFee)
+		newFeeProfits[i].TransferHandlingFee = utils.FloatAddC(utils.FloatMulC(utils.FloatDivC(calculateProfit.OrderAmount, 100, currency), profit.Fee, currency), profit.HandlingFee, currency)
 
 		if i == 0 {
 			// 第一筆沒有傭金利潤

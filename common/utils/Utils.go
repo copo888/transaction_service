@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/shopspring/decimal"
 	"golang.org/x/crypto/bcrypt"
+	"math"
 	"reflect"
 	"strings"
 	"time"
@@ -58,6 +59,16 @@ func Contain(obj interface{}, target interface{}) bool {
 	return false
 }
 
+// FloatMulC : 增加currency 判别决定小数位数(预设4位)
+func FloatMulC(s float64, p float64, currency ...string) float64 {
+
+	if len(currency) > 0 && (strings.EqualFold(currency[0], "BTC") || strings.EqualFold(currency[0], "ETH")) {
+		return FloatMul(s, p, 7)
+	} else {
+		return FloatMul(s, p)
+	}
+}
+
 // FloatMul 浮點數乘法 (precision=4)
 func FloatMul(s float64, p float64, precisions ...int32) float64 {
 
@@ -68,12 +79,22 @@ func FloatMul(s float64, p float64, precisions ...int32) float64 {
 	if len(precisions) > 0 {
 		precision = precisions[0]
 	} else {
-		precision = 7 //因應Crypto所需的位數。。
+		precision = 4
 	}
 
 	res, _ := f1.Mul(f2).Truncate(precision).Float64()
 
 	return res
+}
+
+// FloatMulC : 增加currency 判别决定小数位数
+func FloatDivC(s float64, p float64, currency ...string) float64 {
+
+	if len(currency) > 0 && (strings.EqualFold(currency[0], "BTC") || strings.EqualFold(currency[0], "ETH")) {
+		return FloatDiv(s, p, 7)
+	} else {
+		return FloatDiv(s, p)
+	}
 }
 
 // FloatDiv 浮點數除法 (precision=4)
@@ -86,11 +107,21 @@ func FloatDiv(s float64, p float64, precisions ...int32) float64 {
 	if len(precisions) > 0 {
 		precision = precisions[0]
 	} else {
-		precision = 7
+		precision = 4
 	}
 	res, _ := f1.Div(f2).Truncate(precision).Float64()
 
 	return res
+}
+
+// FloatSubC : 增加currency 判别决定小数位数
+func FloatSubC(s float64, p float64, currency ...string) float64 {
+
+	if len(currency) > 0 && (strings.EqualFold(currency[0], "BTC") || strings.EqualFold(currency[0], "ETH")) {
+		return FloatSub(s, p, 7)
+	} else {
+		return FloatSub(s, p)
+	}
 }
 
 // FloatSub 浮點數減法 (precision=4)
@@ -103,11 +134,21 @@ func FloatSub(s float64, p float64, precisions ...int32) float64 {
 	if len(precisions) > 0 {
 		precision = precisions[0]
 	} else {
-		precision = 7
+		precision = 4
 	}
 	res, _ := f1.Sub(f2).Truncate(precision).Float64()
 
 	return res
+}
+
+// FloatAddC : 增加currency 判别决定小数位数
+func FloatAddC(s float64, p float64, currency ...string) float64 {
+
+	if len(currency) > 0 && (strings.EqualFold(currency[0], "BTC") || strings.EqualFold(currency[0], "ETH")) {
+		return FloatAdd(s, p, 7)
+	} else {
+		return FloatAdd(s, p)
+	}
 }
 
 // FloatAdd 浮點數加法 (precision=4)
@@ -120,9 +161,23 @@ func FloatAdd(s float64, p float64, precisions ...int32) float64 {
 	if len(precisions) > 0 {
 		precision = precisions[0]
 	} else {
-		precision = 7
+		precision = 4
 	}
 	res, _ := f1.Add(f2).Truncate(precision).Float64()
 
 	return res
+}
+
+func TruncateToThreeDecimal(currency string, amount float64) float64 {
+
+	if strings.EqualFold(currency, "BTC") || strings.EqualFold(currency, "ETH") {
+		return amount
+	}
+	// 乘以 1000 以便保留前三位小数
+	pow := math.Pow(10, 3)
+
+	// 取整，舍去第四位及之后的位数
+	truncated := math.Trunc(amount*pow) / pow
+
+	return truncated
 }

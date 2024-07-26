@@ -121,13 +121,13 @@ func UpdateDFBalance_Debit(ctx context.Context, db *gorm.DB, updateBalance *type
 
 	// 2. 計算 (依照 BalanceType 決定異動哪種餘額)
 	var selectBalance string
-	if utils.FloatAdd(merchantBalance.Balance, -updateBalance.TransferAmount) < 0 { //判斷餘額是否不足
+	if utils.FloatAddC(merchantBalance.Balance, -updateBalance.TransferAmount, updateBalance.CurrencyCode) < 0 { //判斷餘額是否不足
 		logx.WithContext(ctx).Errorf("商户:%s，余额类型:%s，余额:%s，交易金额:%s", merchantBalance.MerchantCode, merchantBalance.BalanceType, fmt.Sprintf("%f", merchantBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount))
 		return merchantBalanceRecord, errorz.New(response.MERCHANT_INSUFFICIENT_DF_BALANCE)
 	}
 	selectBalance = "balance"
 	beforeBalance = merchantBalance.Balance
-	afterBalance = utils.FloatAdd(beforeBalance, -updateBalance.TransferAmount) //代付出款固定TransferAmount代負號
+	afterBalance = utils.FloatAddC(beforeBalance, -updateBalance.TransferAmount, updateBalance.CurrencyCode) //代付出款固定TransferAmount代負號
 	merchantBalance.Balance = afterBalance
 
 	// 3. 變更 商戶餘額
@@ -181,13 +181,13 @@ func UpdateDF_Pt_Balance_Debit(ctx context.Context, db *gorm.DB, updateBalance *
 	}
 
 	//判斷餘額是否不足 2. 計算 (依照 BalanceType 決定異動哪種餘額)
-	if utils.FloatAdd(merchantPtBalance.Balance, -updateBalance.TransferAmount) < 0 { //判斷餘額是否不足
+	if utils.FloatAddC(merchantPtBalance.Balance, -updateBalance.TransferAmount, updateBalance.CurrencyCode) < 0 { //判斷餘額是否不足
 		logx.WithContext(ctx).Errorf("商户:%s，幣別:%s, 子錢包类型:%s ，余额:%s，交易金额:%s", merchantPtBalance.MerchantCode, merchantPtBalance.CurrencyCode, merchantPtBalance.Name, fmt.Sprintf("%f", merchantPtBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount))
 		return merchantPtBalanceRecord, errorz.New(fmt.Sprintf("商户子錢包餘額不足:%s，幣別:%s, 子錢包类型:%s ，余额:%s，交易金额:%s", merchantPtBalance.MerchantCode, merchantPtBalance.CurrencyCode, merchantPtBalance.Name, fmt.Sprintf("%f", merchantPtBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount)))
 	}
 
 	beforeBalance = merchantPtBalance.Balance
-	afterBalance = utils.FloatAdd(beforeBalance, -updateBalance.TransferAmount)
+	afterBalance = utils.FloatAddC(beforeBalance, -updateBalance.TransferAmount, updateBalance.CurrencyCode)
 	merchantPtBalance.Balance = afterBalance
 
 	// 3. 變更 子錢包餘額
@@ -243,13 +243,13 @@ func UpdateXF_Pt_Balance_Debit(ctx context.Context, db *gorm.DB, updateBalance *
 	}
 
 	//判斷餘額是否不足 2. 計算 (依照 BalanceType 決定異動哪種餘額)
-	if utils.FloatAdd(merchantPtBalance.Balance, -updateBalance.TransferAmount) < 0 { //判斷餘額是否不足
+	if utils.FloatAddC(merchantPtBalance.Balance, -updateBalance.TransferAmount, updateBalance.CurrencyCode) < 0 { //判斷餘額是否不足
 		logx.WithContext(ctx).Errorf("商户:%s，幣別: %s, 子錢包类型:%s ，余额:%s，交易金额:%s", merchantPtBalance.MerchantCode, merchantPtBalance.CurrencyCode, merchantPtBalance.PayTypeCode, fmt.Sprintf("%f", merchantPtBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount))
 		return merchantPtBalanceRecord, errorz.New(response.MERCHANT_INSUFFICIENT_PT_BALANCE)
 	}
 
 	beforeBalance = merchantPtBalance.Balance
-	afterBalance = utils.FloatAdd(beforeBalance, -updateBalance.TransferAmount)
+	afterBalance = utils.FloatAddC(beforeBalance, -updateBalance.TransferAmount, updateBalance.CurrencyCode)
 	merchantPtBalance.Balance = afterBalance
 
 	// 3. 變更 子錢包餘額
@@ -303,7 +303,7 @@ func UpdateDF_Pt_Balance_Deposit(ctx context.Context, db *gorm.DB, updateBalance
 	}
 
 	beforeBalance = merchantPtBalance.Balance
-	afterBalance = utils.FloatAdd(beforeBalance, updateBalance.TransferAmount)
+	afterBalance = utils.FloatAddC(beforeBalance, updateBalance.TransferAmount, updateBalance.CurrencyCode)
 	merchantPtBalance.Balance = afterBalance
 
 	// 3. 變更 子錢包餘額
@@ -357,7 +357,7 @@ func UpdateXF_Pt_Balance_Deposit(ctx context.Context, db *gorm.DB, updateBalance
 	}
 
 	beforeBalance = merchantPtBalance.Balance
-	afterBalance = utils.FloatAdd(beforeBalance, updateBalance.TransferAmount)
+	afterBalance = utils.FloatAddC(beforeBalance, updateBalance.TransferAmount, updateBalance.CurrencyCode)
 	merchantPtBalance.Balance = afterBalance
 
 	// 3. 變更 子錢包餘額
@@ -415,13 +415,13 @@ func UpdateXFBalance_Debit(ctx context.Context, db *gorm.DB, updateBalance *type
 
 	// 2. 計算 (依照 BalanceType 決定異動哪種餘額)
 	var selectBalance string
-	if utils.FloatAdd(merchantBalance.Balance, -updateBalance.TransferAmount) < 0 { //判斷餘額是否不足
+	if utils.FloatAddC(merchantBalance.Balance, -updateBalance.TransferAmount, updateBalance.CurrencyCode) < 0 { //判斷餘額是否不足
 		logx.WithContext(ctx).Errorf("商户:%s，余额类型:%s，余额:%s，交易金额:%s", merchantBalance.MerchantCode, merchantBalance.BalanceType, fmt.Sprintf("%f", merchantBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount))
 		return merchantBalanceRecord, errorz.New(response.MERCHANT_INSUFFICIENT_DF_BALANCE)
 	}
 	selectBalance = "balance"
 	beforeBalance = merchantBalance.Balance
-	afterBalance = utils.FloatAdd(beforeBalance, -updateBalance.TransferAmount)
+	afterBalance = utils.FloatAddC(beforeBalance, -updateBalance.TransferAmount, updateBalance.CurrencyCode)
 	merchantBalance.Balance = afterBalance
 
 	// 3. 變更 商戶餘額
@@ -480,7 +480,7 @@ func UpdateXFBalance_Deposit(ctx context.Context, db *gorm.DB, updateBalance typ
 	// 2. 計算
 	selectBalance := "balance"
 	beforeBalance = merchantBalance.Balance
-	afterBalance = utils.FloatAdd(beforeBalance, updateBalance.TransferAmount)
+	afterBalance = utils.FloatAddC(beforeBalance, updateBalance.TransferAmount, updateBalance.CurrencyCode)
 	merchantBalance.Balance = afterBalance
 
 	// 3. 變更 商戶餘額
@@ -538,7 +538,7 @@ func UpdateDFBalance_Deposit(db *gorm.DB, updateBalance *types.UpdateBalance) (m
 	// 2. 計算
 	selectBalance := "balance"
 	beforeBalance = merchantBalance.Balance
-	afterBalance = utils.FloatAdd(beforeBalance, updateBalance.TransferAmount)
+	afterBalance = utils.FloatAddC(beforeBalance, updateBalance.TransferAmount, updateBalance.CurrencyCode)
 	merchantBalance.Balance = afterBalance
 
 	// 3. 變更 商戶餘額
@@ -617,7 +617,7 @@ func DoUpdateBalanceForZF(db *gorm.DB, ctx context.Context, redisClient *redis.C
 
 	// 2. 計算
 	beforeBalance = merchantBalance.Balance
-	afterBalance = utils.FloatAdd(beforeBalance, updateBalance.TransferAmount)
+	afterBalance = utils.FloatAddC(beforeBalance, updateBalance.TransferAmount, updateBalance.CurrencyCode)
 	merchantBalance.Balance = afterBalance
 
 	// 3. 變更 商戶餘額
@@ -695,7 +695,7 @@ func UpdateBalance(db *gorm.DB, updateBalance types.UpdateBalance) (merchantBala
 
 	selectBalance = "balance"
 	beforeBalance = merchantBalance.Balance
-	afterBalance = utils.FloatAdd(beforeBalance, updateBalance.TransferAmount)
+	afterBalance = utils.FloatAddC(beforeBalance, updateBalance.TransferAmount, updateBalance.CurrencyCode)
 	merchantBalance.Balance = afterBalance
 
 	// 3. 變更 商戶餘額

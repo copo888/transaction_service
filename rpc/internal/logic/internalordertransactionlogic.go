@@ -37,10 +37,10 @@ func (l *InternalOrderTransactionLogic) InternalOrderTransaction(in *transaction
 	//var merchantOrderRateListView = in.MerchantOrderRateListView
 
 	//// 交易手續費總額 = 訂單金額 / 100 * 費率
-	//transferHandling := utils.FloatMul(utils.FloatDiv(internalOrderReq.OrderAmount, 100), merchantOrderRateListView.MerFee)
+	//transferHandling := utils.FloatMulC(utils.FloatDivC(internalOrderReq.OrderAmount, 100), merchantOrderRateListView.MerFee)
 	//
 	//// 計算實際交易金額 = 訂單金額 - 手續費
-	//transferAmount := utils.FloatSub(internalOrderReq.OrderAmount, transferHandling)
+	//transferAmount := utils.FloatSubC(internalOrderReq.OrderAmount, transferHandling)
 
 	//初始化订单
 	txOrder := &types.Order{

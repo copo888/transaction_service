@@ -88,7 +88,7 @@ func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transactionclient.PayOr
 		order.Fee = correspondMerChnRate.Fee
 		order.HandlingFee = correspondMerChnRate.HandlingFee
 		// 交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
-		order.TransferHandlingFee = utils.FloatAdd(utils.FloatMul(utils.FloatDiv(order.OrderAmount, 100), order.Fee), order.HandlingFee)
+		order.TransferHandlingFee = utils.FloatAddC(utils.FloatMulC(utils.FloatDivC(order.OrderAmount, 100, order.CurrencyCode), order.Fee, order.CurrencyCode), order.HandlingFee, order.CurrencyCode)
 		// 計算實際交易金額 = 訂單金額 - 手續費
 		order.TransferAmount = order.OrderAmount - order.TransferHandlingFee
 

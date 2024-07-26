@@ -39,7 +39,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 
 	myDB := l.svcCtx.MyDB
 
-	transferAmount := utils.FloatAdd(in.OrderAmount, in.HandlingFee)
+	transferAmount := utils.FloatAddC(in.OrderAmount, in.HandlingFee, in.CurrencyCode)
 	merchantOrderNo := "COPO_" + in.OrderNo
 	if len(in.MerchantOrderNo) > 0 {
 		merchantOrderNo = in.MerchantOrderNo
@@ -259,7 +259,7 @@ func (l *WithdrawOrderTransactionLogic) calculateOrderProfit(db *gorm.DB, calcul
 	//orderFeeProfit.HandlingFee = merchantCurrency.WithdrawHandlingFee
 	//  交易手續費總額 = 訂單金額 + 手續費
 	//orderFeeProfit.TransferHandlingFee =
-	//	utils.FloatAdd(calculateProfit.OrderAmount, orderFeeProfit.HandlingFee)
+	//	utils.FloatAddC(calculateProfit.OrderAmount, orderFeeProfit.HandlingFee)
 
 	// 4. 除存费率
 	if err = db.Table("tx_orders_fee_profit").Create(&types.OrderFeeProfitX{

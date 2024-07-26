@@ -53,11 +53,11 @@ func (l *ProxyOrderSmartTranactionDFBLogic) ProxyOrderSmartTranaction_DFB(in *tr
 	if rate.IsRate == "1" { // 是否算費率，0:否 1:是
 		//  交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
 		transferHandlingFee =
-			utils.FloatAdd(utils.FloatMul(utils.FloatDiv(req.OrderAmount, 100), rate.Fee), rate.HandlingFee)
+			utils.FloatAddC(utils.FloatMulC(utils.FloatDivC(req.OrderAmount, 100, req.Currency), rate.Fee, req.Currency), rate.HandlingFee, req.Currency)
 	} else {
 		//  交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
 		transferHandlingFee =
-			utils.FloatAdd(utils.FloatMul(utils.FloatDiv(req.OrderAmount, 100), 0), rate.HandlingFee)
+			utils.FloatAddC(utils.FloatMulC(utils.FloatDivC(req.OrderAmount, 100, req.Currency), 0, req.Currency), rate.HandlingFee, req.Currency)
 	}
 
 	//更新收支记录，与更新商户余额(商户账户号是黑名单，把交易金额为设为 0)
@@ -103,7 +103,7 @@ func (l *ProxyOrderSmartTranactionDFBLogic) ProxyOrderSmartTranaction_DFB(in *tr
 			txOrder.ChannelPayTypesCode = rate.ChannelPayTypesCode
 			txOrder.PayTypeCode = rate.PayTypeCode
 			txOrder.TransferHandlingFee = transferHandlingFee
-			txOrder.TransferAmount = utils.FloatAdd(txOrder.OrderAmount, txOrder.TransferHandlingFee) //交易金额 = 订单金额 + 商户手续费
+			txOrder.TransferAmount = utils.FloatAddC(txOrder.OrderAmount, txOrder.TransferHandlingFee, txOrder.CurrencyCode) //交易金额 = 订单金额 + 商户手续费
 
 			updateBalance.TransferAmount = txOrder.TransferAmount //扣款依然傳正值
 			//更新钱包且新增商户钱包异动记录

@@ -16,8 +16,6 @@ func FrozenManually(db *gorm.DB, frozenManually types.FrozenManually, merchantPt
 	var afterBalance float64
 	var transactionType string
 
-
-
 	// 1. 取得 商戶餘額表
 	var merchantBalance types.MerchantBalance
 	if err = db.Table("mc_merchant_balances").
@@ -29,17 +27,17 @@ func FrozenManually(db *gorm.DB, frozenManually types.FrozenManually, merchantPt
 
 	// 2. 計算
 	beforeFrozen := merchantBalance.FrozenAmount
-	afterFrozen := utils.FloatAdd(beforeFrozen, frozenManually.FrozenAmount)
+	afterFrozen := utils.FloatAddC(beforeFrozen, frozenManually.FrozenAmount, frozenManually.CurrencyCode)
 	merchantBalance.FrozenAmount = afterFrozen
 
 	// (依照 BalanceType 決定異動哪種餘額)
 	selectBalance := "balance"
 	beforeBalance = merchantBalance.Balance
-	afterBalance = utils.FloatSub(beforeBalance, frozenManually.FrozenAmount)
+	afterBalance = utils.FloatSubC(beforeBalance, frozenManually.FrozenAmount, frozenManually.CurrencyCode)
 	merchantBalance.Balance = afterBalance
 
 	if afterFrozen < 0 {
-		return  merchantBalanceRecord, errorz.New(response.INSUFFICIENT_IN_AMOUNT, "總錢包余额不足")
+		return merchantBalanceRecord, errorz.New(response.INSUFFICIENT_IN_AMOUNT, "總錢包余额不足")
 	}
 
 	// 3. 變更 商戶餘額&凍結金額

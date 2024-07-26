@@ -37,7 +37,7 @@ func (l *CalculateMonthProfitReportLogic) CalculateMonthProfitReport(in *transac
 
 	// 檢查月份格式
 	if len(monthArray) != 2 {
-		return nil,errorz.New(response.DATABASE_FAILURE)
+		return nil, errorz.New(response.DATABASE_FAILURE)
 	}
 	y, err1 := strconv.Atoi(monthArray[0])
 	m, err2 := strconv.Atoi(monthArray[1])
@@ -53,12 +53,12 @@ func (l *CalculateMonthProfitReportLogic) CalculateMonthProfitReport(in *transac
 	if m == 1 {
 		m = 12
 		y -= 1
-	}else {
+	} else {
 		m -= 1
 	}
 	y2 := strconv.Itoa(y)
-	m2 := fmt.Sprintf("%02d",m)
-	preMonth := y2 +"-"+ m2
+	m2 := fmt.Sprintf("%02d", m)
+	preMonth := y2 + "-" + m2
 
 	reports, err := getAllMonthReports(l.svcCtx.MyDB, startAt, endAt)
 	if err != nil {
@@ -73,13 +73,13 @@ func (l *CalculateMonthProfitReportLogic) CalculateMonthProfitReport(in *transac
 		return nil
 	}); errTx != nil {
 		return &transactionclient.CalculateMonthProfitReportResponse{
-			Code: response.SYSTEM_ERROR,
+			Code:    response.SYSTEM_ERROR,
 			Message: errTx.Error(),
 		}, nil
 	}
 
 	return &transactionclient.CalculateMonthProfitReportResponse{
-		Code: response.API_SUCCESS,
+		Code:    response.API_SUCCESS,
 		Message: "操作成功",
 	}, nil
 }
@@ -127,10 +127,10 @@ func (l *CalculateMonthProfitReportLogic) calculateMonthProfitReport(db *gorm.DB
 	profitGrowthRate := 0.0
 	totalAllocHandlingFee := 0.0
 
-	receivedTotalNetProfit = utils.FloatAdd(zfDetail.TotalProfit, ncDetail.TotalProfit)
-	remitTotalNetProfit = utils.FloatAdd(dfDetail.TotalProfit, wfDetail.TotalProfit)
+	receivedTotalNetProfit = utils.FloatAddC(zfDetail.TotalProfit, ncDetail.TotalProfit, report.CurrencyCode)
+	remitTotalNetProfit = utils.FloatAddC(dfDetail.TotalProfit, wfDetail.TotalProfit, report.CurrencyCode)
 
-	totalNetProfit = utils.FloatAdd(receivedTotalNetProfit, remitTotalNetProfit)
+	totalNetProfit = utils.FloatAddC(receivedTotalNetProfit, remitTotalNetProfit, report.CurrencyCode)
 	totalAllocHandlingFee = alDetail.TotalProfit
 	// 計算佣金資料
 	commissionTotalAmount, err := l.calculateCommissionMonthData(db, month, report.CurrencyCode)
@@ -142,48 +142,49 @@ func (l *CalculateMonthProfitReportLogic) calculateMonthProfitReport(db *gorm.DB
 	// 取得上個月收益資料，計算成長率
 	oldIncomReports := []types.IncomReport{}
 	if err := db.Table("rp_incom_report").
-		Where("month = ? AND currency_code = ?",preMonth, report.CurrencyCode).
+		Where("month = ? AND currency_code = ?", preMonth, report.CurrencyCode).
 		Find(&oldIncomReports).Error; err != nil {
 		logx.Errorf("查詢上月收益報表失敗: error: %s", err.Error())
 		return errorz.New(response.DATABASE_FAILURE)
 	}
-	if len(oldIncomReports) > 0  {
+	if len(oldIncomReports) > 0 {
 		oldIncomReport := oldIncomReports[0]
 		// 盈利成長率 = (當月總盈利-上月總盈利)/上月總盈利*100
-		profitGrowthRate = utils.FloatMul(utils.FloatDiv(utils.FloatSub(totalNetProfit, oldIncomReport.TotalNetProfit),oldIncomReport.TotalNetProfit), 100)
+		profitGrowthRate = utils.FloatMulC(
+			utils.FloatDivC(utils.FloatSubC(totalNetProfit, oldIncomReport.TotalNetProfit, report.CurrencyCode), oldIncomReport.TotalNetProfit, report.CurrencyCode), 100, report.CurrencyCode)
 	}
 
 	var incomReport types.IncomReportX
 	if err := db.Table("rp_incom_report").
 		Where("month = ? AND currency_code = ?", month, report.CurrencyCode).
 		Take(&incomReport).Error; err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound){
-				var newIncomReportX types.IncomReportX
-				newIncomReportX.Month = month
-				newIncomReportX.CurrencyCode = report.CurrencyCode
-				newIncomReportX.PayTotalAmount = zfDetail.TotalAmount
-				newIncomReportX.PayNetProfit = zfDetail.TotalProfit
-				newIncomReportX.InternalChargeTotalAmount = ncDetail.TotalAmount
-				newIncomReportX.InternalChargeNetProfit = ncDetail.TotalProfit
-				newIncomReportX.WithdrawTotalAmount = wfDetail.TotalAmount
-				newIncomReportX.WithdrawNetProfit = wfDetail.TotalProfit
-				newIncomReportX.ProxyPayTotalAmount = dfDetail.TotalAmount
-				newIncomReportX.ProxyPayNetProfit = dfDetail.TotalProfit
-				newIncomReportX.ReceivedTotalNetProfit = receivedTotalNetProfit
-				newIncomReportX.RemitTotalNetProfit = remitTotalNetProfit
-				newIncomReportX.TotalNetProfit = totalNetProfit
-				newIncomReportX.CommissionTotalAmount = commissionTotalAmount
-				newIncomReportX.ProfitGrowthRate = profitGrowthRate
-				newIncomReportX.TotalAllocHandlingFee = totalAllocHandlingFee
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			var newIncomReportX types.IncomReportX
+			newIncomReportX.Month = month
+			newIncomReportX.CurrencyCode = report.CurrencyCode
+			newIncomReportX.PayTotalAmount = zfDetail.TotalAmount
+			newIncomReportX.PayNetProfit = zfDetail.TotalProfit
+			newIncomReportX.InternalChargeTotalAmount = ncDetail.TotalAmount
+			newIncomReportX.InternalChargeNetProfit = ncDetail.TotalProfit
+			newIncomReportX.WithdrawTotalAmount = wfDetail.TotalAmount
+			newIncomReportX.WithdrawNetProfit = wfDetail.TotalProfit
+			newIncomReportX.ProxyPayTotalAmount = dfDetail.TotalAmount
+			newIncomReportX.ProxyPayNetProfit = dfDetail.TotalProfit
+			newIncomReportX.ReceivedTotalNetProfit = receivedTotalNetProfit
+			newIncomReportX.RemitTotalNetProfit = remitTotalNetProfit
+			newIncomReportX.TotalNetProfit = totalNetProfit
+			newIncomReportX.CommissionTotalAmount = commissionTotalAmount
+			newIncomReportX.ProfitGrowthRate = profitGrowthRate
+			newIncomReportX.TotalAllocHandlingFee = totalAllocHandlingFee
 
-				if err := db.Table("rp_incom_report").Create(&newIncomReportX).Error; err != nil {
-					logx.Errorf("新增收益報表失敗: %#v, error: %s", newIncomReportX, err.Error())
-					return errorz.New(response.DATABASE_FAILURE)
-				}
-				return nil
-			}else {
+			if err := db.Table("rp_incom_report").Create(&newIncomReportX).Error; err != nil {
+				logx.Errorf("新增收益報表失敗: %#v, error: %s", newIncomReportX, err.Error())
 				return errorz.New(response.DATABASE_FAILURE)
 			}
+			return nil
+		} else {
+			return errorz.New(response.DATABASE_FAILURE)
+		}
 	}
 
 	if err := db.Table("rp_incom_report").Delete(&incomReport).Error; err != nil {
@@ -215,8 +216,8 @@ func (l *CalculateMonthProfitReportLogic) calculateMonthProfitReport(db *gorm.DB
 	return nil
 }
 
-func (l *CalculateMonthProfitReportLogic) calculateMonthProfitReportDetails(db *gorm.DB, orderType, startAt, endAt, currencyCode string) ( *types.CaculateMonthProfitReport, error) {
- 	var caculateMonthProfitReport types.CaculateMonthProfitReport
+func (l *CalculateMonthProfitReportLogic) calculateMonthProfitReportDetails(db *gorm.DB, orderType, startAt, endAt, currencyCode string) (*types.CaculateMonthProfitReport, error) {
+	var caculateMonthProfitReport types.CaculateMonthProfitReport
 	selectX := "m.merchant_code, " +
 		"o.currency_code, " +
 		"sum( m.profit_amount ) AS total_profit, "
@@ -239,7 +240,7 @@ func (l *CalculateMonthProfitReportLogic) calculateMonthProfitReportDetails(db *
 	err := db.Table("tx_orders_fee_profit m").
 		Select(selectX).
 		Joins("JOIN tx_orders o ON o.order_no = m.order_no").
-		Where("o.trans_at >= ? and o.trans_at < ?",startAt, endAt).
+		Where("o.trans_at >= ? and o.trans_at < ?", startAt, endAt).
 		Where("m.merchant_code = '00000000'").
 		Where("o.currency_code = ?", currencyCode).
 		Where("o.type = ?", orderType).
@@ -267,10 +268,10 @@ func getAllMonthReports(db *gorm.DB, startAt, endAt string) ([]types.CaculateMon
 		Group("currency_code").
 		Distinct().Find(&resp).Error
 
-		return resp, err
+	return resp, err
 }
 
-func (l *CalculateMonthProfitReportLogic) calculateCommissionMonthData (db *gorm.DB, month, currencyCode string) (float64, error){
+func (l *CalculateMonthProfitReportLogic) calculateCommissionMonthData(db *gorm.DB, month, currencyCode string) (float64, error) {
 	var commissionMonthReports []types.CommissionMonthReport
 	if err := db.Table("cm_commission_month_reports").
 		Where("month = ? AND currency_code = ? And status = ?", month, currencyCode, "1").
@@ -281,9 +282,9 @@ func (l *CalculateMonthProfitReportLogic) calculateCommissionMonthData (db *gorm
 	resp := 0.0
 	for _, report := range commissionMonthReports {
 		if report.ChangeCommission != 0 {
-			resp = utils.FloatAdd(resp, report.ChangeCommission)
-		}else{
-			resp = utils.FloatAdd(resp, report.TotalCommission)
+			resp = utils.FloatAddC(resp, report.ChangeCommission, report.CurrencyCode)
+		} else {
+			resp = utils.FloatAddC(resp, report.TotalCommission, report.CurrencyCode)
 		}
 	}
 

@@ -51,11 +51,11 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 	if rate.IsRate == "1" { // 是否算費率，0:否 1:是
 		//  交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
 		transferHandlingFee =
-			utils.FloatAdd(utils.FloatMul(utils.FloatDiv(req.OrderAmount, 100), rate.Fee), rate.HandlingFee)
+			utils.FloatAddC(utils.FloatMulC(utils.FloatDivC(req.OrderAmount, 100, req.Currency), rate.Fee, req.Currency), rate.HandlingFee, req.Currency)
 	} else {
 		//  交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
 		transferHandlingFee =
-			utils.FloatAdd(utils.FloatMul(utils.FloatDiv(req.OrderAmount, 100), 0), rate.HandlingFee)
+			utils.FloatAddC(utils.FloatMulC(utils.FloatDivC(req.OrderAmount, 100, req.Currency), 0, req.Currency), rate.HandlingFee, req.Currency)
 	}
 
 	merchant := &types.Merchant{}
@@ -142,7 +142,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
 			//交易金额 = 订单金额 + 商户手续费
-			txOrder.TransferAmount = utils.FloatAdd(txOrder.OrderAmount, txOrder.TransferHandlingFee)
+			txOrder.TransferAmount = utils.FloatAddC(txOrder.OrderAmount, txOrder.TransferHandlingFee, txOrder.CurrencyCode)
 			updateBalance.TransferAmount = txOrder.TransferAmount //扣款依然傳正值
 
 			if rate.MerchantPtBalanceId != 0 {
