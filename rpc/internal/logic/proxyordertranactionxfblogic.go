@@ -65,10 +65,13 @@ func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(in *transactionc
 	if req.PayTypeSubNo == "" && merchant.BillLadingType == "1" { //多指模式 AND 沒給payTypeSubNo => 智能訂單
 		memo = "智能訂單"
 	}
-
+	orderNo := model.GenerateOrderNo("DF")
+	if rate.ChannelPort == "19262" {
+		orderNo = orderNo[:len(orderNo)-1]
+	}
 	//初始化订单
 	txOrder := &types.Order{
-		OrderNo:              model.GenerateOrderNo("DF"),
+		OrderNo:              orderNo,
 		MerchantOrderNo:      req.OrderNo,
 		OrderAmount:          req.OrderAmount,
 		BalanceType:          constants.XF_BALANCE,

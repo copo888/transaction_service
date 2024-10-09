@@ -75,7 +75,7 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 
 	//初始化订单
 	txOrder := &types.Order{
-		OrderNo:              model.GenerateOrderNo("DF"),
+		OrderNo:              orderNo,
 		MerchantOrderNo:      req.OrderNo,
 		OrderAmount:          req.OrderAmount,
 		BalanceType:          constants.DF_BALANCE,
