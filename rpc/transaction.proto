@@ -121,6 +121,7 @@ message CorrespondMerChnRate{
   string ApiUrl = 14;
   string IsRate = 15;
   int64 MerchantPtBalanceId = 16;
+  string ChannelPort = 17;
 }
 
 message PayOrderRequest {

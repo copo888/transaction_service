@@ -68,6 +68,11 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		memo = "智能訂單"
 	}
 
+	orderNo := model.GenerateOrderNo("DF")
+	if rate.ChannelPort == "19262" {
+		orderNo = orderNo[:len(orderNo)-1]
+	}
+
 	//初始化订单
 	txOrder := &types.Order{
 		OrderNo:              model.GenerateOrderNo("DF"),
