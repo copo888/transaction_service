@@ -102,6 +102,7 @@ message ProxyPayOrderRequest{
   string DefrayEmail = 17;
   string Currency = 18;
   string PayTypeSubNo = 19;
+  string BankAccount = 20;
 }
 
 message CorrespondMerChnRate{
