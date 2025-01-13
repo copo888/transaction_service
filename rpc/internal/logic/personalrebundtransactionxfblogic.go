@@ -71,6 +71,16 @@ func (l *PersonalRebundTransactionXFBLogic) PersonalRebundTransaction_XFB(in *tr
 		if err = l.svcCtx.MyDB.Transaction(func(db *gorm.DB) (err error) {
 
 			var merchantPtBalanceId int64
+			//下發沖正撈pt_balance_id 要抓子錢包紀錄，而不是跟代付依樣從merchant_channel_rate，因為XF ChannelPayTypesCode = nil
+			if txOrder.Type == "XF" {
+				if err = db.Table("mc_merchant_pt_balance_records").
+					Select("merchant_pt_balance_id").
+					Where("order_no = ?", txOrder.OrderNo).Find(&merchantPtBalanceId).Error; err != nil {
+					logx.WithContext(l.ctx).Errorf("捞取子钱錢包錯誤，商户号:%s，ChannelPayTypesCode:%s，pt_balance_id:%d ，err:%s", txOrder.MerchantCode, txOrder.ChannelPayTypesCode, merchantPtBalanceId, err.Error())
+					return err
+				}
+			}
+
 			if err = db.Table("mc_merchant_channel_rate").
 				Select("merchant_pt_balance_id").
 				Where("merchant_code = ? AND channel_pay_types_code = ?", txOrder.MerchantCode, txOrder.ChannelPayTypesCode).
