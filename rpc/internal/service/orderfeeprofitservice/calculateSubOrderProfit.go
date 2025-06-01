@@ -36,7 +36,7 @@ func CalculateSubOrderProfit(db *gorm.DB, calculateProfit types.CalculateSubOrde
 		newFeeProfits[i].OrderNo = calculateProfit.NewOrderNo
 
 		// 交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
-		newFeeProfits[i].TransferHandlingFee = utils.FloatAddC(utils.FloatMulC(utils.FloatDivC(calculateProfit.OrderAmount, 100, currency), profit.Fee, currency), profit.HandlingFee, currency)
+		newFeeProfits[i].TransferHandlingFee = utils.FloatAddCWithTrancated(utils.FloatMulC(utils.FloatDivC(calculateProfit.OrderAmount, 100, currency), profit.Fee, currency), profit.HandlingFee, currency)
 
 		if i == 0 {
 			// 第一筆沒有傭金利潤

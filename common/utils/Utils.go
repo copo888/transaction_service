@@ -59,19 +59,30 @@ func Contain(obj interface{}, target interface{}) bool {
 	return false
 }
 
+// FloatMulCWithTrancated :
+// 1. 增加currency 判别决定小数位数(预设3位)
+// 2. truncates off digits
+func FloatMulCWithTrancated(s float64, p float64, currency ...string) float64 {
+
+	if len(currency) > 0 && (strings.EqualFold(currency[0], "BTC") || strings.EqualFold(currency[0], "ETH")) {
+		return floatMulWithTrancated(s, p, 7)
+	} else {
+		return floatMulWithTrancated(s, p)
+	}
+}
+
 // FloatMulC : 增加currency 判别决定小数位数(预设4位)
 func FloatMulC(s float64, p float64, currency ...string) float64 {
 
 	if len(currency) > 0 && (strings.EqualFold(currency[0], "BTC") || strings.EqualFold(currency[0], "ETH")) {
-		return FloatMul(s, p, 7)
+		return floatMulWithTrancated(s, p, 7)
 	} else {
-		return FloatMul(s, p)
+		return floatMul(s, p)
 	}
 }
 
 // FloatMul 浮點數乘法 (precision=4)
-func FloatMul(s float64, p float64, precisions ...int32) float64 {
-
+func floatMulWithTrancated(s float64, p float64, precisions ...int32) float64 {
 	f1 := decimal.NewFromFloat(s)
 	f2 := decimal.NewFromFloat(p)
 
@@ -87,18 +98,47 @@ func FloatMul(s float64, p float64, precisions ...int32) float64 {
 	return res
 }
 
+func floatMul(s float64, p float64) float64 {
+
+	f1 := decimal.NewFromFloat(s)
+	f2 := decimal.NewFromFloat(p)
+
+	res, _ := f1.Mul(f2).Float64()
+
+	return res
+}
+
 // FloatMulC : 增加currency 判别决定小数位数
+func FloatDivCWithTrancated(s float64, p float64, currency ...string) float64 {
+
+	if len(currency) > 0 && (strings.EqualFold(currency[0], "BTC") || strings.EqualFold(currency[0], "ETH")) {
+		return floatDivWithTrancated(s, p, 7)
+	} else {
+		return floatDivWithTrancated(s, p)
+	}
+
+}
+
 func FloatDivC(s float64, p float64, currency ...string) float64 {
 
 	if len(currency) > 0 && (strings.EqualFold(currency[0], "BTC") || strings.EqualFold(currency[0], "ETH")) {
-		return FloatDiv(s, p, 7)
+		return floatDivWithTrancated(s, p, 7)
 	} else {
-		return FloatDiv(s, p)
+		return floatDiv(s, p)
 	}
 }
 
 // FloatDiv 浮點數除法 (precision=4)
-func FloatDiv(s float64, p float64, precisions ...int32) float64 {
+func floatDiv(s float64, p float64) float64 {
+
+	f1 := decimal.NewFromFloat(s)
+	f2 := decimal.NewFromFloat(p)
+
+	res, _ := f1.Div(f2).Float64()
+
+	return res
+}
+func floatDivWithTrancated(s float64, p float64, precisions ...int32) float64 {
 
 	f1 := decimal.NewFromFloat(s)
 	f2 := decimal.NewFromFloat(p)
@@ -115,18 +155,26 @@ func FloatDiv(s float64, p float64, precisions ...int32) float64 {
 }
 
 // FloatSubC : 增加currency 判别决定小数位数
+func FloatSubCWithTrancated(s float64, p float64, currency ...string) float64 {
+
+	if len(currency) > 0 && (strings.EqualFold(currency[0], "BTC") || strings.EqualFold(currency[0], "ETH")) {
+		return floatSubWithTrancated(s, p, 7)
+	} else {
+		return floatSubWithTrancated(s, p)
+	}
+
+}
 func FloatSubC(s float64, p float64, currency ...string) float64 {
 
 	if len(currency) > 0 && (strings.EqualFold(currency[0], "BTC") || strings.EqualFold(currency[0], "ETH")) {
-		return FloatSub(s, p, 7)
+		return floatSubWithTrancated(s, p, 7)
 	} else {
-		return FloatSub(s, p)
+		return floatSub(s, p)
 	}
 }
 
 // FloatSub 浮點數減法 (precision=4)
-func FloatSub(s float64, p float64, precisions ...int32) float64 {
-
+func floatSubWithTrancated(s float64, p float64, precisions ...int32) float64 {
 	f1 := decimal.NewFromFloat(s)
 	f2 := decimal.NewFromFloat(p)
 
@@ -140,19 +188,37 @@ func FloatSub(s float64, p float64, precisions ...int32) float64 {
 
 	return res
 }
+func floatSub(s float64, p float64) float64 {
+
+	f1 := decimal.NewFromFloat(s)
+	f2 := decimal.NewFromFloat(p)
+
+	res, _ := f1.Sub(f2).Float64()
+
+	return res
+}
 
 // FloatAddC : 增加currency 判别决定小数位数
+func FloatAddCWithTrancated(s float64, p float64, currency ...string) float64 {
+
+	if len(currency) > 0 && (strings.EqualFold(currency[0], "BTC") || strings.EqualFold(currency[0], "ETH")) {
+		return floatAddWithTrancated(s, p, 7)
+	} else {
+		return floatAddWithTrancated(s, p)
+	}
+
+}
 func FloatAddC(s float64, p float64, currency ...string) float64 {
 
 	if len(currency) > 0 && (strings.EqualFold(currency[0], "BTC") || strings.EqualFold(currency[0], "ETH")) {
-		return FloatAdd(s, p, 7)
+		return floatAddWithTrancated(s, p, 7)
 	} else {
-		return FloatAdd(s, p)
+		return floatAdd(s, p)
 	}
 }
 
 // FloatAdd 浮點數加法 (precision=4)
-func FloatAdd(s float64, p float64, precisions ...int32) float64 {
+func floatAddWithTrancated(s float64, p float64, precisions ...int32) float64 {
 
 	f1 := decimal.NewFromFloat(s)
 	f2 := decimal.NewFromFloat(p)
@@ -164,6 +230,17 @@ func FloatAdd(s float64, p float64, precisions ...int32) float64 {
 		precision = 3
 	}
 	res, _ := f1.Add(f2).Truncate(precision).Float64()
+
+	return res
+}
+
+// FloatAdd 浮點數加法 (precision=3)
+func floatAdd(s float64, p float64) float64 {
+
+	f1 := decimal.NewFromFloat(s)
+	f2 := decimal.NewFromFloat(p)
+	var res float64
+	res, _ = f1.Add(f2).Float64()
 
 	return res
 }

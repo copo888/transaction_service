@@ -50,7 +50,7 @@ func doUpdatePtBalanceForZF(db *gorm.DB, updateBalance types.UpdateBalance, merc
 
 	// 2. 計算
 	beforeBalance = merchantPtBalance.Balance
-	afterBalance = utils.FloatAddC(beforeBalance, updateBalance.TransferAmount, updateBalance.CurrencyCode)
+	afterBalance = utils.FloatAddCWithTrancated(beforeBalance, updateBalance.TransferAmount, updateBalance.CurrencyCode)
 	merchantPtBalance.Balance = afterBalance
 
 	// 3. 變更 子錢包餘額
@@ -104,7 +104,7 @@ func UpdateFrozenAmount(db *gorm.DB, updateBalance types.UpdateFrozenAmount, mer
 
 	// 2. 計算
 	beforeBalance = merchantPtBalance.Balance
-	afterBalance = utils.FloatSubC(beforeBalance, updateBalance.FrozenAmount, updateBalance.CurrencyCode)
+	afterBalance = utils.FloatSubCWithTrancated(beforeBalance, updateBalance.FrozenAmount, updateBalance.CurrencyCode)
 	merchantPtBalance.Balance = afterBalance
 
 	// 检查余额是否足够

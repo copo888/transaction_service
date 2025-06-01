@@ -218,13 +218,13 @@ func (l *InternalReviewSuccessTransactionLogic) doUpdateBalance(db *gorm.DB, upd
 
 	// 2. 計算
 	var selectBalance string
-	if utils.FloatAddC(merchantBalance.Balance, updateBalance.TransferAmount) < 0 {
+	if utils.FloatAddCWithTrancated(merchantBalance.Balance, updateBalance.TransferAmount) < 0 {
 		logx.Errorf("商户:%s，余额类型:%s，余额:%s，交易金额:%s", merchantBalance.MerchantCode, merchantBalance.BalanceType, fmt.Sprintf("%f", merchantBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount))
 		return merchantBalanceRecord, errorz.New(response.MERCHANT_INSUFFICIENT_DF_BALANCE)
 	}
 	selectBalance = "balance"
 	beforeBalance = merchantBalance.Balance
-	afterBalance = utils.FloatAddC(beforeBalance, updateBalance.TransferAmount)
+	afterBalance = utils.FloatAddCWithTrancated(beforeBalance, updateBalance.TransferAmount)
 	merchantBalance.Balance = afterBalance
 
 	// 3. 變更 商戶餘額
@@ -277,13 +277,13 @@ func (l *InternalReviewSuccessTransactionLogic) doUpdatePtBalance(db *gorm.DB, u
 
 	// 2. 計算
 	var selectBalance string
-	if utils.FloatAddC(merchantPtBalance.Balance, updateBalance.TransferAmount, merchantPtBalance.CurrencyCode) < 0 {
+	if utils.FloatAddCWithTrancated(merchantPtBalance.Balance, updateBalance.TransferAmount, merchantPtBalance.CurrencyCode) < 0 {
 		logx.Errorf("商户:%s，幣別: %s, 子錢包类型:%s ，余额:%s，交易金额:%s", merchantPtBalance.MerchantCode, merchantPtBalance.CurrencyCode, merchantPtBalance.PayTypeCode, fmt.Sprintf("%f", merchantPtBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount))
 		return errorz.New(response.MERCHANT_INSUFFICIENT_DF_BALANCE)
 	}
 	selectBalance = "balance"
 	beforeBalance = merchantPtBalance.Balance
-	afterBalance = utils.FloatAddC(beforeBalance, updateBalance.TransferAmount, merchantPtBalance.CurrencyCode)
+	afterBalance = utils.FloatAddCWithTrancated(beforeBalance, updateBalance.TransferAmount, merchantPtBalance.CurrencyCode)
 	merchantPtBalance.Balance = afterBalance
 
 	// 3. 變更 商戶餘額
