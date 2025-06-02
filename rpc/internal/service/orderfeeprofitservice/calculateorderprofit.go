@@ -214,7 +214,7 @@ func setMerchantFee(db *gorm.DB, calculateProfit *types.CalculateProfit, orderFe
 
 	//  交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
 	orderFeeProfit.TransferHandlingFee =
-		utils.FloatAddC(utils.FloatMulC(utils.FloatDivC(calculateProfit.OrderAmount, 100, calculateProfit.CurrencyCode), orderFeeProfit.Fee, calculateProfit.CurrencyCode), orderFeeProfit.HandlingFee, calculateProfit.CurrencyCode)
+		utils.FloatAddCWithTrancated(utils.FloatMulC(utils.FloatDivC(calculateProfit.OrderAmount, 100, calculateProfit.CurrencyCode), orderFeeProfit.Fee, calculateProfit.CurrencyCode), orderFeeProfit.HandlingFee, calculateProfit.CurrencyCode)
 
 	return
 }
@@ -250,7 +250,7 @@ func setChannelFee(db *gorm.DB, calculateProfit *types.CalculateProfit, orderFee
 
 	//  交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
 	orderFeeProfit.TransferHandlingFee =
-		utils.FloatAddC(utils.FloatMulC(utils.FloatDivC(calculateProfit.OrderAmount, 100, calculateProfit.CurrencyCode), orderFeeProfit.Fee, calculateProfit.CurrencyCode), orderFeeProfit.HandlingFee, calculateProfit.CurrencyCode)
+		utils.FloatAddCWithTrancated(utils.FloatMulC(utils.FloatDivC(calculateProfit.OrderAmount, 100, calculateProfit.CurrencyCode), orderFeeProfit.Fee, calculateProfit.CurrencyCode), orderFeeProfit.HandlingFee, calculateProfit.CurrencyCode)
 
 	return
 }
@@ -359,7 +359,7 @@ func setNcMerchantFee(db *gorm.DB, calculateProfit *types.CalculateProfit, order
 
 	//  交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
 	orderFeeProfit.TransferHandlingFee =
-		utils.FloatAddC(utils.FloatMulC(utils.FloatDivC(calculateProfit.OrderAmount, 100, calculateProfit.CurrencyCode), orderFeeProfit.Fee, calculateProfit.CurrencyCode), orderFeeProfit.HandlingFee, calculateProfit.CurrencyCode)
+		utils.FloatAddCWithTrancated(utils.FloatMulC(utils.FloatDivC(calculateProfit.OrderAmount, 100, calculateProfit.CurrencyCode), orderFeeProfit.Fee, calculateProfit.CurrencyCode), orderFeeProfit.HandlingFee, calculateProfit.CurrencyCode)
 
 	return
 }
@@ -384,7 +384,7 @@ func setNcChannelFee(db *gorm.DB, calculateProfit *types.CalculateProfit, orderF
 
 	//  交易手續費總額 = 訂單金額 / 100 * 費率 + 手續費
 	orderFeeProfit.TransferHandlingFee =
-		utils.FloatAddC(utils.FloatMulC(utils.FloatDivC(calculateProfit.OrderAmount, 100, calculateProfit.CurrencyCode), orderFeeProfit.Fee, calculateProfit.CurrencyCode), orderFeeProfit.HandlingFee, calculateProfit.CurrencyCode)
+		utils.FloatAddCWithTrancated(utils.FloatMulC(utils.FloatDivC(calculateProfit.OrderAmount, 100, calculateProfit.CurrencyCode), orderFeeProfit.Fee, calculateProfit.CurrencyCode), orderFeeProfit.HandlingFee, calculateProfit.CurrencyCode)
 
 	return
 }

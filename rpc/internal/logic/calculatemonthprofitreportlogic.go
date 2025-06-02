@@ -127,10 +127,10 @@ func (l *CalculateMonthProfitReportLogic) calculateMonthProfitReport(db *gorm.DB
 	profitGrowthRate := 0.0
 	totalAllocHandlingFee := 0.0
 
-	receivedTotalNetProfit = utils.FloatAddC(zfDetail.TotalProfit, ncDetail.TotalProfit, report.CurrencyCode)
-	remitTotalNetProfit = utils.FloatAddC(dfDetail.TotalProfit, wfDetail.TotalProfit, report.CurrencyCode)
+	receivedTotalNetProfit = utils.FloatAddCWithTrancated(zfDetail.TotalProfit, ncDetail.TotalProfit, report.CurrencyCode)
+	remitTotalNetProfit = utils.FloatAddCWithTrancated(dfDetail.TotalProfit, wfDetail.TotalProfit, report.CurrencyCode)
 
-	totalNetProfit = utils.FloatAddC(receivedTotalNetProfit, remitTotalNetProfit, report.CurrencyCode)
+	totalNetProfit = utils.FloatAddCWithTrancated(receivedTotalNetProfit, remitTotalNetProfit, report.CurrencyCode)
 	totalAllocHandlingFee = alDetail.TotalProfit
 	// 計算佣金資料
 	commissionTotalAmount, err := l.calculateCommissionMonthData(db, month, report.CurrencyCode)
@@ -150,7 +150,7 @@ func (l *CalculateMonthProfitReportLogic) calculateMonthProfitReport(db *gorm.DB
 	if len(oldIncomReports) > 0 {
 		oldIncomReport := oldIncomReports[0]
 		// 盈利成長率 = (當月總盈利-上月總盈利)/上月總盈利*100
-		profitGrowthRate = utils.FloatMulC(
+		profitGrowthRate = utils.FloatMulCWithTrancated(
 			utils.FloatDivC(utils.FloatSubC(totalNetProfit, oldIncomReport.TotalNetProfit, report.CurrencyCode), oldIncomReport.TotalNetProfit, report.CurrencyCode), 100, report.CurrencyCode)
 	}
 
@@ -282,9 +282,9 @@ func (l *CalculateMonthProfitReportLogic) calculateCommissionMonthData(db *gorm.
 	resp := 0.0
 	for _, report := range commissionMonthReports {
 		if report.ChangeCommission != 0 {
-			resp = utils.FloatAddC(resp, report.ChangeCommission, report.CurrencyCode)
+			resp = utils.FloatAddCWithTrancated(resp, report.ChangeCommission, report.CurrencyCode)
 		} else {
-			resp = utils.FloatAddC(resp, report.TotalCommission, report.CurrencyCode)
+			resp = utils.FloatAddCWithTrancated(resp, report.TotalCommission, report.CurrencyCode)
 		}
 	}
 
