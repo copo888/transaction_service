@@ -27,13 +27,13 @@ func FrozenManually(db *gorm.DB, frozenManually types.FrozenManually, merchantPt
 
 	// 2. 計算
 	beforeFrozen := merchantBalance.FrozenAmount
-	afterFrozen := utils.FloatAddC(beforeFrozen, frozenManually.FrozenAmount, frozenManually.CurrencyCode)
+	afterFrozen := utils.FloatAddCWithTrancated(beforeFrozen, frozenManually.FrozenAmount, frozenManually.CurrencyCode)
 	merchantBalance.FrozenAmount = afterFrozen
 
 	// (依照 BalanceType 決定異動哪種餘額)
 	selectBalance := "balance"
 	beforeBalance = merchantBalance.Balance
-	afterBalance = utils.FloatSubC(beforeBalance, frozenManually.FrozenAmount, frozenManually.CurrencyCode)
+	afterBalance = utils.FloatSubCWithTrancated(beforeBalance, frozenManually.FrozenAmount, frozenManually.CurrencyCode)
 	merchantBalance.Balance = afterBalance
 
 	if afterFrozen < 0 {

@@ -39,7 +39,7 @@ func (l *WithdrawOrderTransactionLogic) WithdrawOrderTransaction(in *transaction
 
 	myDB := l.svcCtx.MyDB
 
-	transferAmount := utils.FloatAddC(in.OrderAmount, in.HandlingFee, in.CurrencyCode)
+	transferAmount := utils.FloatAddCWithTrancated(in.OrderAmount, in.HandlingFee, in.CurrencyCode)
 	merchantOrderNo := "COPO_" + in.OrderNo
 	if len(in.MerchantOrderNo) > 0 {
 		merchantOrderNo = in.MerchantOrderNo

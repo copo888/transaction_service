@@ -59,7 +59,7 @@ func (l *MakeUpReceiptOrderTransactionLogic) MakeUpReceiptOrderTransaction(req *
 	newOrderNo = model.GenerateOrderNo(order.Type)
 
 	// 計算交易手續費 (金額 / 100 * 費率 + 手續費)
-	transferHandlingFee := utils.FloatAddC(utils.FloatMulC(utils.FloatDivC(req.Amount, 100, order.CurrencyCode), order.Fee, order.CurrencyCode), order.HandlingFee, order.CurrencyCode)
+	transferHandlingFee := utils.FloatAddCWithTrancated(utils.FloatMulC(utils.FloatDivC(req.Amount, 100, order.CurrencyCode), order.Fee, order.CurrencyCode), order.HandlingFee, order.CurrencyCode)
 	// 計算實際交易金額 = 訂單金額 - 手續費
 	transferAmount = req.Amount - transferHandlingFee
 	merchantOrderNo := order.MerchantOrderNo + "#M"

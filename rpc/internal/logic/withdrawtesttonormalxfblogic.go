@@ -161,13 +161,13 @@ func (l WithdrawTestToNormalXFBLogic) doUpdateBalance(db *gorm.DB, updateBalance
 
 	// 2. 計算
 	var selectBalance string
-	if utils.FloatAddC(merchantBalance.Balance, updateBalance.TransferAmount, updateBalance.CurrencyCode) < 0 {
+	if utils.FloatAddCWithTrancated(merchantBalance.Balance, updateBalance.TransferAmount, updateBalance.CurrencyCode) < 0 {
 		logx.Errorf("商户:%s，余额类型:%s，余额:%s，交易金额:%s", merchantBalance.MerchantCode, merchantBalance.BalanceType, fmt.Sprintf("%f", merchantBalance.Balance), fmt.Sprintf("%f", updateBalance.TransferAmount))
 		return merchantBalanceRecord, errorz.New(response.MERCHANT_INSUFFICIENT_DF_BALANCE)
 	}
 	selectBalance = "balance"
 	beforeBalance = merchantBalance.Balance
-	afterBalance = utils.FloatAddC(beforeBalance, -updateBalance.TransferAmount, updateBalance.CurrencyCode)
+	afterBalance = utils.FloatAddCWithTrancated(beforeBalance, -updateBalance.TransferAmount, updateBalance.CurrencyCode)
 	merchantBalance.Balance = afterBalance
 
 	// 3. 變更 商戶餘額
