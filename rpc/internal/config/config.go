@@ -1,10 +1,10 @@
 package config
 
 import (
-	"github.com/neccoys/go-zero-extension/consul"
 	_ "github.com/zeromicro/go-zero/core/service"
 	_ "github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/zrpc"
+	"github.com/zeromicro/zero-contrib/zrpc/registry/consul"
 )
 
 type Config struct {

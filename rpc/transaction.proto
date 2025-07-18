@@ -159,6 +159,8 @@ message PayOrder {
   string UserId = 18;
   string MerchantLevel = 19;
   string UserIp = 20;
+  double  ExchangeRate = 21;
+  string FromCurrency = 22;
 }
 
 message InternalOrderRequest {

@@ -5,7 +5,7 @@ import (
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/types"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"

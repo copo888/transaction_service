@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/copo888/transaction_service/common/constants"
+	"github.com/copo888/transaction_service/common/redislock"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/common/utils"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
@@ -11,7 +12,6 @@ import (
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"github.com/gioco-play/easy-i18n/i18n"
-	"github.com/neccoys/go-zero-extension/redislock"
 	"github.com/zeromicro/go-zero/core/logx"
 	"strconv"
 )
@@ -71,6 +71,8 @@ func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transactionclient.PayOr
 		IsTest:              constants.IS_TEST_NO,
 		CreatedBy:           payOrderReq.MerchantId,
 		UpdatedBy:           payOrderReq.MerchantId,
+		ExchangeRate:        payOrderReq.ExchangeRate, //匯率
+		FromCurrency:        payOrderReq.FromCurrency, //原始幣別
 	}
 
 	// 取得餘額類型

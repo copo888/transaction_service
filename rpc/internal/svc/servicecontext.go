@@ -3,8 +3,8 @@ package svc
 import (
 	"fmt"
 	"github.com/copo888/transaction_service/rpc/internal/config"
-	"github.com/go-redis/redis/v8"
 	"github.com/neccoys/go-driver/mysqlx"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"log"

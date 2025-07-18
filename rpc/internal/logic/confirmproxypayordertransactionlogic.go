@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/copo888/transaction_service/common/constants"
+	"github.com/copo888/transaction_service/common/redislock"
 	"github.com/copo888/transaction_service/common/response"
 	"github.com/copo888/transaction_service/rpc/internal/service/merchantbalanceservice"
 	"github.com/copo888/transaction_service/rpc/internal/svc"
 	"github.com/copo888/transaction_service/rpc/internal/types"
 	"github.com/copo888/transaction_service/rpc/transactionclient"
 	"github.com/gioco-play/easy-i18n/i18n"
-	"github.com/neccoys/go-zero-extension/redislock"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
