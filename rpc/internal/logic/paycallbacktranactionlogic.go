@@ -303,5 +303,6 @@ func (l *PayCallBackTranactionLogic) PayCallBackTranactionForFailure(ctx context
 		OrderTime:           order.CreatedAt.Format("20060102150405000"),
 		PayOrderTime:        order.TransAt.Time().Format("20060102150405000"),
 		Status:              order.Status,
+		ExchangeRate:        order.ExchangeRate,
 	}, nil
 }

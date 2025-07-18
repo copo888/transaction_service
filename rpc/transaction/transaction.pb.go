@@ -2351,6 +2351,7 @@ type PayCallBackResponse struct {
 	OrderTime           string                 `protobuf:"bytes,10,opt,name=OrderTime,proto3" json:"OrderTime,omitempty"`
 	PayOrderTime        string                 `protobuf:"bytes,11,opt,name=PayOrderTime,proto3" json:"PayOrderTime,omitempty"`
 	Status              string                 `protobuf:"bytes,12,opt,name=Status,proto3" json:"Status,omitempty"`
+	ExchangeRate        float64                `protobuf:"fixed64,13,opt,name=ExchangeRate,proto3" json:"ExchangeRate,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -2467,6 +2468,13 @@ func (x *PayCallBackResponse) GetStatus() string {
 		return x.Status
 	}
 	return ""
+}
+
+func (x *PayCallBackResponse) GetExchangeRate() float64 {
+	if x != nil {
+		return x.ExchangeRate
+	}
+	return 0
 }
 
 type InternalReviewSuccessRequest struct {
@@ -5239,7 +5247,7 @@ const file_rpc_transaction_proto_rawDesc = "" +
 	"PayOrderNo\x12\"\n" +
 	"\fMerchantCode\x18\x06 \x01(\tR\fMerchantCode\x12\"\n" +
 	"\fCurrencyCode\x18\a \x01(\tR\fCurrencyCode\x12 \n" +
-	"\vBalanceType\x18\b \x01(\tR\vBalanceType\"\x9b\x03\n" +
+	"\vBalanceType\x18\b \x01(\tR\vBalanceType\"\xbf\x03\n" +
 	"\x13PayCallBackResponse\x12\x12\n" +
 	"\x04Code\x18\x01 \x01(\tR\x04Code\x12\x18\n" +
 	"\aMessage\x18\x02 \x01(\tR\aMessage\x12\"\n" +
@@ -5253,7 +5261,8 @@ const file_rpc_transaction_proto_rawDesc = "" +
 	"\tOrderTime\x18\n" +
 	" \x01(\tR\tOrderTime\x12\"\n" +
 	"\fPayOrderTime\x18\v \x01(\tR\fPayOrderTime\x12\x16\n" +
-	"\x06Status\x18\f \x01(\tR\x06Status\"\xd8\x01\n" +
+	"\x06Status\x18\f \x01(\tR\x06Status\x12\"\n" +
+	"\fExchangeRate\x18\r \x01(\x01R\fExchangeRate\"\xd8\x01\n" +
 	"\x1cInternalReviewSuccessRequest\x12\x18\n" +
 	"\aOrderNo\x18\x01 \x01(\tR\aOrderNo\x12 \n" +
 	"\vUserAccount\x18\x02 \x01(\tR\vUserAccount\x12\x18\n" +

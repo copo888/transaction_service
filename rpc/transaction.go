@@ -39,7 +39,7 @@ func main() {
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		transaction.RegisterTransactionServer(grpcServer, srv)
-		//grpc_health_v1.RegisterHealthServer(grpcServer, srv)
+		reflection.Register(grpcServer)
 		if c.Mode == service.DevMode || c.Mode == service.TestMode {
 			reflection.Register(grpcServer)
 		}
