@@ -823,6 +823,8 @@ type ProxyPayOrderRequest struct {
 	Currency      string                 `protobuf:"bytes,18,opt,name=Currency,proto3" json:"Currency,omitempty"`
 	PayTypeSubNo  string                 `protobuf:"bytes,19,opt,name=PayTypeSubNo,proto3" json:"PayTypeSubNo,omitempty"`
 	BankAccount   string                 `protobuf:"bytes,20,opt,name=BankAccount,proto3" json:"BankAccount,omitempty"`
+	ExchangeRate  float64                `protobuf:"fixed64,21,opt,name=ExchangeRate,proto3" json:"ExchangeRate,omitempty"`
+	FromCurrency  string                 `protobuf:"bytes,22,opt,name=FromCurrency,proto3" json:"FromCurrency,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -993,6 +995,20 @@ func (x *ProxyPayOrderRequest) GetPayTypeSubNo() string {
 func (x *ProxyPayOrderRequest) GetBankAccount() string {
 	if x != nil {
 		return x.BankAccount
+	}
+	return ""
+}
+
+func (x *ProxyPayOrderRequest) GetExchangeRate() float64 {
+	if x != nil {
+		return x.ExchangeRate
+	}
+	return 0
+}
+
+func (x *ProxyPayOrderRequest) GetFromCurrency() string {
+	if x != nil {
+		return x.FromCurrency
 	}
 	return ""
 }
@@ -5071,7 +5087,7 @@ const file_rpc_transaction_proto_rawDesc = "" +
 	"\fProxyOrderNo\x18\x01 \x01(\tR\fProxyOrderNo\"F\n" +
 	"\x16ProxyOrderTestResponse\x12\x12\n" +
 	"\x04Code\x18\x01 \x01(\tR\x04Code\x12\x18\n" +
-	"\aMessage\x18\x02 \x01(\tR\aMessage\"\xf0\x04\n" +
+	"\aMessage\x18\x02 \x01(\tR\aMessage\"\xb8\x05\n" +
 	"\x14ProxyPayOrderRequest\x12\x1e\n" +
 	"\n" +
 	"AccessType\x18\x01 \x01(\tR\n" +
@@ -5101,7 +5117,9 @@ const file_rpc_transaction_proto_rawDesc = "" +
 	"\vDefrayEmail\x18\x11 \x01(\tR\vDefrayEmail\x12\x1a\n" +
 	"\bCurrency\x18\x12 \x01(\tR\bCurrency\x12\"\n" +
 	"\fPayTypeSubNo\x18\x13 \x01(\tR\fPayTypeSubNo\x12 \n" +
-	"\vBankAccount\x18\x14 \x01(\tR\vBankAccount\"\xe4\x04\n" +
+	"\vBankAccount\x18\x14 \x01(\tR\vBankAccount\x12\"\n" +
+	"\fExchangeRate\x18\x15 \x01(\x01R\fExchangeRate\x12\"\n" +
+	"\fFromCurrency\x18\x16 \x01(\tR\fFromCurrency\"\xe4\x04\n" +
 	"\x14CorrespondMerChnRate\x12\"\n" +
 	"\fMerchantCode\x18\x01 \x01(\tR\fMerchantCode\x120\n" +
 	"\x13ChannelPayTypesCode\x18\x02 \x01(\tR\x13ChannelPayTypesCode\x12 \n" +

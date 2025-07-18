@@ -106,6 +106,8 @@ func (l *ProxyOrderTranactionDFBLogic) ProxyOrderTranaction_DFB(in *transactionc
 		NotifyUrl:          req.NotifyUrl,
 		IsMerchantCallback: isMerchantCallback,
 		Memo:               memo,
+		ExchangeRate:       req.ExchangeRate,
+		FromCurrency:       req.FromCurrency,
 	}
 
 	// 新增收支记录，与更新商户余额(商户账户号是黑名单，把交易金额为设为 0)
