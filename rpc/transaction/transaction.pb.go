@@ -1314,31 +1314,32 @@ func (x *PayOrderResponse) GetPayOrderNo() string {
 }
 
 type PayOrder struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AccessType    string                 `protobuf:"bytes,1,opt,name=AccessType,proto3" json:"AccessType,omitempty"`
-	MerchantId    string                 `protobuf:"bytes,2,opt,name=MerchantId,proto3" json:"MerchantId,omitempty"`
-	NotifyUrl     string                 `protobuf:"bytes,3,opt,name=NotifyUrl,proto3" json:"NotifyUrl,omitempty"`
-	PageUrl       string                 `protobuf:"bytes,4,opt,name=PageUrl,proto3" json:"PageUrl,omitempty"`
-	Language      string                 `protobuf:"bytes,5,opt,name=Language,proto3" json:"Language,omitempty"`
-	Sign          string                 `protobuf:"bytes,6,opt,name=Sign,proto3" json:"Sign,omitempty"`
-	JumpType      string                 `protobuf:"bytes,7,opt,name=JumpType,proto3" json:"JumpType,omitempty"`
-	LoginType     string                 `protobuf:"bytes,8,opt,name=LoginType,proto3" json:"LoginType,omitempty"`
-	OrderNo       string                 `protobuf:"bytes,9,opt,name=OrderNo,proto3" json:"OrderNo,omitempty"`
-	OrderAmount   string                 `protobuf:"bytes,10,opt,name=OrderAmount,proto3" json:"OrderAmount,omitempty"`
-	Currency      string                 `protobuf:"bytes,11,opt,name=Currency,proto3" json:"Currency,omitempty"`
-	PayType       string                 `protobuf:"bytes,12,opt,name=PayType,proto3" json:"PayType,omitempty"`
-	OrderTime     string                 `protobuf:"bytes,13,opt,name=OrderTime,proto3" json:"OrderTime,omitempty"`
-	OrderName     string                 `protobuf:"bytes,14,opt,name=OrderName,proto3" json:"OrderName,omitempty"`
-	BankCode      string                 `protobuf:"bytes,15,opt,name=BankCode,proto3" json:"BankCode,omitempty"`
-	Phone         string                 `protobuf:"bytes,16,opt,name=Phone,proto3" json:"Phone,omitempty"`
-	PayTypeNo     string                 `protobuf:"bytes,17,opt,name=PayTypeNo,proto3" json:"PayTypeNo,omitempty"`
-	UserId        string                 `protobuf:"bytes,18,opt,name=UserId,proto3" json:"UserId,omitempty"`
-	MerchantLevel string                 `protobuf:"bytes,19,opt,name=MerchantLevel,proto3" json:"MerchantLevel,omitempty"`
-	UserIp        string                 `protobuf:"bytes,20,opt,name=UserIp,proto3" json:"UserIp,omitempty"`
-	ExchangeRate  float64                `protobuf:"fixed64,21,opt,name=ExchangeRate,proto3" json:"ExchangeRate,omitempty"`
-	FromCurrency  string                 `protobuf:"bytes,22,opt,name=FromCurrency,proto3" json:"FromCurrency,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	AccessType     string                 `protobuf:"bytes,1,opt,name=AccessType,proto3" json:"AccessType,omitempty"`
+	MerchantId     string                 `protobuf:"bytes,2,opt,name=MerchantId,proto3" json:"MerchantId,omitempty"`
+	NotifyUrl      string                 `protobuf:"bytes,3,opt,name=NotifyUrl,proto3" json:"NotifyUrl,omitempty"`
+	PageUrl        string                 `protobuf:"bytes,4,opt,name=PageUrl,proto3" json:"PageUrl,omitempty"`
+	Language       string                 `protobuf:"bytes,5,opt,name=Language,proto3" json:"Language,omitempty"`
+	Sign           string                 `protobuf:"bytes,6,opt,name=Sign,proto3" json:"Sign,omitempty"`
+	JumpType       string                 `protobuf:"bytes,7,opt,name=JumpType,proto3" json:"JumpType,omitempty"`
+	LoginType      string                 `protobuf:"bytes,8,opt,name=LoginType,proto3" json:"LoginType,omitempty"`
+	OrderNo        string                 `protobuf:"bytes,9,opt,name=OrderNo,proto3" json:"OrderNo,omitempty"`
+	OrderAmount    string                 `protobuf:"bytes,10,opt,name=OrderAmount,proto3" json:"OrderAmount,omitempty"`
+	Currency       string                 `protobuf:"bytes,11,opt,name=Currency,proto3" json:"Currency,omitempty"`
+	PayType        string                 `protobuf:"bytes,12,opt,name=PayType,proto3" json:"PayType,omitempty"`
+	OrderTime      string                 `protobuf:"bytes,13,opt,name=OrderTime,proto3" json:"OrderTime,omitempty"`
+	OrderName      string                 `protobuf:"bytes,14,opt,name=OrderName,proto3" json:"OrderName,omitempty"`
+	BankCode       string                 `protobuf:"bytes,15,opt,name=BankCode,proto3" json:"BankCode,omitempty"`
+	Phone          string                 `protobuf:"bytes,16,opt,name=Phone,proto3" json:"Phone,omitempty"`
+	PayTypeNo      string                 `protobuf:"bytes,17,opt,name=PayTypeNo,proto3" json:"PayTypeNo,omitempty"`
+	UserId         string                 `protobuf:"bytes,18,opt,name=UserId,proto3" json:"UserId,omitempty"`
+	MerchantLevel  string                 `protobuf:"bytes,19,opt,name=MerchantLevel,proto3" json:"MerchantLevel,omitempty"`
+	UserIp         string                 `protobuf:"bytes,20,opt,name=UserIp,proto3" json:"UserIp,omitempty"`
+	ExchangeRate   float64                `protobuf:"fixed64,21,opt,name=ExchangeRate,proto3" json:"ExchangeRate,omitempty"`
+	FromCurrency   string                 `protobuf:"bytes,22,opt,name=FromCurrency,proto3" json:"FromCurrency,omitempty"`
+	OriginalAmount float64                `protobuf:"fixed64,23,opt,name=OriginalAmount,proto3" json:"OriginalAmount,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *PayOrder) Reset() {
@@ -1523,6 +1524,13 @@ func (x *PayOrder) GetFromCurrency() string {
 		return x.FromCurrency
 	}
 	return ""
+}
+
+func (x *PayOrder) GetOriginalAmount() float64 {
+	if x != nil {
+		return x.OriginalAmount
+	}
+	return 0
 }
 
 type InternalOrderRequest struct {
@@ -5149,7 +5157,7 @@ const file_rpc_transaction_proto_rawDesc = "" +
 	"\aMessage\x18\x02 \x01(\tR\aMessage\x12\x1e\n" +
 	"\n" +
 	"PayOrderNo\x18\x03 \x01(\tR\n" +
-	"PayOrderNo\"\x88\x05\n" +
+	"PayOrderNo\"\xb0\x05\n" +
 	"\bPayOrder\x12\x1e\n" +
 	"\n" +
 	"AccessType\x18\x01 \x01(\tR\n" +
@@ -5177,7 +5185,8 @@ const file_rpc_transaction_proto_rawDesc = "" +
 	"\rMerchantLevel\x18\x13 \x01(\tR\rMerchantLevel\x12\x16\n" +
 	"\x06UserIp\x18\x14 \x01(\tR\x06UserIp\x12\"\n" +
 	"\fExchangeRate\x18\x15 \x01(\x01R\fExchangeRate\x12\"\n" +
-	"\fFromCurrency\x18\x16 \x01(\tR\fFromCurrency\"\xbe\x01\n" +
+	"\fFromCurrency\x18\x16 \x01(\tR\fFromCurrency\x12&\n" +
+	"\x0eOriginalAmount\x18\x17 \x01(\x01R\x0eOriginalAmount\"\xbe\x01\n" +
 	"\x14InternalOrderRequest\x12@\n" +
 	"\rinternalOrder\x18\x01 \x01(\v2\x1a.transaction.InternalOrderR\rinternalOrder\x12d\n" +
 	"\x19merchantOrderRateListView\x18\x02 \x01(\v2&.transaction.MerchantOrderRateListViewR\x19merchantOrderRateListView\"_\n" +

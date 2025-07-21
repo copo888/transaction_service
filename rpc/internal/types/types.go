@@ -948,6 +948,7 @@ type Order struct {
 	DefaultHandlingFee      float64 `json:"default_handling_fee, optional"`
 	ExchangeRate            float64 `json:"exchange_rate, optional"`
 	FromCurrency            string  `json:"from_currency, optional"`
+	OriginalAmount          float64 `json:"original_amount, optional"`
 }
 
 type InternalChargeOrder struct {

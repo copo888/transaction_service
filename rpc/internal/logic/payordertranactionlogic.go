@@ -73,6 +73,7 @@ func (l *PayOrderTranactionLogic) PayOrderTranaction(in *transactionclient.PayOr
 		UpdatedBy:           payOrderReq.MerchantId,
 		ExchangeRate:        payOrderReq.ExchangeRate, //匯率
 		FromCurrency:        payOrderReq.FromCurrency, //原始幣別
+		OriginalAmount:      payOrderReq.OriginalAmount,
 	}
 
 	// 取得餘額類型
