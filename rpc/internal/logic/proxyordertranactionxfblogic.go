@@ -104,6 +104,7 @@ func (l *ProxyOrderTranactionXFBLogic) ProxyOrderTranaction_XFB(in *transactionc
 		Memo:               memo,
 		ExchangeRate:       req.ExchangeRate,
 		FromCurrency:       req.FromCurrency,
+		OriginalAmount:     req.OriginalAmount,
 	}
 
 	// 新增收支记录，与更新商户余额(商户账户号是黑名单，把交易金额为设为 0)
