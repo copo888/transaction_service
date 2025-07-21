@@ -105,6 +105,7 @@ message ProxyPayOrderRequest{
   string BankAccount = 20;
   double ExchangeRate = 21;
   string FromCurrency = 22;
+  double OriginalAmount = 23;
 }
 
 message CorrespondMerChnRate{

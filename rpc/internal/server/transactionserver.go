@@ -6,8 +6,6 @@ package server
 
 import (
 	"context"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 
 	"github.com/copo888/transaction_service/rpc/internal/logic"
 	"github.com/copo888/transaction_service/rpc/internal/svc"

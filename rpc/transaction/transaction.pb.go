@@ -802,31 +802,32 @@ func (x *ProxyOrderTestResponse) GetMessage() string {
 }
 
 type ProxyPayOrderRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AccessType    string                 `protobuf:"bytes,1,opt,name=AccessType,proto3" json:"AccessType,omitempty"`
-	MerchantId    string                 `protobuf:"bytes,2,opt,name=MerchantId,proto3" json:"MerchantId,omitempty"`
-	Sign          string                 `protobuf:"bytes,3,opt,name=Sign,proto3" json:"Sign,omitempty"`
-	NotifyUrl     string                 `protobuf:"bytes,4,opt,name=NotifyUrl,proto3" json:"NotifyUrl,omitempty"`
-	Language      string                 `protobuf:"bytes,5,opt,name=Language,proto3" json:"Language,omitempty"`
-	OrderNo       string                 `protobuf:"bytes,6,opt,name=OrderNo,proto3" json:"OrderNo,omitempty"`
-	BankId        string                 `protobuf:"bytes,7,opt,name=BankId,proto3" json:"BankId,omitempty"`
-	BankName      string                 `protobuf:"bytes,8,opt,name=BankName,proto3" json:"BankName,omitempty"`
-	BankProvince  string                 `protobuf:"bytes,9,opt,name=BankProvince,proto3" json:"BankProvince,omitempty"`
-	BankCity      string                 `protobuf:"bytes,10,opt,name=BankCity,proto3" json:"BankCity,omitempty"`
-	BranchName    string                 `protobuf:"bytes,11,opt,name=BranchName,proto3" json:"BranchName,omitempty"`
-	BankNo        string                 `protobuf:"bytes,12,opt,name=BankNo,proto3" json:"BankNo,omitempty"`
-	OrderAmount   float64                `protobuf:"fixed64,13,opt,name=OrderAmount,proto3" json:"OrderAmount,omitempty"`
-	DefrayName    string                 `protobuf:"bytes,14,opt,name=DefrayName,proto3" json:"DefrayName,omitempty"`
-	DefrayId      string                 `protobuf:"bytes,15,opt,name=DefrayId,proto3" json:"DefrayId,omitempty"`
-	DefrayMobile  string                 `protobuf:"bytes,16,opt,name=DefrayMobile,proto3" json:"DefrayMobile,omitempty"`
-	DefrayEmail   string                 `protobuf:"bytes,17,opt,name=DefrayEmail,proto3" json:"DefrayEmail,omitempty"`
-	Currency      string                 `protobuf:"bytes,18,opt,name=Currency,proto3" json:"Currency,omitempty"`
-	PayTypeSubNo  string                 `protobuf:"bytes,19,opt,name=PayTypeSubNo,proto3" json:"PayTypeSubNo,omitempty"`
-	BankAccount   string                 `protobuf:"bytes,20,opt,name=BankAccount,proto3" json:"BankAccount,omitempty"`
-	ExchangeRate  float64                `protobuf:"fixed64,21,opt,name=ExchangeRate,proto3" json:"ExchangeRate,omitempty"`
-	FromCurrency  string                 `protobuf:"bytes,22,opt,name=FromCurrency,proto3" json:"FromCurrency,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	AccessType     string                 `protobuf:"bytes,1,opt,name=AccessType,proto3" json:"AccessType,omitempty"`
+	MerchantId     string                 `protobuf:"bytes,2,opt,name=MerchantId,proto3" json:"MerchantId,omitempty"`
+	Sign           string                 `protobuf:"bytes,3,opt,name=Sign,proto3" json:"Sign,omitempty"`
+	NotifyUrl      string                 `protobuf:"bytes,4,opt,name=NotifyUrl,proto3" json:"NotifyUrl,omitempty"`
+	Language       string                 `protobuf:"bytes,5,opt,name=Language,proto3" json:"Language,omitempty"`
+	OrderNo        string                 `protobuf:"bytes,6,opt,name=OrderNo,proto3" json:"OrderNo,omitempty"`
+	BankId         string                 `protobuf:"bytes,7,opt,name=BankId,proto3" json:"BankId,omitempty"`
+	BankName       string                 `protobuf:"bytes,8,opt,name=BankName,proto3" json:"BankName,omitempty"`
+	BankProvince   string                 `protobuf:"bytes,9,opt,name=BankProvince,proto3" json:"BankProvince,omitempty"`
+	BankCity       string                 `protobuf:"bytes,10,opt,name=BankCity,proto3" json:"BankCity,omitempty"`
+	BranchName     string                 `protobuf:"bytes,11,opt,name=BranchName,proto3" json:"BranchName,omitempty"`
+	BankNo         string                 `protobuf:"bytes,12,opt,name=BankNo,proto3" json:"BankNo,omitempty"`
+	OrderAmount    float64                `protobuf:"fixed64,13,opt,name=OrderAmount,proto3" json:"OrderAmount,omitempty"`
+	DefrayName     string                 `protobuf:"bytes,14,opt,name=DefrayName,proto3" json:"DefrayName,omitempty"`
+	DefrayId       string                 `protobuf:"bytes,15,opt,name=DefrayId,proto3" json:"DefrayId,omitempty"`
+	DefrayMobile   string                 `protobuf:"bytes,16,opt,name=DefrayMobile,proto3" json:"DefrayMobile,omitempty"`
+	DefrayEmail    string                 `protobuf:"bytes,17,opt,name=DefrayEmail,proto3" json:"DefrayEmail,omitempty"`
+	Currency       string                 `protobuf:"bytes,18,opt,name=Currency,proto3" json:"Currency,omitempty"`
+	PayTypeSubNo   string                 `protobuf:"bytes,19,opt,name=PayTypeSubNo,proto3" json:"PayTypeSubNo,omitempty"`
+	BankAccount    string                 `protobuf:"bytes,20,opt,name=BankAccount,proto3" json:"BankAccount,omitempty"`
+	ExchangeRate   float64                `protobuf:"fixed64,21,opt,name=ExchangeRate,proto3" json:"ExchangeRate,omitempty"`
+	FromCurrency   string                 `protobuf:"bytes,22,opt,name=FromCurrency,proto3" json:"FromCurrency,omitempty"`
+	OriginalAmount float64                `protobuf:"fixed64,23,opt,name=OriginalAmount,proto3" json:"OriginalAmount,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *ProxyPayOrderRequest) Reset() {
@@ -1011,6 +1012,13 @@ func (x *ProxyPayOrderRequest) GetFromCurrency() string {
 		return x.FromCurrency
 	}
 	return ""
+}
+
+func (x *ProxyPayOrderRequest) GetOriginalAmount() float64 {
+	if x != nil {
+		return x.OriginalAmount
+	}
+	return 0
 }
 
 type CorrespondMerChnRate struct {
@@ -5095,7 +5103,7 @@ const file_rpc_transaction_proto_rawDesc = "" +
 	"\fProxyOrderNo\x18\x01 \x01(\tR\fProxyOrderNo\"F\n" +
 	"\x16ProxyOrderTestResponse\x12\x12\n" +
 	"\x04Code\x18\x01 \x01(\tR\x04Code\x12\x18\n" +
-	"\aMessage\x18\x02 \x01(\tR\aMessage\"\xb8\x05\n" +
+	"\aMessage\x18\x02 \x01(\tR\aMessage\"\xe0\x05\n" +
 	"\x14ProxyPayOrderRequest\x12\x1e\n" +
 	"\n" +
 	"AccessType\x18\x01 \x01(\tR\n" +
@@ -5127,7 +5135,8 @@ const file_rpc_transaction_proto_rawDesc = "" +
 	"\fPayTypeSubNo\x18\x13 \x01(\tR\fPayTypeSubNo\x12 \n" +
 	"\vBankAccount\x18\x14 \x01(\tR\vBankAccount\x12\"\n" +
 	"\fExchangeRate\x18\x15 \x01(\x01R\fExchangeRate\x12\"\n" +
-	"\fFromCurrency\x18\x16 \x01(\tR\fFromCurrency\"\xe4\x04\n" +
+	"\fFromCurrency\x18\x16 \x01(\tR\fFromCurrency\x12&\n" +
+	"\x0eOriginalAmount\x18\x17 \x01(\x01R\x0eOriginalAmount\"\xe4\x04\n" +
 	"\x14CorrespondMerChnRate\x12\"\n" +
 	"\fMerchantCode\x18\x01 \x01(\tR\fMerchantCode\x120\n" +
 	"\x13ChannelPayTypesCode\x18\x02 \x01(\tR\x13ChannelPayTypesCode\x12 \n" +
