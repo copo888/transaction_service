@@ -60,6 +60,7 @@ steps:
       from_secret: api01-port
     command_timeout: 180m
     script:
+      - export PATH=$PATH:/usr/local/go/bin
       - cd /root/transaction_service
       - git checkout -- .
       - git pull origin master
@@ -90,6 +91,7 @@ steps:
       from_secret: api02-port
     command_timeout: 180m
     script:
+      - export PATH=$PATH:/usr/local/go/bin
       - cd /root/transaction_service
       - git checkout -- .
       - git pull origin master
